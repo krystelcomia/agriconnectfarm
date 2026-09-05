@@ -1908,6 +1908,187 @@ function handleLogin(e) {
   }, 600);
 }
 
+// -------------------------------------------------------------
+// PASSWORD STRENGTH & REAL-TIME VALIDATION
+// -------------------------------------------------------------
+function evaluatePasswordStrength(pwd) {
+  if (!pwd) {
+    return {
+      score: 0,
+      level: 'none',
+      badge: 'Enter password',
+      prompt: 'Password must be at least 8 characters long. Mix letters, numbers, and symbols for strong protection.',
+      meetsRequirement: false,
+      criteria: { length: false, mix: false, symbolOrUpper: false }
+    };
+  }
+
+  const hasMinLength = pwd.length >= 8;
+  const hasLower = /[a-z]/.test(pwd);
+  const hasUpper = /[A-Z]/.test(pwd);
+  const hasNumber = /[0-9]/.test(pwd);
+  const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+
+  const categoriesCount = [hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
+  const hasMix = (hasLower || hasUpper) && hasNumber;
+  const hasSymbolOrUpper = hasUpper || hasSpecial;
+
+  // Detect simple repetitive, sequential or dictionary weak passwords
+  const isCommonPattern = /^(12345678|password|password1|qwertyuiop|11111111|123456789|admin123|abcdefgh|agriconnect)$/i.test(pwd);
+  const isAllNumbers = /^\d+$/.test(pwd);
+  const isAllLetters = /^[a-zA-Z]+$/.test(pwd);
+
+  // Less than 8 characters is strictly weak
+  if (!hasMinLength) {
+    return {
+      score: 1,
+      level: 'weak',
+      badge: 'Too Short (Weak)',
+      prompt: `⚠️ Password is too short (${pwd.length}/8 characters). Must be at least 8 characters long.`,
+      meetsRequirement: false,
+      criteria: { length: false, mix: hasMix, symbolOrUpper: hasSymbolOrUpper }
+    };
+  }
+
+  // 8+ chars but common pattern, all digits, or only single-case letters without numbers or symbols
+  if (isCommonPattern || isAllNumbers || (isAllLetters && categoriesCount < 2) || categoriesCount < 2) {
+    return {
+      score: 1,
+      level: 'weak',
+      badge: 'Weak Password',
+      prompt: '⚠️ Weak password detected! Avoid simple words or only numbers. Add letters, numbers, or symbols.',
+      meetsRequirement: false,
+      criteria: { length: true, mix: hasMix, symbolOrUpper: hasSymbolOrUpper }
+    };
+  }
+
+  // Meets strength requirement (8+ chars and at least 2 categories)
+  let score = 2; // Fair/Good
+  if (hasMix) score++;
+  if (categoriesCount >= 3 || (hasSymbolOrUpper && pwd.length >= 10)) score++;
+
+  if (score === 2) {
+    return {
+      score: 2,
+      level: 'fair',
+      badge: 'Fair (Meets Requirement)',
+      prompt: '✓ Password meets strength requirement! Add numbers or symbols to make it even stronger.',
+      meetsRequirement: true,
+      criteria: { length: true, mix: hasMix, symbolOrUpper: hasSymbolOrUpper }
+    };
+  } else if (score === 3) {
+    return {
+      score: 3,
+      level: 'good',
+      badge: 'Good Password',
+      prompt: '✓ Good strong password! Meets account security requirements.',
+      meetsRequirement: true,
+      criteria: { length: true, mix: true, symbolOrUpper: hasSymbolOrUpper }
+    };
+  } else {
+    return {
+      score: 4,
+      level: 'strong',
+      badge: 'Strong Password',
+      prompt: '✓ Excellent security! Strong combination of characters.',
+      meetsRequirement: true,
+      criteria: { length: true, mix: true, symbolOrUpper: true }
+    };
+  }
+}
+
+function handlePasswordInput(pwd) {
+  const strength = evaluatePasswordStrength(pwd);
+  const badge = document.getElementById('passwordStrengthBadge');
+  const promptEl = document.getElementById('passwordPromptMsg');
+  const bar1 = document.getElementById('strengthBar1');
+  const bar2 = document.getElementById('strengthBar2');
+  const bar3 = document.getElementById('strengthBar3');
+  const bar4 = document.getElementById('strengthBar4');
+  const critLength = document.getElementById('critLength');
+  const critMix = document.getElementById('critMix');
+  const critSymbol = document.getElementById('critSymbol');
+  const pwdInput = document.getElementById('signupPassword');
+
+  if (!badge || !bar1) return;
+
+  const resetBar = (el) => { if (el) el.style.background = 'var(--border-strong)'; };
+  resetBar(bar1); resetBar(bar2); resetBar(bar3); resetBar(bar4);
+
+  if (strength.score === 0) {
+    badge.textContent = 'Enter password';
+    badge.style.color = 'var(--text-muted)';
+    if (pwdInput) pwdInput.style.borderColor = 'var(--border-strong)';
+  } else if (strength.level === 'weak') {
+    badge.textContent = strength.badge;
+    badge.style.color = '#ef4444';
+    bar1.style.background = '#ef4444';
+    if (pwdInput) pwdInput.style.borderColor = '#ef4444';
+  } else if (strength.level === 'fair') {
+    badge.textContent = strength.badge;
+    badge.style.color = '#f59e0b';
+    bar1.style.background = '#f59e0b';
+    bar2.style.background = '#f59e0b';
+    if (pwdInput) pwdInput.style.borderColor = '#f59e0b';
+  } else if (strength.level === 'good') {
+    badge.textContent = strength.badge;
+    badge.style.color = '#16a34a';
+    bar1.style.background = '#16a34a';
+    bar2.style.background = '#16a34a';
+    bar3.style.background = '#16a34a';
+    if (pwdInput) pwdInput.style.borderColor = '#16a34a';
+  } else if (strength.level === 'strong') {
+    badge.textContent = strength.badge;
+    badge.style.color = '#15803d';
+    bar1.style.background = '#15803d';
+    bar2.style.background = '#15803d';
+    bar3.style.background = '#15803d';
+    bar4.style.background = '#15803d';
+    if (pwdInput) pwdInput.style.borderColor = '#15803d';
+  }
+
+  if (promptEl) {
+    promptEl.textContent = strength.prompt;
+    promptEl.style.color = strength.level === 'weak' ? '#dc2626' : (strength.meetsRequirement ? '#15803d' : 'var(--text-secondary)');
+  }
+
+  // Update criteria checklist
+  const updateCrit = (el, passed) => {
+    if (!el) return;
+    const icon = el.querySelector('.crit-icon');
+    if (passed) {
+      el.style.background = '#dcfce7';
+      el.style.color = '#166534';
+      if (icon) icon.textContent = '✓';
+    } else {
+      el.style.background = 'rgba(0,0,0,0.04)';
+      el.style.color = 'var(--text-muted)';
+      if (icon) icon.textContent = '○';
+    }
+  };
+
+  updateCrit(critLength, strength.criteria.length);
+  updateCrit(critMix, strength.criteria.mix);
+  updateCrit(critSymbol, strength.criteria.symbolOrUpper);
+}
+
+function handleConfirmPasswordInput(confirmPwd) {
+  const pwdInput = document.getElementById('signupPassword');
+  const confirmInput = document.getElementById('signupConfirmPassword');
+  if (!pwdInput || !confirmInput) return;
+
+  if (!confirmPwd) {
+    confirmInput.style.borderColor = 'var(--border-strong)';
+    return;
+  }
+
+  if (confirmPwd === pwdInput.value) {
+    confirmInput.style.borderColor = '#15803d';
+  } else {
+    confirmInput.style.borderColor = '#ef4444';
+  }
+}
+
 function handleRegister(e) {
   e.preventDefault();
   const form = e.target;
@@ -1923,11 +2104,32 @@ function handleRegister(e) {
 
   if (password !== confirmPassword) {
     showToast('Passwords do not match. Please re-enter.');
+    const confirmInput = document.getElementById('signupConfirmPassword');
+    if (confirmInput) {
+      confirmInput.focus();
+      confirmInput.style.borderColor = '#ef4444';
+    }
     return;
   }
 
-  if (password.length < 6) {
-    showToast('Password must be at least 6 characters.');
+  if (password.length < 8) {
+    showToast('Password must be at least 8 characters long.');
+    const pwdInput = document.getElementById('signupPassword');
+    if (pwdInput) {
+      pwdInput.focus();
+      pwdInput.style.borderColor = '#ef4444';
+    }
+    return;
+  }
+
+  const strength = evaluatePasswordStrength(password);
+  if (!strength.meetsRequirement) {
+    showToast('Weak password detected! Please use at least 8 characters with a combination of letters, numbers, or symbols.');
+    const pwdInput = document.getElementById('signupPassword');
+    if (pwdInput) {
+      pwdInput.focus();
+      pwdInput.style.borderColor = '#ef4444';
+    }
     return;
   }
 

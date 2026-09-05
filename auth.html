@@ -300,14 +300,16 @@
                   id="signupPassword" 
                   name="password" 
                   required 
-                  minlength="6"
-                  placeholder="Min 6 characters" 
+                  minlength="8"
+                  placeholder="Min 8 characters" 
+                  oninput="handlePasswordInput(this.value)"
                   style="width: 100%; padding: 0.6rem 2.2rem 0.6rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;"
                 >
                 <button 
                   type="button" 
                   onclick="togglePasswordVisibility('signupPassword', this)" 
                   style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center;"
+                  aria-label="Toggle password visibility"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
@@ -320,11 +322,44 @@
               </label>
               <input 
                 type="password" 
+                id="signupConfirmPassword"
                 name="confirmPassword" 
                 required 
                 placeholder="Re-enter password" 
+                oninput="handleConfirmPasswordInput(this.value)"
                 style="width: 100%; padding: 0.6rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;"
               >
+            </div>
+          </div>
+
+          <!-- Real-Time Password Strength Meter & Guidance -->
+          <div id="passwordStrengthCard" style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.65rem 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">Password Strength:</span>
+              <span id="passwordStrengthBadge" style="font-size: 0.725rem; font-weight: 700; color: var(--text-muted);">Enter password</span>
+            </div>
+            
+            <div style="display: flex; gap: 4px; height: 5px; margin-bottom: 0.45rem;">
+              <div id="strengthBar1" style="flex: 1; height: 100%; border-radius: 9999px; background: var(--border-strong); transition: background 0.2s ease;"></div>
+              <div id="strengthBar2" style="flex: 1; height: 100%; border-radius: 9999px; background: var(--border-strong); transition: background 0.2s ease;"></div>
+              <div id="strengthBar3" style="flex: 1; height: 100%; border-radius: 9999px; background: var(--border-strong); transition: background 0.2s ease;"></div>
+              <div id="strengthBar4" style="flex: 1; height: 100%; border-radius: 9999px; background: var(--border-strong); transition: background 0.2s ease;"></div>
+            </div>
+
+            <div id="passwordPromptMsg" style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
+              Must be at least 8 characters. For strong protection, mix letters, numbers, and symbols.
+            </div>
+
+            <div id="passwordCriteriaList" style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; font-size: 0.7rem;">
+              <span id="critLength" style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.45rem; border-radius: 4px; background: rgba(0,0,0,0.04); color: var(--text-muted); transition: all 0.2s;">
+                <span class="crit-icon">○</span> 8+ characters
+              </span>
+              <span id="critMix" style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.45rem; border-radius: 4px; background: rgba(0,0,0,0.04); color: var(--text-muted); transition: all 0.2s;">
+                <span class="crit-icon">○</span> Letters & numbers
+              </span>
+              <span id="critSymbol" style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.45rem; border-radius: 4px; background: rgba(0,0,0,0.04); color: var(--text-muted); transition: all 0.2s;">
+                <span class="crit-icon">○</span> Uppercase or symbol
+              </span>
             </div>
           </div>
 
