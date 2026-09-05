@@ -200,6 +200,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (document.getElementById('authPageContainer')) {
     initAuthPage();
   }
+  if (document.getElementById('farmerOrdersList')) {
+    initFarmerDashboard();
+  }
 });
 
 // Load live data or fallback
@@ -521,6 +524,15 @@ function loadSeedProducts() {
       reviews_count: 25
     }
   ];
+
+  try {
+    const customListings = JSON.parse(localStorage.getItem('agri_custom_products') || '[]');
+    if (Array.isArray(customListings) && customListings.length > 0) {
+      window.AgriState.products.unshift(...customListings);
+    }
+  } catch (e) {
+    console.warn('Could not parse custom products', e);
+  }
 }
 
 // -------------------------------------------------------------
@@ -655,6 +667,34 @@ function renderCategories() {
   container.innerHTML = html;
 }
 
+function isUserOwnProduct(product) {
+  if (!product) return false;
+  const user = window.AgriState.user;
+  if (!user || user.role !== 'farmer') return false;
+
+  // 1. Check direct farmer_id match or demo alias
+  if (product.farmer_id) {
+    if (product.farmer_id === user.id) return true;
+    if (user.id === 'farmer-ramon' && product.farmer_id === 'farmer-ramon') return true;
+  }
+
+  // 2. Check farm name
+  if (user.farm_name && product.farmer_name) {
+    const uFarm = user.farm_name.toLowerCase().trim();
+    const pFarm = product.farmer_name.toLowerCase().trim();
+    if (uFarm === pFarm || pFarm.includes(uFarm) || uFarm.includes(pFarm)) return true;
+  }
+
+  // 3. Check full name in farmer_name
+  if (user.full_name && product.farmer_name) {
+    const uName = user.full_name.toLowerCase().trim();
+    const pFarm = product.farmer_name.toLowerCase().trim();
+    if (pFarm.includes(uName)) return true;
+  }
+
+  return false;
+}
+
 function renderProducts() {
   const container = document.getElementById('productsGrid');
   const countLabel = document.getElementById('productsCountLabel');
@@ -731,7 +771,9 @@ function renderProducts() {
     return;
   }
 
-  container.innerHTML = list.map(p => `
+  container.innerHTML = list.map(p => {
+    const isOwn = isUserOwnProduct(p);
+    return `
     <div class="product-card" id="card-${p.id}">
       <div class="product-img-wrap" onclick="openProductModal('${p.id}')" style="cursor: pointer;">
         <img src="${p.image_url}" alt="${p.name}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=800'">
@@ -776,14 +818,20 @@ function renderProducts() {
             <button onclick="openProductModal('${p.id}')" class="btn-secondary" style="padding: 0.45rem 0.75rem; font-size: 0.8rem;" title="View Details">
               Details
             </button>
-            <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;" title="Add 1 ${p.unit}">
-              + Add
-            </button>
+            ${isOwn ? `
+              <span style="font-size: 0.725rem; font-weight: 700; color: #15803d; background: #dcfce7; border: 1px solid #86efac; border-radius: 9999px; padding: 0.35rem 0.65rem; display: inline-flex; align-items: center; gap: 0.25rem;" title="You are the registered producer of this harvest. Direct producer listings cannot be self-purchased.">
+                🌱 Your Harvest
+              </span>
+            ` : `
+              <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;" title="Add 1 ${p.unit}">
+                + Add
+              </button>
+            `}
           </div>
         </div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 // -------------------------------------------------------------
@@ -861,9 +909,15 @@ function renderFarmersDirectory() {
                   <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">${p.quantity} ${p.unit} in stock</div>
                   <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between;">
                     <span style="font-weight: 800; color: var(--primary-deep); font-size: 1rem;">₱${p.price.toLocaleString()} <span style="font-size: 0.75rem; font-weight: 500; color: var(--text-muted);">/${p.unit}</span></span>
-                    <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.35rem 0.65rem; font-size: 0.775rem;">
-                      + Add
-                    </button>
+                    ${isUserOwnProduct(p) ? `
+                      <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; border-radius: 4px; padding: 0.25rem 0.5rem;" title="You are the registered producer of this harvest. Farmers cannot purchase their own produce.">
+                        Your Listing
+                      </span>
+                    ` : `
+                      <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.35rem 0.65rem; font-size: 0.775rem;">
+                        + Add
+                      </button>
+                    `}
                   </div>
                 </div>
               </div>
@@ -1169,6 +1223,11 @@ function handleTrackSearch() {
 function addToCart(productId, quantity = 1) {
   const p = window.AgriState.products.find(item => item.id === productId);
   if (!p) return;
+
+  if (isUserOwnProduct(p)) {
+    showToast('As a producer, you cannot purchase your own harvest listing.');
+    return;
+  }
 
   const existing = window.AgriState.cart.find(item => item.id === productId);
   if (existing) {
@@ -1490,17 +1549,34 @@ function openProductModal(productId) {
             </span>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <div style="display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden;">
-              <button onclick="adjustModalQty(-1)" style="padding: 0.5rem 0.85rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer;">-</button>
-              <input id="modalQtyInput" type="number" value="1" min="1" max="${p.quantity}" style="width: 45px; text-align: center; border: none; font-weight: 700; font-size: 0.9rem;" readonly>
-              <button onclick="adjustModalQty(1, ${p.quantity})" style="padding: 0.5rem 0.85rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer;">+</button>
+          ${isUserOwnProduct(p) ? `
+            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: var(--radius-sm); padding: 0.85rem 1rem; width: 100%; display: flex; flex-direction: column; gap: 0.5rem;">
+              <div style="font-size: 0.825rem; color: #166534; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Your Harvest Listing (Farmer Producer)
+              </div>
+              <p style="font-size: 0.775rem; color: #15803d; margin: 0; line-height: 1.4;">
+                As the registered producer of this crop, you cannot purchase your own listings on the public marketplace. You can oversee and edit inventory from your dashboard.
+              </p>
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+                <a href="dashboard.html" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; text-decoration: none;">
+                  Manage in Farmer Dashboard &rarr;
+                </a>
+              </div>
             </div>
+          ` : `
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden;">
+                <button onclick="adjustModalQty(-1)" style="padding: 0.5rem 0.85rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer;">-</button>
+                <input id="modalQtyInput" type="number" value="1" min="1" max="${p.quantity}" style="width: 45px; text-align: center; border: none; font-weight: 700; font-size: 0.9rem;" readonly>
+                <button onclick="adjustModalQty(1, ${p.quantity})" style="padding: 0.5rem 0.85rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer;">+</button>
+              </div>
 
-            <button onclick="addToCartFromModal('${p.id}')" class="btn-primary" style="flex: 1; padding: 0.65rem 1.25rem;">
-              Add to Basket
-            </button>
-          </div>
+              <button onclick="addToCartFromModal('${p.id}')" class="btn-primary" style="flex: 1; padding: 0.65rem 1.25rem;">
+                Add to Basket
+              </button>
+            </div>
+          `}
         </div>
       </div>
     </div>
@@ -1600,6 +1676,7 @@ function submitNewListing(e) {
   e.preventDefault();
   const form = e.target;
   const formData = new FormData(form);
+  const user = window.AgriState.user;
 
   const newProd = {
     id: 'prod-' + Date.now(),
@@ -1610,16 +1687,26 @@ function submitNewListing(e) {
     quantity: Number(formData.get('quantity')),
     is_available: true,
     image_url: formData.get('imageUrl') || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800',
-    farmer_name: formData.get('farmName') || 'Local Farm',
-    farmer_id: 'custom-farmer',
-    city: formData.get('city'),
-    province: formData.get('province'),
-    description: formData.get('description'),
+    farmer_name: (user && (user.farm_name || user.full_name)) || formData.get('farmName') || 'Local Farm',
+    farmer_id: (user && user.id) || 'farmer-ramon',
+    city: formData.get('city') || (user && user.province) || 'Benguet',
+    province: formData.get('province') || (user && user.province) || 'Benguet',
+    description: formData.get('description') || 'Fresh seasonal harvest direct from our farm fields.',
     rating: '5.0',
     reviews_count: 1
   };
 
   window.AgriState.products.unshift(newProd);
+
+  // Persist custom listing
+  try {
+    const customListings = JSON.parse(localStorage.getItem('agri_custom_products') || '[]');
+    customListings.unshift(newProd);
+    localStorage.setItem('agri_custom_products', JSON.stringify(customListings));
+  } catch (err) {
+    console.warn('Could not save custom product', err);
+  }
+
   closeSellHarvestModal();
   form.reset();
 
@@ -1627,7 +1714,10 @@ function submitNewListing(e) {
     renderCategories();
     renderProducts();
   }
-  showToast(`Listing "${newProd.name}" published successfully`);
+  if (document.getElementById('farmerProductsGrid')) {
+    renderFarmerOwnProducts();
+  }
+  showToast(`Listing "${newProd.name}" published successfully!`);
 }
 
 // -------------------------------------------------------------
@@ -1878,7 +1968,7 @@ function handleLogin(e) {
 
   setTimeout(() => {
     const params = new URLSearchParams(window.location.search);
-    const redirectUrl = params.get('redirect') || (matchedUser.role === 'farmer' ? 'farmers.html' : 'marketplace.html');
+    const redirectUrl = params.get('redirect') || (matchedUser.role === 'farmer' ? 'dashboard.html' : 'marketplace.html');
     window.location.href = redirectUrl;
   }, 600);
 }
@@ -2161,7 +2251,7 @@ function handleRegister(e) {
   showToast(`Account created successfully! Welcome, ${newUser.full_name}.`);
 
   setTimeout(() => {
-    window.location.href = role === 'farmer' ? 'farmers.html' : 'marketplace.html';
+    window.location.href = role === 'farmer' ? 'dashboard.html' : 'marketplace.html';
   }, 700);
 }
 
@@ -2200,7 +2290,7 @@ function loginDemoUser(role) {
   showToast(`Logged in as ${demoUser.full_name} (${demoUser.role.toUpperCase()})`);
 
   setTimeout(() => {
-    window.location.href = role === 'farmer' ? 'farmers.html' : 'marketplace.html';
+    window.location.href = role === 'farmer' ? 'dashboard.html' : 'marketplace.html';
   }, 500);
 }
 
@@ -2229,7 +2319,60 @@ function updateAuthUI() {
     document.body.classList.toggle('is-buyer', Boolean(user && user.role !== 'farmer'));
   }
 
-  // Toggle "Sell Harvest" buttons (only available once a farmer account is logged in)
+  // Header Nav Dashboard link handling
+  const headerNav = document.getElementById('headerNav');
+  if (headerNav) {
+    const existingDashboardLink = headerNav.querySelector('a[href="dashboard.html"]');
+    if (isFarmer) {
+      if (!existingDashboardLink) {
+        const link = document.createElement('a');
+        link.id = 'farmerDashboardNavLink';
+        link.href = 'dashboard.html';
+        link.className = `nav-link ${window.location.pathname.includes('dashboard.html') ? 'active' : ''}`;
+        link.innerHTML = `<span style="display:inline-flex;align-items:center;gap:0.35rem;"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;"></span>Dashboard</span>`;
+        const homeLink = headerNav.querySelector('a[href="index.html"]');
+        if (homeLink && homeLink.nextSibling) {
+          headerNav.insertBefore(link, homeLink.nextSibling);
+        } else {
+          headerNav.prepend(link);
+        }
+      } else {
+        existingDashboardLink.style.display = '';
+      }
+    } else {
+      if (existingDashboardLink) {
+        if (existingDashboardLink.id === 'farmerDashboardNavLink') {
+          existingDashboardLink.remove();
+        } else {
+          existingDashboardLink.style.display = 'none';
+        }
+      }
+    }
+  }
+
+  // Farmer welcome notification bar
+  const farmerBanner = document.getElementById('farmerHeroBanner');
+  if (farmerBanner) {
+    if (isFarmer && user) {
+      farmerBanner.style.display = 'block';
+      farmerBanner.innerHTML = `
+        <div style="background: linear-gradient(90deg, #14532d 0%, #166534 100%); color: #ffffff; padding: 0.65rem 1.25rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.15);">
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <span style="background: #22c55e; color: #ffffff; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em;">PRODUCER</span>
+            <span>Logged in as <strong>${user.full_name}</strong> (${user.farm_name || 'Dela Cruz Family Farm'})</span>
+          </div>
+          <a href="dashboard.html" style="color: #86efac; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 0.35rem; font-size: 0.825rem;">
+            Open Producer Dashboard &rarr;
+          </a>
+        </div>
+      `;
+    } else {
+      farmerBanner.style.display = 'none';
+      farmerBanner.innerHTML = '';
+    }
+  }
+
+  // Toggle "Sell Harvest" buttons
   const sellBtns = document.querySelectorAll('.sell-harvest-btn');
   sellBtns.forEach(btn => {
     if (isFarmer) {
@@ -2268,4 +2411,373 @@ function updateAuthUI() {
       </a>
     `;
   }
+}
+
+// -------------------------------------------------------------
+// 10. FARMER DASHBOARD CONTROLLER
+// -------------------------------------------------------------
+const DEFAULT_FARMER_ORDERS = [
+  {
+    id: "ORD-8491",
+    customer_name: "Maria Santos",
+    customer_phone: "0917-552-3901",
+    delivery_address: "Quezon City, Metro Manila",
+    items: [
+      { name: "Baguio Beans", quantity: 10, unit: "kg", price: 95 },
+      { name: "Highland Cabbage", quantity: 15, unit: "kg", price: 70 }
+    ],
+    total_amount: 2000,
+    status: "Pending Harvest",
+    status_code: "pending",
+    placed_at: "Today, 06:30 AM",
+    delivery_method: "AgriConnect Direct Refrigerated Van"
+  },
+  {
+    id: "ORD-8495",
+    customer_name: "Chef Paolo Reyes (Bistro Lokal)",
+    customer_phone: "0920-881-2244",
+    delivery_address: "BGC, Taguig City",
+    items: [
+      { name: "Baguio Beans", quantity: 25, unit: "kg", price: 95 }
+    ],
+    total_amount: 2375,
+    status: "Pending Harvest",
+    status_code: "pending",
+    placed_at: "Today, 08:15 AM",
+    delivery_method: "Direct Farmgate Bulk Pickup"
+  },
+  {
+    id: "ORD-8320",
+    customer_name: "Elena Bautista",
+    customer_phone: "0918-332-9011",
+    delivery_address: "Pasig City, Metro Manila",
+    items: [
+      { name: "Highland Cabbage", quantity: 20, unit: "kg", price: 70 }
+    ],
+    total_amount: 1400,
+    status: "Delivered",
+    status_code: "delivered",
+    placed_at: "Yesterday, 02:40 PM",
+    delivery_method: "AgriConnect Express"
+  },
+  {
+    id: "ORD-8210",
+    customer_name: "Green Grocers Coop",
+    customer_phone: "0919-441-8930",
+    delivery_address: "Makati City",
+    items: [
+      { name: "Baguio Beans", quantity: 50, unit: "kg", price: 95 },
+      { name: "Highland Cabbage", quantity: 40, unit: "kg", price: 70 }
+    ],
+    total_amount: 7550,
+    status: "Delivered",
+    status_code: "delivered",
+    placed_at: "Sep 3, 2026",
+    delivery_method: "Bulk Cold Logistics"
+  },
+  {
+    id: "ORD-8192",
+    customer_name: "Roberto Gonzales",
+    customer_phone: "0927-112-4455",
+    delivery_address: "San Juan City",
+    items: [
+      { name: "Baguio Beans", quantity: 8, unit: "kg", price: 95 }
+    ],
+    total_amount: 760,
+    status: "Delivered",
+    status_code: "delivered",
+    placed_at: "Sep 2, 2026",
+    delivery_method: "Standard Farm Dispatch"
+  }
+];
+
+function getFarmerOrders() {
+  const saved = localStorage.getItem('agri_farmer_orders');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed parsing farmer orders', e);
+    }
+  }
+  localStorage.setItem('agri_farmer_orders', JSON.stringify(DEFAULT_FARMER_ORDERS));
+  return DEFAULT_FARMER_ORDERS;
+}
+
+function saveFarmerOrders(orders) {
+  localStorage.setItem('agri_farmer_orders', JSON.stringify(orders));
+}
+
+let currentFarmerOrderFilter = 'all';
+
+function filterFarmerOrders(filter) {
+  currentFarmerOrderFilter = filter;
+  renderFarmerOrders(filter);
+}
+
+function renderFarmerOrders(filter = currentFarmerOrderFilter) {
+  const listEl = document.getElementById('farmerOrdersList');
+  if (!listEl) return;
+
+  const orders = getFarmerOrders();
+  const pendingOrders = orders.filter(o => o.status_code === 'pending');
+  const deliveredOrders = orders.filter(o => o.status_code === 'delivered');
+
+  // Update tabs styling & counters
+  const tabAll = document.getElementById('tabBtnAllOrders');
+  const tabPending = document.getElementById('tabBtnPendingOrders');
+  const tabDelivered = document.getElementById('tabBtnDeliveredOrders');
+
+  if (tabAll) {
+    tabAll.className = filter === 'all' ? 'btn-primary' : 'btn-secondary';
+    tabAll.textContent = `All Orders (${orders.length})`;
+  }
+  if (tabPending) {
+    tabPending.className = filter === 'pending' ? 'btn-primary' : 'btn-secondary';
+    tabPending.textContent = `Pending Harvest (${pendingOrders.length})`;
+  }
+  if (tabDelivered) {
+    tabDelivered.className = filter === 'delivered' ? 'btn-primary' : 'btn-secondary';
+    tabDelivered.textContent = `Delivered (${deliveredOrders.length})`;
+  }
+
+  // Update KPI counters
+  const statPending = document.getElementById('statPendingOrders');
+  const statDelivered = document.getElementById('statDeliveredItems');
+  if (statPending) statPending.textContent = `${pendingOrders.length} Order${pendingOrders.length === 1 ? '' : 's'}`;
+  if (statDelivered) statDelivered.textContent = `${deliveredOrders.length} Completed`;
+
+  let filtered = orders;
+  if (filter === 'pending') {
+    filtered = pendingOrders;
+  } else if (filter === 'delivered') {
+    filtered = deliveredOrders;
+  }
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `
+      <div style="text-align: center; padding: 2.5rem 1rem; background: #ffffff; border: 1px dashed var(--border-strong); border-radius: var(--radius-md);">
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">No orders found in this category.</p>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(o => `
+    <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.85rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span style="font-weight: 800; font-size: 1.05rem; color: var(--text-main);">${o.id}</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">• ${o.placed_at}</span>
+            <span style="font-size: 0.75rem; background: var(--bg-subtle); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--text-secondary); font-weight: 600;">${o.delivery_method}</span>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem;">
+            Buyer: <strong>${o.customer_name}</strong> • Phone: <span style="font-family: monospace;">${o.customer_phone}</span> • Destination: <span>${o.delivery_address}</span>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          ${o.status_code === 'pending' ? `
+            <span style="background: #fef3c7; color: #b45309; font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 9999px; border: 1px solid #fde68a;">
+              ⏳ Pending Harvest & Packing
+            </span>
+            <button onclick="updateFarmerOrderStatus('${o.id}', 'delivered')" class="btn-primary" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">
+              Mark as Delivered
+            </button>
+          ` : `
+            <span style="background: #dcfce7; color: #166534; font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 9999px; border: 1px solid #bbf7d0;">
+              ✓ Delivered & Payout Credited
+            </span>
+          `}
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+          ${o.items.map(item => `
+            <div style="font-size: 0.85rem; color: var(--text-main);">
+              <strong>${item.quantity} ${item.unit}</strong> × ${item.name} <span style="color: var(--text-muted); font-size: 0.78rem;">(@ ₱${item.price}/${item.unit})</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="text-align: right;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Direct Farmgate Total</div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary-deep);">₱${o.total_amount.toLocaleString()}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateFarmerOrderStatus(orderId, newStatusCode) {
+  const orders = getFarmerOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  order.status_code = newStatusCode;
+  order.status = newStatusCode === 'delivered' ? 'Delivered' : 'Pending Harvest';
+  saveFarmerOrders(orders);
+  renderFarmerOrders();
+  showToast(`Order ${orderId} marked as ${order.status}! Escrow payout updated.`);
+}
+
+function renderFarmerOwnProducts() {
+  const container = document.getElementById('farmerProductsGrid');
+  if (!container) return;
+
+  const user = window.AgriState.user;
+  let ownProducts = window.AgriState.products.filter(p => isUserOwnProduct(p));
+  if (ownProducts.length === 0 && user && user.role === 'farmer') {
+    ownProducts = window.AgriState.products.filter(p => p.farmer_id === 'farmer-ramon');
+  }
+
+  const statActive = document.getElementById('statActiveListings');
+  if (statActive) {
+    statActive.textContent = `${ownProducts.length} Product${ownProducts.length === 1 ? '' : 's'}`;
+  }
+
+  if (ownProducts.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1rem; background: #ffffff; border-radius: var(--radius-md); border: 1px dashed var(--border-strong);">
+        <h4 style="font-size: 1.1rem; font-weight: 700;">No crops listed yet</h4>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.35rem 0 1rem;">Start listing your farm produce directly to consumers without middlemen.</p>
+        <button onclick="openSellHarvestModal()" class="btn-primary">+ List Your First Crop</button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = ownProducts.map(p => `
+    <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow-sm);">
+      <div style="position: relative; height: 180px; overflow: hidden;">
+        <img src="${p.image_url}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;">
+        <span style="position: absolute; top: 10px; left: 10px; background: rgba(21, 128, 61, 0.9); color: white; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;">
+          ${p.category_name}
+        </span>
+        <span style="position: absolute; top: 10px; right: 10px; background: #ffffff; color: var(--primary-deep); padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; box-shadow: var(--shadow-sm);">
+          ${p.quantity} ${p.unit} in stock
+        </span>
+      </div>
+
+      <div style="padding: 1.25rem; display: flex; flex-direction: column; flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem;">
+          <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin: 0;">${p.name}</h4>
+          <span style="font-size: 0.8rem; font-weight: 700; color: #b45309;">★ ${p.rating || '5.0'}</span>
+        </div>
+
+        <p style="font-size: 0.825rem; color: var(--text-secondary); margin-bottom: 0.85rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+          ${p.description}
+        </p>
+
+        <!-- Producer Notice: Cannot self-purchase -->
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 0.4rem 0.6rem; margin-bottom: 0.85rem; font-size: 0.725rem; color: #166534; font-weight: 600; display: flex; align-items: center; gap: 0.35rem;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Producer Listing • Public Self-Purchase Disabled
+        </div>
+
+        <div style="margin-top: auto; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary-deep);">
+              ₱${p.price.toLocaleString()}
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">per ${p.unit}</span>
+          </div>
+
+          <div style="display: flex; gap: 0.35rem;">
+            <button onclick="editFarmerProductPrice('${p.id}')" class="btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.65rem;" title="Update Price or Inventory">
+              Edit Price/Stock
+            </button>
+            <a href="marketplace.html" class="btn-primary" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; text-decoration: none;">
+              Marketplace
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function editFarmerProductPrice(productId) {
+  const p = window.AgriState.products.find(item => item.id === productId);
+  if (!p) return;
+
+  const newPriceStr = prompt(`Update price for ${p.name} (current: ₱${p.price} per ${p.unit}):`, p.price);
+  if (newPriceStr === null) return;
+  const newPrice = Number(newPriceStr);
+  if (isNaN(newPrice) || newPrice <= 0) {
+    showToast('Invalid price entered.');
+    return;
+  }
+
+  const newQtyStr = prompt(`Update stock quantity for ${p.name} (current: ${p.quantity} ${p.unit}):`, p.quantity);
+  if (newQtyStr === null) return;
+  const newQty = Number(newQtyStr);
+  if (isNaN(newQty) || newQty < 0) {
+    showToast('Invalid quantity entered.');
+    return;
+  }
+
+  p.price = newPrice;
+  p.quantity = newQty;
+  renderFarmerOwnProducts();
+  showToast(`Updated "${p.name}" to ₱${newPrice}/${p.unit} with ${newQty} in stock!`);
+}
+
+function initFarmerDashboard() {
+  const ordersEl = document.getElementById('farmerOrdersList');
+  if (!ordersEl) return;
+
+  const user = window.AgriState.user;
+
+  // If user is not logged in or is a buyer, show friendly preview mode notice
+  if (!user || user.role !== 'farmer') {
+    const mainContainer = document.querySelector('main');
+    if (mainContainer && !document.getElementById('farmerGuestNotice')) {
+      const notice = document.createElement('div');
+      notice.id = 'farmerGuestNotice';
+      notice.style.cssText = 'background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;';
+      notice.innerHTML = `
+        <div>
+          <div style="font-weight: 800; color: #1e40af; font-size: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>ℹ️</span> Farmer Dashboard Preview Mode
+          </div>
+          <p style="font-size: 0.85rem; color: #1e3a8a; margin: 0.25rem 0 0;">
+            ${user ? `You are currently logged in as a <strong>Buyer</strong> (${user.full_name}). Standard marketplace content is shown to buyers.` : 'You are currently browsing as a guest.'} 
+            Switch to the verified Farmer account to test all producer tools, sales tracking, and self-purchase restrictions.
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button onclick="loginDemoUser('farmer')" class="btn-primary" style="font-size: 0.8rem; padding: 0.45rem 0.95rem;">
+            🌾 Switch to Mang Ramon (Farmer)
+          </button>
+          <a href="marketplace.html" class="btn-secondary" style="font-size: 0.8rem; padding: 0.45rem 0.85rem; text-decoration: none;">
+            Return to Marketplace
+          </a>
+        </div>
+      `;
+      mainContainer.prepend(notice);
+    }
+  }
+
+  // Populate farmer greeting and details if logged in
+  if (user && user.role === 'farmer') {
+    const greetingEl = document.getElementById('farmerGreeting');
+    const farmDetailsEl = document.getElementById('farmerFarmDetails');
+    const avatarEl = document.getElementById('farmerAvatar');
+
+    if (greetingEl) {
+      greetingEl.textContent = `Kumusta, ${user.full_name}!`;
+    }
+    if (farmDetailsEl) {
+      farmDetailsEl.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.province || 'Benguet, Philippines'}`;
+    }
+    if (avatarEl && user.avatar) {
+      avatarEl.src = user.avatar;
+    }
+  }
+
+  renderFarmerOrders('all');
+  renderFarmerOwnProducts();
 }
