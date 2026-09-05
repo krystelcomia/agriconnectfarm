@@ -1,13 +1,15 @@
 /**
- * AgriConnect - Core Marketplace Platform Engine
- * Professional, clean farm-to-table platform
+ * AgriConnect - Multi-Page Platform Controller
+ * Manages Home Analytics & Charts, Marketplace Catalog & Usability Buttons,
+ * Farmers Directory & Products for Sale, Interactive Maps & Driving Directions,
+ * How It Works Guide, and Order Tracking.
  */
 
 // Configuration
 const SUPABASE_URL = "https://ogkorvydmlgwifhnnmjz.supabase.co/rest/v1";
 const SUPABASE_KEY = "sb_publishable_c8UFr2fVf7J-s0TsD0IYwQ_XIlg2-KY";
 
-// Embedded fallback seed data so the system works immediately & offline
+// Embedded seed data
 const SEED_DATA = {
   categories: [
     { id: "cat-veg", name: "Vegetables", slug: "vegetables" },
@@ -26,12 +28,17 @@ const SEED_DATA = {
       farm_name: "Dela Cruz Family Farm",
       city: "La Trinidad",
       province: "Benguet",
+      latitude: 16.455,
+      longitude: 120.588,
+      address: "Sitio Pungayan, La Trinidad, Benguet",
       bio: "Third-generation highland vegetable farmer cultivating crisp greens without harmful synthetic chemicals.",
       rating: 4.9,
       reviewsCount: 38,
       verified: true,
+      phone: "+63 917 842 1092",
+      pickupHours: "6:00 AM – 3:00 PM (Daily)",
       specialty: "Highland Greens & Root Crops",
-      avatar: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=200"
+      avatar: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=400"
     },
     {
       id: "farmer-nena",
@@ -39,12 +46,17 @@ const SEED_DATA = {
       farm_name: "Bautista Rice Fields",
       city: "Cabanatuan",
       province: "Nueva Ecija",
+      latitude: 15.486,
+      longitude: 120.967,
+      address: "Barangay San Isidro, Cabanatuan City, Nueva Ecija",
       bio: "Harvesting, drying, and milling premium Sinandomeng and Dinorado rice from our family farm every season.",
       rating: 5.0,
       reviewsCount: 42,
       verified: true,
+      phone: "+63 918 554 9281",
+      pickupHours: "7:00 AM – 5:00 PM (Mon-Sat)",
       specialty: "Aromatic Fragrant & Everyday Rice",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200"
+      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400"
     },
     {
       id: "farmer-jun",
@@ -52,12 +64,17 @@ const SEED_DATA = {
       farm_name: "Villanueva Mango Orchard",
       city: "Jordan",
       province: "Guimaras",
+      latitude: 10.658,
+      longitude: 122.593,
+      address: "Barangay Poblacion, Jordan, Guimaras",
       bio: "World-famous sweet Guimaras carabao mangoes picked at peak ripeness right from our fertile island orchards.",
       rating: 4.9,
       reviewsCount: 51,
       verified: true,
+      phone: "+63 920 331 4729",
+      pickupHours: "8:00 AM – 4:00 PM (Daily)",
       specialty: "Guimaras Carabao Mangoes",
-      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200"
+      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400"
     },
     {
       id: "farmer-marites",
@@ -65,12 +82,17 @@ const SEED_DATA = {
       farm_name: "Sarmiento Coastal Catch",
       city: "Navotas",
       province: "Metro Manila",
+      latitude: 14.669,
+      longitude: 120.939,
+      address: "Fish Port Complex, North Bay Blvd, Navotas City",
       bio: "Daily fresh catch straight from local fishing boats. Cleaned, iced, and dispatched within hours of port arrival.",
       rating: 4.8,
       reviewsCount: 29,
       verified: true,
+      phone: "+63 927 662 8190",
+      pickupHours: "4:00 AM – 11:00 AM (Early Catch)",
       specialty: "Fresh Bangus, Tilapia & Shrimp",
-      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200"
+      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400"
     },
     {
       id: "farmer-berting",
@@ -78,12 +100,17 @@ const SEED_DATA = {
       farm_name: "Lopez Coconut & Root Farm",
       city: "Lucban",
       province: "Quezon",
+      latitude: 14.113,
+      longitude: 121.556,
+      address: "Barangay Kulapi, Lucban, Quezon",
       bio: "Fresh coconut water, cold-pressed virgin coconut oil, cassava, and sweet purple camote from Mount Banahaw.",
       rating: 4.9,
       reviewsCount: 34,
       verified: true,
+      phone: "+63 908 771 2294",
+      pickupHours: "7:00 AM – 4:00 PM (Daily)",
       specialty: "Cold-Pressed VCO & Mountain Roots",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200"
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400"
     },
     {
       id: "farmer-cora",
@@ -91,12 +118,17 @@ const SEED_DATA = {
       farm_name: "Aquino Poultry Yard",
       city: "Silang",
       province: "Cavite",
+      latitude: 14.230,
+      longitude: 120.974,
+      address: "Barangay Biga, Silang, Cavite",
       bio: "Pasture-raised free-range native chicken and morning-laid brown eggs from the breezy highlands of Silang.",
       rating: 4.8,
       reviewsCount: 26,
       verified: true,
+      phone: "+63 919 443 8910",
+      pickupHours: "7:00 AM – 5:00 PM (Daily)",
       specialty: "Free-Range Poultry & Fresh Eggs",
-      avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200"
+      avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400"
     }
   ]
 };
@@ -113,33 +145,106 @@ window.AgriState = {
   currentLocation: 'all',
   searchQuery: '',
   maxPrice: 3000,
-  inStockOnly: true,
+  inStockOnly: false,
   sortBy: 'newest',
   currentMode: localStorage.getItem('agri_mode') || 'buyer'
 };
 
-// Icons (Reusable Clean SVGs)
+// Preload initial sample orders if empty so buyers can immediately test tracking
+if (window.AgriState.orders.length === 0) {
+  window.AgriState.orders = [
+    {
+      id: "AGRI-849201",
+      date: "Today, 7:15 AM",
+      items: [
+        { name: "Baguio Beans", price: 95, unit: "kg", quantity: 5, farmer_name: "Dela Cruz Family Farm" },
+        { name: "Fresh Benguet Carrots", price: 85, unit: "kg", quantity: 3, farmer_name: "Dela Cruz Family Farm" }
+      ],
+      subtotal: 730,
+      deliveryFee: 95,
+      total: 825,
+      fulfillment: "delivery",
+      customerName: "Carlos Mendoza",
+      phone: "0917-849-2019",
+      address: "Unit 402, Greenhills, San Juan, Metro Manila",
+      paymentMethod: "GCash",
+      status: "In Transit",
+      driverName: "Kuya Arnel (Cold-Chain Truck 04)",
+      driverPhone: "0928-114-8832",
+      eta: "11:30 AM Today",
+      origin: "La Trinidad, Benguet",
+      destination: "San Juan, Metro Manila"
+    },
+    {
+      id: "AGRI-592014",
+      date: "Yesterday, 3:40 PM",
+      items: [
+        { name: "Sinandomeng Rice (50kg Sack)", price: 2450, unit: "sack", quantity: 1, farmer_name: "Bautista Rice Fields" }
+      ],
+      subtotal: 2450,
+      deliveryFee: 95,
+      total: 2545,
+      fulfillment: "delivery",
+      customerName: "Elena Rodriguez",
+      phone: "0918-223-4411",
+      address: "Brgy. Kapitolyo, Pasig City",
+      paymentMethod: "COD",
+      status: "Delivered",
+      driverName: "Kuya Reynaldo",
+      driverPhone: "0919-332-9012",
+      eta: "Delivered",
+      origin: "Cabanatuan, Nueva Ecija",
+      destination: "Pasig City"
+    }
+  ];
+  localStorage.setItem('agri_orders', JSON.stringify(window.AgriState.orders));
+}
+
+// Clean SVG Icons
 const ICONS = {
   mapPin: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
   check: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
   star: `<svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-  plus: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
   package: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>`,
-  shoppingBag: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`
+  navigation: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`,
+  phone: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`
 };
 
-// Initialize App
+// Initialize Application
 document.addEventListener('DOMContentLoaded', async () => {
   initUIListeners();
   updateCartBadge();
   await loadInitialData();
-  renderCategories();
-  renderProducts();
-  renderFarmers();
-  renderOrderTrackingList();
+
+  // Read URL params (e.g. marketplace.html?category=Fruits or ?farmer=Dela+Cruz)
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('category')) {
+    window.AgriState.currentCategory = params.get('category');
+  }
+  if (params.get('farmer')) {
+    window.AgriState.currentFarmerFilter = params.get('farmer');
+  }
+
+  // Page-specific initializers
+  if (document.getElementById('homeChartSection')) {
+    initHomeCharts();
+  }
+  if (document.getElementById('productsGrid')) {
+    renderCategories();
+    renderProducts();
+  }
+  if (document.getElementById('farmersDirectoryGrid')) {
+    renderFarmersDirectory();
+  }
+  if (document.getElementById('mapContainer')) {
+    initInteractiveMap();
+  }
+  if (document.getElementById('ordersListContainer')) {
+    renderOrderTrackingList();
+  }
 });
 
-// Load products from Supabase or fallback
+// Load live data or fallback
 async function loadInitialData() {
   try {
     const res = await fetch(`${SUPABASE_URL}/products?select=*,categories(id,name,slug),profiles:farmer_id(full_name,farm_name,city,province,avatar_url)&is_active=eq.true&order=created_at.desc`, {
@@ -156,7 +261,7 @@ async function loadInitialData() {
       }
     }
   } catch (e) {
-    console.warn('Live query unavailable, running with cached data:', e);
+    console.warn('Using cached agricultural catalog:', e);
   }
 
   loadSeedProducts();
@@ -460,7 +565,109 @@ function loadSeedProducts() {
   ];
 }
 
-// Render Categories Chips (No Emojis)
+// -------------------------------------------------------------
+// 1. HOME PAGE ANALYTICS & CHARTS
+// -------------------------------------------------------------
+function initHomeCharts() {
+  const ctxPrice = document.getElementById('priceComparisonChart');
+  const ctxIncome = document.getElementById('farmerIncomeChart');
+
+  if (ctxPrice && typeof Chart !== 'undefined') {
+    new Chart(ctxPrice, {
+      type: 'line',
+      data: {
+        labels: ['Baguio Cabbage', 'Carabao Mango', 'Native Ginger', 'Sweet Corn', 'Fresh Bangus', 'Free-Range Eggs'],
+        datasets: [
+          {
+            label: 'Traditional Middleman Farmgate (₱)',
+            data: [28, 75, 45, 8, 110, 160],
+            borderColor: '#dc2626',
+            backgroundColor: 'rgba(220, 38, 38, 0.08)',
+            borderDash: [5, 5],
+            tension: 0.35,
+            fill: true
+          },
+          {
+            label: 'AgriConnect Direct Farmgate (₱)',
+            data: [70, 180, 120, 20, 210, 260],
+            borderColor: '#15803d',
+            backgroundColor: 'rgba(21, 128, 61, 0.12)',
+            tension: 0.35,
+            fill: true
+          },
+          {
+            label: 'Metro Manila Supermarket Retail (₱)',
+            data: [130, 260, 190, 35, 290, 340],
+            borderColor: '#64748b',
+            borderDash: [2, 2],
+            tension: 0.35,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { boxWidth: 14, font: { family: 'Plus Jakarta Sans', size: 12 } } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ₱${ctx.parsed.y}/unit`
+            }
+          }
+        },
+        scales: {
+          y: {
+            title: { display: true, text: 'Price in Philippine Pesos (₱)', font: { family: 'Plus Jakarta Sans', weight: 'bold' } },
+            grid: { color: '#f1f5f9' }
+          },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  if (ctxIncome && typeof Chart !== 'undefined') {
+    new Chart(ctxIncome, {
+      type: 'bar',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+        datasets: [
+          {
+            label: 'Traditional Net Monthly Income (₱)',
+            data: [14200, 13800, 15100, 12900, 14800, 13500, 14100, 15300],
+            backgroundColor: '#cbd5e1',
+            borderRadius: 6
+          },
+          {
+            label: 'AgriConnect Direct Net Income (₱)',
+            data: [26500, 25800, 29200, 27400, 31000, 28900, 32500, 34200],
+            backgroundColor: '#15803d',
+            borderRadius: 6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { boxWidth: 14, font: { family: 'Plus Jakarta Sans', size: 12 } } }
+        },
+        scales: {
+          y: {
+            title: { display: true, text: 'Net Income (₱)', font: { family: 'Plus Jakarta Sans', weight: 'bold' } },
+            grid: { color: '#f1f5f9' }
+          },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+}
+
+// -------------------------------------------------------------
+// 2. MARKETPLACE CATALOG (Functional Buttons & Filters)
+// -------------------------------------------------------------
 function renderCategories() {
   const container = document.getElementById('categoryChips');
   if (!container) return;
@@ -490,14 +697,12 @@ function renderCategories() {
   container.innerHTML = html;
 }
 
-// Render Products Catalog with Clean Design
 function renderProducts() {
   const container = document.getElementById('productsGrid');
   const countLabel = document.getElementById('productsCountLabel');
   const banner = document.getElementById('activeFarmerBanner');
   if (!container) return;
 
-  // Filter
   let list = window.AgriState.products.filter(p => {
     if (window.AgriState.currentCategory !== 'all' && p.category_name !== window.AgriState.currentCategory) {
       return false;
@@ -525,7 +730,6 @@ function renderProducts() {
     return true;
   });
 
-  // Sort
   if (window.AgriState.sortBy === 'price-asc') {
     list.sort((a, b) => a.price - b.price);
   } else if (window.AgriState.sortBy === 'price-desc') {
@@ -534,13 +738,12 @@ function renderProducts() {
     list.sort((a, b) => Number(b.rating) - Number(a.rating));
   }
 
-  // Banner
   if (banner) {
     if (window.AgriState.currentFarmerFilter) {
       banner.style.display = 'flex';
       banner.innerHTML = `
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
-          <span style="font-weight: 600;">Farm:</span> <span>${window.AgriState.currentFarmerFilter}</span>
+          <span style="font-weight: 600;">Filtered by Farm:</span> <span>${window.AgriState.currentFarmerFilter}</span>
         </div>
         <button onclick="clearFarmerFilter()" style="background: none; border: 1px solid currentColor; padding: 0.2rem 0.65rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">
           Clear Filter
@@ -560,10 +763,10 @@ function renderProducts() {
       <div style="grid-column: 1/-1; text-align: center; padding: 3.5rem 1rem; background: #ffffff; border-radius: var(--radius-md); border: 1px dashed var(--border-strong);">
         <h4 style="font-size: 1.15rem; font-weight: 700;">No products found</h4>
         <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.35rem; max-width: 400px; margin-left: auto; margin-right: auto;">
-          Try broadening your search term or adjusting category and price filters.
+          Try broadening your search term or selecting another category.
         </p>
         <button onclick="resetAllFilters()" class="btn-secondary" style="margin-top: 1.25rem;">
-          Reset Filters
+          Reset All Filters
         </button>
       </div>
     `;
@@ -582,21 +785,21 @@ function renderProducts() {
 
       <div style="padding: 1.15rem; display: flex; flex-direction: column; flex: 1;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.3rem;">
-          <button onclick="filterByFarmer('${p.farmer_name}')" style="background: none; border: none; padding: 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;" title="Filter by farm">
+          <a href="farmers.html#${p.farmer_id || ''}" style="color: var(--text-muted); font-size: 0.8rem; font-weight: 500; text-decoration: none; display: flex; align-items: center; gap: 0.25rem;">
             ${ICONS.mapPin} ${p.city}, ${p.province}
-          </button>
+          </a>
           <div style="font-size: 0.775rem; font-weight: 600; color: #b45309; display: flex; align-items: center; gap: 0.25rem;">
             ${ICONS.star} ${p.rating}
           </div>
         </div>
 
-        <h3 onclick="openProductModal('${p.id}')" style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); cursor: pointer; line-height: 1.35; margin-bottom: 0.35rem;">
+        <h3 onclick="openProductModal('${p.id}')" style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); cursor: pointer; line-height: 1.35; margin-bottom: 0.2rem;">
           ${p.name}
         </h3>
 
-        <div style="font-size: 0.8rem; color: var(--primary); font-weight: 600; margin-bottom: 0.5rem;">
+        <a href="farmers.html#${p.farmer_id || ''}" style="font-size: 0.8rem; color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; text-decoration: none;">
           ${p.farmer_name}
-        </div>
+        </a>
 
         <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 0.85rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45;">
           ${p.description}
@@ -610,12 +813,13 @@ function renderProducts() {
             <span class="unit-tag">/ ${p.unit}</span>
           </div>
 
+          <!-- Functional Buttons on Product Card -->
           <div style="display: flex; align-items: center; gap: 0.35rem;">
-            <button onclick="openProductModal('${p.id}')" class="btn-secondary" style="padding: 0.45rem 0.75rem; font-size: 0.8rem;">
-              View
+            <button onclick="openProductModal('${p.id}')" class="btn-secondary" style="padding: 0.45rem 0.75rem; font-size: 0.8rem;" title="View Details">
+              Details
             </button>
-            <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;">
-              Add to Cart
+            <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;" title="Add 1 ${p.unit}">
+              + Add
             </button>
           </div>
         </div>
@@ -624,48 +828,634 @@ function renderProducts() {
   `).join('');
 }
 
-// Render Farmer Cards
-function renderFarmers() {
-  const container = document.getElementById('farmersGrid');
+// -------------------------------------------------------------
+// 3. FARMERS DIRECTORY & PRODUCTS FOR SALE
+// -------------------------------------------------------------
+function renderFarmersDirectory() {
+  const container = document.getElementById('farmersDirectoryGrid');
+  if (!container) return;
+
+  container.innerHTML = window.AgriState.farmers.map(f => {
+    // Find all products listed by this farmer
+    const farmerProducts = window.AgriState.products.filter(p => 
+      p.farmer_id === f.id || p.farmer_name === f.farm_name || p.farmer_name === f.full_name
+    );
+
+    return `
+      <div id="${f.id}" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-card); margin-bottom: 2rem;">
+        <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1.5rem;">
+          <div style="display: flex; gap: 1.25rem; align-items: center;">
+            <img src="${f.avatar}" alt="${f.full_name}" style="width: 80px; height: 80px; border-radius: 9999px; object-fit: cover; border: 2px solid var(--primary);">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0;">${f.full_name}</h3>
+                <span style="color: var(--primary); font-size: 1rem;" title="Verified Philippine Grower">${ICONS.check}</span>
+              </div>
+              <div style="font-size: 0.95rem; font-weight: 700; color: var(--primary); margin-top: 0.15rem;">${f.farm_name}</div>
+              <div style="font-size: 0.825rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
+                ${ICONS.mapPin} ${f.address || `${f.city}, ${f.province}`}
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem;">
+            <div style="font-size: 0.9rem; font-weight: 700; color: #b45309; display: flex; align-items: center; gap: 0.25rem;">
+              ${ICONS.star} ${f.rating} <span style="color: var(--text-muted); font-weight: 400; font-size: 0.8rem;">(${f.reviewsCount} verified reviews)</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.35rem;">
+              ${ICONS.phone} ${f.phone || 'Direct line'}
+            </div>
+            <a href="maps.html?lat=${f.latitude}&lng=${f.longitude}&name=${encodeURIComponent(f.farm_name)}" class="btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.85rem; margin-top: 0.35rem;">
+              ${ICONS.navigation} Get Driving Directions
+            </a>
+          </div>
+        </div>
+
+        <div style="padding: 1.25rem 0;">
+          <p style="font-size: 0.925rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.75rem;">
+            "${f.bio}"
+          </p>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.8rem;">
+            <span style="background: var(--bg-subtle); padding: 0.35rem 0.75rem; border-radius: var(--radius-sm);">
+              <strong>Specialty:</strong> ${f.specialty}
+            </span>
+            <span style="background: var(--bg-subtle); padding: 0.35rem 0.75rem; border-radius: var(--radius-sm);">
+              <strong>Farm Gate Hours:</strong> ${f.pickupHours || '8:00 AM – 5:00 PM'}
+            </span>
+          </div>
+        </div>
+
+        <!-- Products for Sale by this Farmer -->
+        <div style="background: var(--bg-page); border-radius: var(--radius-md); padding: 1.25rem; margin-top: 0.5rem; border: 1px solid var(--border-subtle);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.03em;">
+              Current Harvests for Sale (${farmerProducts.length})
+            </h4>
+            <span style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">100% Direct Farmgate</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;">
+            ${farmerProducts.length > 0 ? farmerProducts.map(p => `
+              <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); overflow: hidden; display: flex; flex-direction: column;">
+                <img src="${p.image_url}" alt="${p.name}" style="width: 100%; height: 120px; object-fit: cover;">
+                <div style="padding: 0.85rem; display: flex; flex-direction: column; flex: 1;">
+                  <h5 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.25rem; color: var(--text-main);">${p.name}</h5>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">${p.quantity} ${p.unit} in stock</div>
+                  <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font-weight: 800; color: var(--primary-deep); font-size: 1rem;">₱${p.price.toLocaleString()} <span style="font-size: 0.75rem; font-weight: 500; color: var(--text-muted);">/${p.unit}</span></span>
+                    <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.35rem 0.65rem; font-size: 0.775rem;">
+                      + Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `).join('') : `
+              <div style="grid-column: 1/-1; color: var(--text-muted); font-size: 0.85rem; padding: 1rem 0;">
+                Next batch of seasonal crop currently growing in fields.
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// -------------------------------------------------------------
+// 4. MAPS & DRIVING DIRECTIONS ENGINE
+// -------------------------------------------------------------
+let mapInstance = null;
+let markersLayer = null;
+
+function initInteractiveMap() {
+  const mapEl = document.getElementById('mapContainer');
+  if (!mapEl || typeof L === 'undefined') return;
+
+  // Center around Central Luzon / Metro Manila
+  mapInstance = L.map('mapContainer').setView([14.8, 121.0], 7);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(mapInstance);
+
+  markersLayer = L.layerGroup().addTo(mapInstance);
+
+  // Add farm pins
+  window.AgriState.farmers.forEach(f => {
+    if (!f.latitude || !f.longitude) return;
+
+    const popupHtml = `
+      <div style="font-family: 'Plus Jakarta Sans', sans-serif; min-width: 200px; padding: 4px;">
+        <div style="font-weight: 800; color: #14532d; font-size: 1rem;">${f.farm_name}</div>
+        <div style="font-size: 0.825rem; font-weight: 600; color: #334155; margin-bottom: 4px;">${f.full_name}</div>
+        <div style="font-size: 0.775rem; color: #64748b; margin-bottom: 8px;">${f.city}, ${f.province}</div>
+        <div style="font-size: 0.75rem; color: #15803d; font-weight: 600; margin-bottom: 8px;">Specialty: ${f.specialty}</div>
+        <button onclick="selectFarmForDirections('${f.id}')" style="background: #15803d; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 700; font-size: 0.775rem; cursor: pointer; width: 100%;">
+          Get Driving Directions
+        </button>
+      </div>
+    `;
+
+    L.marker([f.latitude, f.longitude])
+      .bindPopup(popupHtml)
+      .addTo(markersLayer);
+  });
+
+  // Check URL params for pre-selected farm to navigate to
+  const params = new URLSearchParams(window.location.search);
+  const lat = parseFloat(params.get('lat'));
+  const lng = parseFloat(params.get('lng'));
+  if (!isNaN(lat) && !isNaN(lng)) {
+    mapInstance.setView([lat, lng], 11);
+    const targetFarmer = window.AgriState.farmers.find(f => Math.abs(f.latitude - lat) < 0.01);
+    if (targetFarmer) {
+      selectFarmForDirections(targetFarmer.id);
+    }
+  }
+
+  renderFarmListSidePanel();
+}
+
+function renderFarmListSidePanel() {
+  const container = document.getElementById('farmListContainer');
   if (!container) return;
 
   container.innerHTML = window.AgriState.farmers.map(f => `
-    <div style="background: #ffffff; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); padding: 1.35rem; box-shadow: var(--shadow-card); transition: var(--transition);">
-      <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.85rem;">
-        <img src="${f.avatar}" alt="${f.full_name}" style="width: 52px; height: 52px; border-radius: 9999px; object-fit: cover; border: 1px solid var(--border-strong);">
+    <div onclick="selectFarmForDirections('${f.id}')" class="farm-map-card" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem; cursor: pointer; transition: var(--transition); margin-bottom: 0.75rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
-          <div style="display: flex; align-items: center; gap: 0.3rem;">
-            <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0;">${f.full_name}</h4>
-            <span style="color: var(--primary); font-size: 0.85rem;" title="Verified Grower">${ICONS.check}</span>
-          </div>
-          <div style="font-size: 0.825rem; font-weight: 600; color: var(--primary);">${f.farm_name}</div>
-          <div style="font-size: 0.775rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.2rem;">
-            ${ICONS.mapPin} ${f.city}, ${f.province}
-          </div>
+          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--primary-deep); margin: 0;">${f.farm_name}</h4>
+          <div style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">${f.full_name}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">📍 ${f.city}, ${f.province}</div>
         </div>
+        <span style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary-deep); font-weight: 700; padding: 2px 8px; border-radius: 9999px;">
+          ★ ${f.rating}
+        </span>
       </div>
-
-      <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.85rem;">
-        ${f.bio}
-      </p>
-
-      <div style="background: var(--bg-subtle); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.775rem;">
-        <strong style="color: var(--text-main);">Specialty:</strong> ${f.specialty}
-      </div>
-
-      <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem;">
-        <div style="font-size: 0.8rem; font-weight: 600; color: #b45309; display: flex; align-items: center; gap: 0.25rem;">
-          ${ICONS.star} ${f.rating} <span style="color: var(--text-muted); font-weight: 400;">(${f.reviewsCount} reviews)</span>
-        </div>
-        <button onclick="filterByFarmer('${f.farm_name}')" class="btn-secondary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">
-          View Products
-        </button>
+      <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--primary); font-weight: 600;">
+        ${f.specialty}
       </div>
     </div>
   `).join('');
 }
 
-// Product Modal
+function selectFarmForDirections(farmerId) {
+  const f = window.AgriState.farmers.find(item => item.id === farmerId);
+  if (!f) return;
+
+  if (mapInstance && f.latitude && f.longitude) {
+    mapInstance.setView([f.latitude, f.longitude], 12);
+  }
+
+  const resultEl = document.getElementById('directionsResultPanel');
+  if (!resultEl) return;
+
+  // Approximate distance calculation from Metro Manila (14.5995, 120.9842)
+  const manilaLat = 14.5995;
+  const manilaLng = 120.9842;
+  const distKm = Math.round(calculateDistance(manilaLat, manilaLng, f.latitude, f.longitude));
+  const driveHours = (distKm / 55).toFixed(1);
+
+  let routeName = "Standard Expressway Corridor";
+  if (f.province === "Benguet") routeName = "NLEX → SCTEX → TPLEX → Marcos Highway / Kennon Rd";
+  else if (f.province === "Nueva Ecija") routeName = "NLEX → SCTEX (La Paz / Cabanatuan Exit)";
+  else if (f.province === "Cavite") routeName = "SLEX → MCX / CALAX → Aguinaldo Highway";
+  else if (f.province === "Quezon") routeName = "SLEX → TR4 / Pan-Philippine Hwy → Lucban";
+  else if (f.province === "Metro Manila") routeName = "C-3 / R-10 Harbor Link Coastal Route";
+  else if (f.province === "Guimaras") routeName = "Iloilo City Port → Parola Wharf RoRo Ferry (15 mins)";
+
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `
+    <div style="background: #ffffff; border: 1px solid var(--primary-border); border-radius: var(--radius-md); padding: 1.25rem; box-shadow: var(--shadow-card);">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
+        <div>
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Selected Destination</span>
+          <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);">${f.farm_name}</h4>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">${f.address}</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; font-size: 0.85rem;">
+        <div style="background: var(--bg-subtle); padding: 0.75rem; border-radius: var(--radius-sm);">
+          <span style="color: var(--text-muted); font-size: 0.75rem; display: block;">Estimated Distance:</span>
+          <strong style="font-size: 1.1rem; color: var(--text-main);">${distKm} km</strong>
+        </div>
+        <div style="background: var(--bg-subtle); padding: 0.75rem; border-radius: var(--radius-sm);">
+          <span style="color: var(--text-muted); font-size: 0.75rem; display: block;">Est. Driving Time:</span>
+          <strong style="font-size: 1.1rem; color: var(--text-main);">${driveHours} hrs</strong>
+        </div>
+      </div>
+
+      <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
+        <strong>Recommended Expressway Route:</strong><br>
+        <span>${routeName}</span>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="https://www.google.com/maps/dir/?api=1&destination=${f.latitude},${f.longitude}" target="_blank" class="btn-primary" style="flex: 1; text-align: center; justify-content: center; padding: 0.65rem;">
+          ${ICONS.navigation} Open in Google Maps / Waze
+        </a>
+        <a href="marketplace.html?farmer=${encodeURIComponent(f.farm_name)}" class="btn-secondary" style="padding: 0.65rem 0.85rem;">
+          View Produce
+        </a>
+      </div>
+    </div>
+  `;
+
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// -------------------------------------------------------------
+// 5. TRACK ORDERS
+// -------------------------------------------------------------
+function renderOrderTrackingList() {
+  const container = document.getElementById('ordersListContainer');
+  if (!container) return;
+
+  if (window.AgriState.orders.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted); background: #ffffff; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+        <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-main);">No active orders</h4>
+        <p style="font-size: 0.85rem; margin-top: 0.25rem;">Orders you place in the marketplace will appear here with live tracking.</p>
+        <a href="marketplace.html" class="btn-primary" style="margin-top: 1rem;">Browse Marketplace</a>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = window.AgriState.orders.map(order => {
+    const isDelivered = order.status === 'Delivered';
+    const isInTransit = order.status === 'In Transit';
+
+    return `
+      <div id="order-${order.id}" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); transition: border-color 0.3s ease, box-shadow 0.3s ease;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem; margin-bottom: 1rem; gap: 0.5rem;">
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Order ID</span>
+            <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-deep); font-family: monospace;">${order.id}</h4>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Status:</span>
+            <div style="font-weight: 700; font-size: 0.9rem; color: ${isDelivered ? '#15803d' : isInTransit ? '#d97706' : '#2563eb'};">
+              ${order.status}
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Timeline -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 1.25rem 0; text-align: center;">
+          <div>
+            <div style="width: 28px; height: 28px; border-radius: 9999px; background: #15803d; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; margin: 0 auto 0.25rem;">1</div>
+            <span style="font-size: 0.75rem; font-weight: 700;">Confirmed</span>
+          </div>
+          <div>
+            <div style="width: 28px; height: 28px; border-radius: 9999px; background: #15803d; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; margin: 0 auto 0.25rem;">2</div>
+            <span style="font-size: 0.75rem; font-weight: 700;">Harvested</span>
+          </div>
+          <div>
+            <div style="width: 28px; height: 28px; border-radius: 9999px; background: ${isInTransit || isDelivered ? '#15803d' : 'var(--bg-subtle)'}; color: ${isInTransit || isDelivered ? '#ffffff' : 'var(--text-light)'}; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; margin: 0 auto 0.25rem;">3</div>
+            <span style="font-size: 0.75rem; font-weight: 700; color: ${isInTransit || isDelivered ? 'inherit' : 'var(--text-muted)'};">In Transit</span>
+          </div>
+          <div>
+            <div style="width: 28px; height: 28px; border-radius: 9999px; background: ${isDelivered ? '#15803d' : 'var(--bg-subtle)'}; color: ${isDelivered ? '#ffffff' : 'var(--text-light)'}; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; margin: 0 auto 0.25rem;">4</div>
+            <span style="font-size: 0.75rem; font-weight: 700; color: ${isDelivered ? 'inherit' : 'var(--text-muted)'};">Delivered</span>
+          </div>
+        </div>
+
+        <!-- Live Vehicle & Route Details -->
+        <div style="background: var(--bg-page); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1rem; font-size: 0.825rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
+            <span>Route: <strong>${order.origin || 'Benguet Farm Hub'} → ${order.destination || order.address}</strong></span>
+            <span>ETA: <strong>${order.eta || 'Scheduled'}</strong></span>
+          </div>
+          ${order.driverName ? `
+            <div style="color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border-subtle); padding-top: 0.4rem;">
+              Driver: <strong>${order.driverName}</strong> (${order.driverPhone})
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Items Summary -->
+        <div style="font-size: 0.825rem; display: flex; justify-content: space-between; align-items: center;">
+          <span>${order.items.length} product(s) ordered • Total: <strong>₱${order.total.toLocaleString()}</strong></span>
+          <span style="color: var(--primary); font-weight: 600;">Payment: ${order.paymentMethod}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function handleTrackSearch() {
+  const input = document.getElementById('trackingSearchInput');
+  if (!input) return;
+  const query = input.value.trim().toUpperCase();
+  if (!query) {
+    showToast('Please enter an Order ID to search.');
+    return;
+  }
+  const order = window.AgriState.orders.find(o => o.id.toUpperCase() === query);
+  if (order) {
+    showToast(`Order found: ${order.id} is currently ${order.status}`);
+    const el = document.getElementById(`order-${order.id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.borderColor = '#15803d';
+      el.style.boxShadow = '0 0 0 3px rgba(21, 128, 61, 0.25)';
+      setTimeout(() => {
+        el.style.borderColor = 'var(--border-subtle)';
+        el.style.boxShadow = 'var(--shadow-sm)';
+      }, 3500);
+    }
+  } else {
+    showToast(`Order ${query} is currently being scheduled with the farmer.`);
+  }
+}
+
+// -------------------------------------------------------------
+// 6. SHOPPING CART & CHECKOUT
+// -------------------------------------------------------------
+function addToCart(productId, quantity = 1) {
+  const p = window.AgriState.products.find(item => item.id === productId);
+  if (!p) return;
+
+  const existing = window.AgriState.cart.find(item => item.id === productId);
+  if (existing) {
+    existing.quantity += quantity;
+    if (existing.quantity > p.quantity) existing.quantity = p.quantity;
+  } else {
+    window.AgriState.cart.push({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      unit: p.unit,
+      farmer_name: p.farmer_name,
+      image_url: p.image_url,
+      quantity: quantity,
+      max_quantity: p.quantity
+    });
+  }
+
+  saveCart();
+  updateCartBadge();
+  showToast(`Added ${quantity} ${p.unit} of ${p.name} to cart`);
+}
+
+function updateCartQuantity(productId, newQty) {
+  if (newQty <= 0) {
+    removeFromCart(productId);
+    return;
+  }
+  const item = window.AgriState.cart.find(i => i.id === productId);
+  if (item) {
+    item.quantity = Math.min(newQty, item.max_quantity);
+    saveCart();
+    renderCartDrawer();
+  }
+}
+
+function removeFromCart(productId) {
+  window.AgriState.cart = window.AgriState.cart.filter(i => i.id !== productId);
+  saveCart();
+  renderCartDrawer();
+  updateCartBadge();
+  showToast(`Item removed from cart`);
+}
+
+function saveCart() {
+  localStorage.setItem('agri_cart', JSON.stringify(window.AgriState.cart));
+}
+
+function updateCartBadge() {
+  const badges = document.querySelectorAll('.cart-badge');
+  const count = window.AgriState.cart.reduce((sum, item) => sum + item.quantity, 0);
+  badges.forEach(b => {
+    b.textContent = count;
+    b.style.display = count > 0 ? 'inline-flex' : 'none';
+  });
+}
+
+function toggleCart(open = true) {
+  const drawer = document.getElementById('cartDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+  if (!drawer || !backdrop) return;
+
+  if (open) {
+    renderCartDrawer();
+    drawer.classList.add('open');
+    backdrop.classList.add('open');
+  } else {
+    drawer.classList.remove('open');
+    backdrop.classList.remove('open');
+  }
+}
+
+function renderCartDrawer() {
+  const container = document.getElementById('cartItemsList');
+  const subtotalEl = document.getElementById('cartSubtotal');
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  if (!container) return;
+
+  if (window.AgriState.cart.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 3.5rem 1rem; color: var(--text-muted);">
+        <div style="width: 44px; height: 44px; margin: 0 auto 0.75rem; border-radius: var(--radius-sm); background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; color: var(--text-light);">
+          ${ICONS.package}
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">Your cart is empty</h4>
+        <p style="font-size: 0.825rem; margin-top: 0.35rem;">Add fresh harvests from the marketplace to proceed.</p>
+        <a href="marketplace.html" class="btn-primary" style="margin-top: 1.25rem;">
+          Browse Marketplace
+        </a>
+      </div>
+    `;
+    if (subtotalEl) subtotalEl.textContent = '₱0.00';
+    if (totalEl) totalEl.textContent = '₱0.00';
+    if (checkoutBtn) checkoutBtn.disabled = true;
+    return;
+  }
+
+  let subtotal = 0;
+  container.innerHTML = window.AgriState.cart.map(item => {
+    const itemTotal = item.price * item.quantity;
+    subtotal += itemTotal;
+    return `
+      <div style="display: flex; gap: 0.85rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border-subtle); align-items: center;">
+        <img src="${item.image_url}" alt="${item.name}" style="width: 60px; height: 60px; border-radius: var(--radius-sm); object-fit: cover;">
+        <div style="flex: 1;">
+          <h5 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.1rem;">${item.name}</h5>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.35rem;">${item.farmer_name}</div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);">
+              <button onclick="updateCartQuantity('${item.id}', ${item.quantity - 1})" style="padding: 0.15rem 0.5rem; border: none; background: none; cursor: pointer; font-weight: 700;">-</button>
+              <span style="font-size: 0.8rem; font-weight: 700; padding: 0 0.3rem;">${item.quantity} ${item.unit}</span>
+              <button onclick="updateCartQuantity('${item.id}', ${item.quantity + 1})" style="padding: 0.15rem 0.5rem; border: none; background: none; cursor: pointer; font-weight: 700;">+</button>
+            </div>
+            <div style="font-weight: 700; color: var(--primary-deep); font-size: 0.9rem;">
+              ₱${itemTotal.toLocaleString()}
+            </div>
+          </div>
+        </div>
+        <button onclick="removeFromCart('${item.id}')" style="background: none; border: none; color: var(--text-light); cursor: pointer; padding: 0.25rem; font-size: 1rem;" title="Remove">✕</button>
+      </div>
+    `;
+  }).join('');
+
+  const deliveryFee = 95;
+  if (subtotalEl) subtotalEl.textContent = `₱${subtotal.toLocaleString()}`;
+  if (totalEl) totalEl.textContent = `₱${(subtotal + deliveryFee).toLocaleString()}`;
+  if (checkoutBtn) checkoutBtn.disabled = false;
+}
+
+function openCheckoutModal() {
+  if (window.AgriState.cart.length === 0) return;
+  toggleCart(false);
+
+  const modal = document.getElementById('checkoutModal');
+  const summaryEl = document.getElementById('checkoutSummary');
+  if (!modal) return;
+
+  const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+  const delivery = 95;
+  const total = subtotal + delivery;
+
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 0.85rem; font-size: 0.85rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+          <span>Items (${window.AgriState.cart.length}):</span>
+          <strong>₱${subtotal.toLocaleString()}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+          <span>Scheduled Cold Delivery:</span>
+          <strong>₱${delivery.toLocaleString()}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-strong); padding-top: 0.45rem; font-size: 1rem; color: var(--primary-deep);">
+          <strong>Total to Pay:</strong>
+          <strong>₱${total.toLocaleString()}</strong>
+        </div>
+      </div>
+    `;
+  }
+
+  modal.classList.add('open');
+}
+
+function closeCheckoutModal() {
+  const modal = document.getElementById('checkoutModal');
+  if (modal) modal.classList.remove('open');
+}
+
+async function submitOrder(e) {
+  e.preventDefault();
+  const form = e.target;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing Order...';
+  }
+
+  const formData = new FormData(form);
+  const orderId = 'AGRI-' + Math.floor(100000 + Math.random() * 900000);
+  const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+  const fulfillment = formData.get('fulfillment') || 'delivery';
+  const deliveryFee = fulfillment === 'delivery' ? 95 : 0;
+
+  const newOrder = {
+    id: orderId,
+    date: new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }),
+    items: [...window.AgriState.cart],
+    subtotal: subtotal,
+    deliveryFee: deliveryFee,
+    total: subtotal + deliveryFee,
+    fulfillment: fulfillment,
+    customerName: formData.get('fullName'),
+    phone: formData.get('phone'),
+    address: formData.get('address') + ', ' + formData.get('city') + ', ' + formData.get('province'),
+    paymentMethod: formData.get('paymentMethod'),
+    status: 'Order Confirmed',
+    origin: window.AgriState.cart[0]?.farmer_name || 'Farm Hub',
+    destination: formData.get('city')
+  };
+
+  window.AgriState.orders.unshift(newOrder);
+  localStorage.setItem('agri_orders', JSON.stringify(window.AgriState.orders));
+
+  window.AgriState.cart = [];
+  saveCart();
+  updateCartBadge();
+
+  closeCheckoutModal();
+  showOrderSuccessModal(newOrder);
+  if (document.getElementById('ordersListContainer')) {
+    renderOrderTrackingList();
+  }
+}
+
+function showOrderSuccessModal(order) {
+  const modal = document.getElementById('orderSuccessModal');
+  const body = document.getElementById('orderSuccessBody');
+  if (!modal || !body) return;
+
+  body.innerHTML = `
+    <div style="text-align: center; padding: 0.5rem 0;">
+      <div style="width: 48px; height: 48px; border-radius: 9999px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+        ${ICONS.check}
+      </div>
+      <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">Order Confirmed</h3>
+      <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;">
+        Your order has been routed directly to the farm for morning harvest.
+      </p>
+
+      <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 1rem; margin: 1.25rem 0; text-align: left; font-size: 0.85rem;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem; margin-bottom: 0.4rem;">
+          <span style="color: var(--text-muted);">Tracking Number:</span>
+          <strong style="color: var(--primary-deep); font-family: monospace;">${order.id}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+          <span style="color: var(--text-muted);">Destination:</span>
+          <span>${order.address}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-subtle); padding-top: 0.4rem; font-size: 0.95rem;">
+          <strong>Total:</strong>
+          <strong style="color: var(--primary-deep);">₱${order.total.toLocaleString()}</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="track-orders.html" class="btn-primary" style="flex: 1; text-align: center; justify-content: center;">
+          Open Order Tracker
+        </a>
+        <button onclick="closeSuccessModal();" class="btn-secondary">
+          Close
+        </button>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('open');
+}
+
+function closeSuccessModal() {
+  const modal = document.getElementById('orderSuccessModal');
+  if (modal) modal.classList.remove('open');
+}
+
+// -------------------------------------------------------------
+// 7. PRODUCT DETAIL MODAL
+// -------------------------------------------------------------
 function openProductModal(productId) {
   const p = window.AgriState.products.find(item => item.id === productId);
   if (!p) return;
@@ -685,7 +1475,7 @@ function openProductModal(productId) {
         <div>
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">
-              Direct Farm Produce
+              Direct Farm Harvest
             </span>
             <div style="font-size: 0.825rem; font-weight: 600; color: #b45309; display: flex; align-items: center; gap: 0.25rem;">
               ${ICONS.star} ${p.rating} (${p.reviews_count} reviews)
@@ -701,7 +1491,7 @@ function openProductModal(productId) {
               <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">${p.farmer_name}</div>
               <div style="font-size: 0.775rem; color: var(--text-muted);">${p.city}, ${p.province}</div>
             </div>
-            <span style="font-size: 0.75rem; color: var(--primary); font-weight: 600;">Verified Grower</span>
+            <a href="farmers.html#${p.farmer_id || ''}" style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-decoration: none;">View Farm Profile →</a>
           </div>
 
           <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">
@@ -760,332 +1550,9 @@ function addToCartFromModal(productId) {
   closeProductModal();
 }
 
-// Shopping Cart Functions
-function addToCart(productId, quantity = 1) {
-  const p = window.AgriState.products.find(item => item.id === productId);
-  if (!p) return;
-
-  const existing = window.AgriState.cart.find(item => item.id === productId);
-  if (existing) {
-    existing.quantity += quantity;
-    if (existing.quantity > p.quantity) existing.quantity = p.quantity;
-  } else {
-    window.AgriState.cart.push({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      unit: p.unit,
-      farmer_name: p.farmer_name,
-      image_url: p.image_url,
-      quantity: quantity,
-      max_quantity: p.quantity
-    });
-  }
-
-  saveCart();
-  updateCartBadge();
-  showToast(`Added ${quantity} ${p.unit} of ${p.name} to cart`);
-}
-
-function updateCartQuantity(productId, newQty) {
-  if (newQty <= 0) {
-    removeFromCart(productId);
-    return;
-  }
-  const item = window.AgriState.cart.find(i => i.id === productId);
-  if (item) {
-    item.quantity = Math.min(newQty, item.max_quantity);
-    saveCart();
-    renderCartDrawer();
-  }
-}
-
-function removeFromCart(productId) {
-  window.AgriState.cart = window.AgriState.cart.filter(i => i.id !== productId);
-  saveCart();
-  renderCartDrawer();
-  updateCartBadge();
-  showToast(`Item removed from basket`);
-}
-
-function saveCart() {
-  localStorage.setItem('agri_cart', JSON.stringify(window.AgriState.cart));
-}
-
-function updateCartBadge() {
-  const badges = document.querySelectorAll('.cart-badge');
-  const count = window.AgriState.cart.reduce((sum, item) => sum + item.quantity, 0);
-  badges.forEach(b => {
-    b.textContent = count;
-    b.style.display = count > 0 ? 'inline-flex' : 'none';
-  });
-}
-
-function toggleCart(open = true) {
-  const drawer = document.getElementById('cartDrawer');
-  const backdrop = document.getElementById('drawerBackdrop');
-  if (!drawer || !backdrop) return;
-
-  if (open) {
-    renderCartDrawer();
-    drawer.classList.add('open');
-    backdrop.classList.add('open');
-  } else {
-    drawer.classList.remove('open');
-    backdrop.classList.remove('open');
-  }
-}
-
-function renderCartDrawer() {
-  const container = document.getElementById('cartItemsList');
-  const subtotalEl = document.getElementById('cartSubtotal');
-  const totalEl = document.getElementById('cartTotal');
-  const checkoutBtn = document.getElementById('checkoutBtn');
-  if (!container) return;
-
-  if (window.AgriState.cart.length === 0) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 3.5rem 1rem; color: var(--text-muted);">
-        <div style="width: 44px; height: 44px; margin: 0 auto 0.75rem; border-radius: var(--radius-sm); background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; color: var(--text-light);">
-          ${ICONS.package}
-        </div>
-        <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">Your basket is empty</h4>
-        <p style="font-size: 0.825rem; margin-top: 0.35rem;">Add produce from the marketplace to proceed with an order.</p>
-        <button onclick="toggleCart(false)" class="btn-primary" style="margin-top: 1.25rem;">
-          Explore Marketplace
-        </button>
-      </div>
-    `;
-    if (subtotalEl) subtotalEl.textContent = '₱0.00';
-    if (totalEl) totalEl.textContent = '₱0.00';
-    if (checkoutBtn) checkoutBtn.disabled = true;
-    return;
-  }
-
-  let subtotal = 0;
-  container.innerHTML = window.AgriState.cart.map(item => {
-    const itemTotal = item.price * item.quantity;
-    subtotal += itemTotal;
-    return `
-      <div style="display: flex; gap: 0.85rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border-subtle); align-items: center;">
-        <img src="${item.image_url}" alt="${item.name}" style="width: 60px; height: 60px; border-radius: var(--radius-sm); object-fit: cover;">
-        <div style="flex: 1;">
-          <h5 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.1rem;">${item.name}</h5>
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.35rem;">${item.farmer_name}</div>
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);">
-              <button onclick="updateCartQuantity('${item.id}', ${item.quantity - 1})" style="padding: 0.15rem 0.5rem; border: none; background: none; cursor: pointer; font-weight: 700;">-</button>
-              <span style="font-size: 0.8rem; font-weight: 700; padding: 0 0.3rem;">${item.quantity} ${item.unit}</span>
-              <button onclick="updateCartQuantity('${item.id}', ${item.quantity + 1})" style="padding: 0.15rem 0.5rem; border: none; background: none; cursor: pointer; font-weight: 700;">+</button>
-            </div>
-            <div style="font-weight: 700; color: var(--primary-deep); font-size: 0.9rem;">
-              ₱${itemTotal.toLocaleString()}
-            </div>
-          </div>
-        </div>
-        <button onclick="removeFromCart('${item.id}')" style="background: none; border: none; color: var(--text-light); cursor: pointer; padding: 0.25rem; font-size: 1rem;" title="Remove">✕</button>
-      </div>
-    `;
-  }).join('');
-
-  const deliveryFee = 95;
-  if (subtotalEl) subtotalEl.textContent = `₱${subtotal.toLocaleString()}`;
-  if (totalEl) totalEl.textContent = `₱${(subtotal + deliveryFee).toLocaleString()}`;
-  if (checkoutBtn) checkoutBtn.disabled = false;
-}
-
-// Checkout Modal
-function openCheckoutModal() {
-  if (window.AgriState.cart.length === 0) return;
-  toggleCart(false);
-
-  const modal = document.getElementById('checkoutModal');
-  const summaryEl = document.getElementById('checkoutSummary');
-  if (!modal) return;
-
-  const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-  const delivery = 95;
-  const total = subtotal + delivery;
-
-  if (summaryEl) {
-    summaryEl.innerHTML = `
-      <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 0.85rem; font-size: 0.85rem;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
-          <span>Items (${window.AgriState.cart.length}):</span>
-          <strong>₱${subtotal.toLocaleString()}</strong>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
-          <span>Scheduled Cold Delivery:</span>
-          <strong>₱${delivery.toLocaleString()}</strong>
-        </div>
-        <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-strong); padding-top: 0.45rem; font-size: 1rem; color: var(--primary-deep);">
-          <strong>Total to Pay:</strong>
-          <strong>₱${total.toLocaleString()}</strong>
-        </div>
-      </div>
-    `;
-  }
-
-  modal.classList.add('open');
-}
-
-function closeCheckoutModal() {
-  const modal = document.getElementById('checkoutModal');
-  if (modal) modal.classList.remove('open');
-}
-
-// Submit Order
-async function submitOrder(e) {
-  e.preventDefault();
-  const form = e.target;
-  const submitBtn = form.querySelector('button[type="submit"]');
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Processing Order...';
-  }
-
-  const formData = new FormData(form);
-  const orderId = 'AGRI-' + Math.floor(100000 + Math.random() * 900000);
-  const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-  const fulfillment = formData.get('fulfillment') || 'delivery';
-  const deliveryFee = fulfillment === 'delivery' ? 95 : 0;
-
-  const newOrder = {
-    id: orderId,
-    date: new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }),
-    items: [...window.AgriState.cart],
-    subtotal: subtotal,
-    deliveryFee: deliveryFee,
-    total: subtotal + deliveryFee,
-    fulfillment: fulfillment,
-    customerName: formData.get('fullName'),
-    phone: formData.get('phone'),
-    address: formData.get('address') + ', ' + formData.get('city') + ', ' + formData.get('province'),
-    paymentMethod: formData.get('paymentMethod'),
-    status: 'Order Confirmed'
-  };
-
-  window.AgriState.orders.unshift(newOrder);
-  localStorage.setItem('agri_orders', JSON.stringify(window.AgriState.orders));
-
-  window.AgriState.cart = [];
-  saveCart();
-  updateCartBadge();
-
-  closeCheckoutModal();
-  showOrderSuccessModal(newOrder);
-  renderOrderTrackingList();
-}
-
-function showOrderSuccessModal(order) {
-  const modal = document.getElementById('orderSuccessModal');
-  const body = document.getElementById('orderSuccessBody');
-  if (!modal || !body) return;
-
-  body.innerHTML = `
-    <div style="text-align: center; padding: 0.5rem 0;">
-      <div style="width: 48px; height: 48px; border-radius: 9999px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
-        ${ICONS.check}
-      </div>
-      <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">Order Confirmed</h3>
-      <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;">
-        Your order has been routed to the farm for harvesting and preparation.
-      </p>
-
-      <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 1rem; margin: 1.25rem 0; text-align: left; font-size: 0.85rem;">
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem; margin-bottom: 0.4rem;">
-          <span style="color: var(--text-muted);">Order Reference:</span>
-          <strong style="color: var(--primary-deep); font-family: monospace;">${order.id}</strong>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-          <span style="color: var(--text-muted);">Fulfillment:</span>
-          <span style="text-transform: capitalize;">${order.fulfillment}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-          <span style="color: var(--text-muted);">Payment Mode:</span>
-          <span style="text-transform: uppercase;">${order.paymentMethod}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-subtle); padding-top: 0.4rem; font-size: 0.95rem;">
-          <strong>Total:</strong>
-          <strong style="color: var(--primary-deep);">₱${order.total.toLocaleString()}</strong>
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 0.5rem;">
-        <button onclick="closeSuccessModal(); scrollToSection('orderTracker');" class="btn-primary" style="flex: 1;">
-          View Tracking Details
-        </button>
-        <button onclick="closeSuccessModal();" class="btn-secondary">
-          Continue Shopping
-        </button>
-      </div>
-    </div>
-  `;
-
-  modal.classList.add('open');
-}
-
-function closeSuccessModal() {
-  const modal = document.getElementById('orderSuccessModal');
-  if (modal) modal.classList.remove('open');
-}
-
-// Order Tracking List Renderer (Clean progress dots)
-function renderOrderTrackingList() {
-  const container = document.getElementById('ordersListContainer');
-  if (!container) return;
-
-  if (window.AgriState.orders.length === 0) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); background: #ffffff; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-        <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-main);">No active orders</h4>
-        <p style="font-size: 0.825rem; margin-top: 0.25rem;">Your placed orders and fulfillment status will appear here.</p>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = window.AgriState.orders.map(order => `
-    <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm);">
-      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.65rem; margin-bottom: 0.85rem;">
-        <div>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">Order ID</span>
-          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--primary-deep); font-family: monospace;">${order.id}</h4>
-        </div>
-        <div style="text-align: right;">
-          <span style="font-size: 0.75rem; color: var(--text-muted);">Date:</span>
-          <div style="font-weight: 600; font-size: 0.85rem;">${order.date}</div>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 1rem 0; text-align: center;">
-        <div>
-          <div style="width: 24px; height: 24px; border-radius: 9999px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin: 0 auto 0.25rem;">1</div>
-          <span style="font-size: 0.75rem; font-weight: 600;">Confirmed</span>
-        </div>
-        <div>
-          <div style="width: 24px; height: 24px; border-radius: 9999px; background: #d97706; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin: 0 auto 0.25rem;">2</div>
-          <span style="font-size: 0.75rem; font-weight: 600;">Harvesting</span>
-        </div>
-        <div>
-          <div style="width: 24px; height: 24px; border-radius: 9999px; background: var(--bg-subtle); color: var(--text-light); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin: 0 auto 0.25rem;">3</div>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">In Transit</span>
-        </div>
-        <div>
-          <div style="width: 24px; height: 24px; border-radius: 9999px; background: var(--bg-subtle); color: var(--text-light); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin: 0 auto 0.25rem;">4</div>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">Delivered</span>
-        </div>
-      </div>
-
-      <div style="background: var(--bg-subtle); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
-        <span>${order.items.length} item(s) • Total: <strong>₱${order.total.toLocaleString()}</strong></span>
-        <span style="color: var(--primary); font-weight: 600;">${order.status}</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-// Farmer Listing Portal
+// -------------------------------------------------------------
+// 8. FARMER LISTING MODAL
+// -------------------------------------------------------------
 function openSellHarvestModal() {
   const modal = document.getElementById('sellHarvestModal');
   if (modal) modal.classList.add('open');
@@ -1108,13 +1575,13 @@ function runAIPricingAssistant() {
   if (crop.includes('mango') || crop.includes('mangga')) {
     suggested = { min: 160, max: 210, unit: 'kg', tip: 'Sweet grade-A mangoes command premium pricing.' };
   } else if (crop.includes('rice') || crop.includes('bigas')) {
-    suggested = { min: 2300, max: 2600, unit: 'sack (50kg)', tip: 'Stable farmgate prices; direct wholesale to consumers.' };
+    suggested = { min: 2300, max: 2600, unit: 'sack (50kg)', tip: 'Direct wholesale to consumers without trader markdown.' };
   } else if (crop.includes('cabbage') || crop.includes('bean') || crop.includes('baguio')) {
-    suggested = { min: 65, max: 110, unit: 'kg', tip: 'Benguet highland supply is steady; fair direct-to-buyer rate.' };
-  } else if (crop.includes('bangus') || crop.includes('fish') || crop.includes('tilapia')) {
-    suggested = { min: 180, max: 240, unit: 'kg', tip: 'Daily market rates in Navotas support this price range.' };
+    suggested = { min: 65, max: 110, unit: 'kg', tip: 'Benguet highland supply is steady.' };
+  } else if (crop.includes('bangus') || crop.includes('fish')) {
+    suggested = { min: 180, max: 240, unit: 'kg', tip: 'Daily market rates in Navotas support this range.' };
   } else if (crop.includes('egg') || crop.includes('itlog')) {
-    suggested = { min: 240, max: 280, unit: 'tray (30s)', tip: 'Consistent household demand.' };
+    suggested = { min: 240, max: 280, unit: 'tray (30s)', tip: 'Consistent daily household demand.' };
   }
 
   adviceEl.style.display = 'block';
@@ -1164,13 +1631,16 @@ function submitNewListing(e) {
   closeSellHarvestModal();
   form.reset();
 
-  renderCategories();
-  renderProducts();
-  showToast(`Listing "${newProd.name}" is now active in the marketplace`);
-  scrollToSection('marketplace');
+  if (document.getElementById('productsGrid')) {
+    renderCategories();
+    renderProducts();
+  }
+  showToast(`Listing "${newProd.name}" published successfully`);
 }
 
-// Filter Handlers
+// -------------------------------------------------------------
+// 8. HELPERS & GENERAL LISTENERS
+// -------------------------------------------------------------
 function setCategory(cat) {
   window.AgriState.currentCategory = cat;
   renderCategories();
@@ -1179,8 +1649,11 @@ function setCategory(cat) {
 
 function filterByFarmer(farmerName) {
   window.AgriState.currentFarmerFilter = farmerName;
-  renderProducts();
-  scrollToSection('marketplace');
+  if (window.location.pathname.includes('marketplace.html')) {
+    renderProducts();
+  } else {
+    window.location.href = `marketplace.html?farmer=${encodeURIComponent(farmerName)}`;
+  }
 }
 
 function clearFarmerFilter() {
@@ -1194,13 +1667,11 @@ function resetAllFilters() {
   window.AgriState.currentLocation = 'all';
   window.AgriState.searchQuery = '';
   window.AgriState.maxPrice = 3000;
-  window.AgriState.inStockOnly = true;
+  window.AgriState.inStockOnly = false;
   window.AgriState.sortBy = 'newest';
 
   const s = document.getElementById('searchInput');
   if (s) s.value = '';
-  const heroS = document.getElementById('heroSearchInput');
-  if (heroS) heroS.value = '';
   const pr = document.getElementById('priceRange');
   if (pr) pr.value = 3000;
   const locSel = document.getElementById('locationSelect');
@@ -1222,7 +1693,7 @@ function toggleMode(mode) {
   if (badge) {
     badge.textContent = mode === 'farmer' ? 'Farmer View' : 'Buyer View';
   }
-  showToast(`Switched to ${mode === 'farmer' ? 'Farmer' : 'Buyer'} View`);
+  showToast(`Switched to ${mode === 'farmer' ? 'Farmer' : 'Buyer'} Mode`);
 }
 
 function showToast(msg) {
@@ -1241,9 +1712,9 @@ function showToast(msg) {
   }, 2800);
 }
 
-function scrollToSection(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
+function toggleMobileNav() {
+  const nav = document.getElementById('headerNav');
+  if (nav) nav.classList.toggle('mobile-open');
 }
 
 function initUIListeners() {
@@ -1252,17 +1723,6 @@ function initUIListeners() {
     searchInput.addEventListener('input', (e) => {
       window.AgriState.searchQuery = e.target.value;
       renderProducts();
-    });
-  }
-
-  const heroSearchInput = document.getElementById('heroSearchInput');
-  if (heroSearchInput) {
-    heroSearchInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        window.AgriState.searchQuery = heroSearchInput.value;
-        renderProducts();
-        scrollToSection('marketplace');
-      }
     });
   }
 
