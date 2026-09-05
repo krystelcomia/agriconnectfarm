@@ -43,6 +43,14 @@
 
       <!-- Right Action Controls -->
       <div class="header-actions">
+        <!-- Search Trigger in Header -->
+        <button onclick="focusMarketplaceSearch()" class="btn-secondary" style="padding: 0.5rem 0.85rem; font-size: 0.825rem;" title="Search Marketplace">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <span>Search</span>
+        </button>
+
         <!-- Sell Produce CTA -->
         <button onclick="openSellHarvestModal()" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.825rem;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -95,28 +103,17 @@
           Buy directly from verified Filipino farmers in Benguet, Nueva Ecija, Guimaras, and across the islands. 100% farm-gate fair prices, live harvest availability, and zero middlemen.
         </p>
 
-        <!-- Search Bar -->
-        <div class="hero-search-box">
-          <div style="display: flex; gap: 0.5rem;">
-            <div style="flex: 1; display: flex; align-items: center; padding-left: 0.75rem; gap: 0.5rem;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-              </svg>
-              <input id="heroSearchInput" type="text" placeholder="Search produce (e.g. mango, cabbage, rice, bangus)..." style="width: 100%; border: none; outline: none; font-size: 0.925rem; font-family: inherit; color: var(--text-main);" />
-            </div>
-            <button onclick="handleHeroSearch()" class="btn-primary" style="padding: 0.65rem 1.4rem; white-space: nowrap;">
-              Search Produce
-            </button>
-          </div>
-        </div>
-
-        <!-- Quick Trending Tags -->
-        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; font-size: 0.8rem; color: rgba(255, 255, 255, 0.9);">
-          <span style="font-weight: 600; opacity: 0.8;">Popular:</span>
-          <button onclick="quickFilterCategory('Vegetables')" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.775rem; cursor: pointer;">Benguet Vegetables</button>
-          <button onclick="quickFilterCategory('Fruits')" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.775rem; cursor: pointer;">Guimaras Mangoes</button>
-          <button onclick="quickFilterCategory('Rice & Grains')" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.775rem; cursor: pointer;">Nueva Ecija Rice</button>
-          <button onclick="quickFilterCategory('Fish & Seafood')" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.775rem; cursor: pointer;">Navotas Seafood</button>
+        <!-- Clean Action Buttons (Replacing Home Page Search Bar) -->
+        <div style="display: flex; gap: 0.85rem; margin-top: 1.75rem; flex-wrap: wrap;">
+          <a href="#marketplace" class="btn-primary" style="padding: 0.75rem 1.5rem; font-size: 0.95rem;">
+            Browse Marketplace
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+          <a href="#farmers" class="btn-secondary" style="padding: 0.75rem 1.35rem; font-size: 0.95rem; background: rgba(255, 255, 255, 0.15); color: #ffffff; border-color: rgba(255, 255, 255, 0.35); backdrop-filter: blur(8px);">
+            Meet the Farmers
+          </a>
         </div>
 
         <!-- Value Stats Row -->
@@ -750,15 +747,15 @@
       if (nav) nav.classList.toggle('mobile-open');
     }
 
-    function handleHeroSearch() {
-      const input = document.getElementById('heroSearchInput');
-      if (input && input.value.trim()) {
-        window.AgriState.searchQuery = input.value.trim();
-        const mainSearch = document.getElementById('searchInput');
-        if (mainSearch) mainSearch.value = input.value.trim();
-        renderProducts();
-        scrollToSection('marketplace');
-      }
+    function focusMarketplaceSearch() {
+      scrollToSection('marketplace');
+      setTimeout(() => {
+        const s = document.getElementById('searchInput');
+        if (s) {
+          s.focus();
+          s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
     }
 
     function quickFilterCategory(cat) {
