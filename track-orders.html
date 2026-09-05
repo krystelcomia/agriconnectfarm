@@ -74,7 +74,7 @@
           <input 
             type="text" 
             id="trackingSearchInput" 
-            placeholder="Enter Order ID (e.g. AGRI-849201)" 
+            placeholder="Enter Order ID to track" 
             style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: monospace; font-weight: 700;"
             onkeydown="if(event.key === 'Enter') handleTrackSearch()"
           >
@@ -85,23 +85,6 @@
 
         <button onclick="handleTrackSearch()" class="btn-primary" style="padding: 0.75rem 1.5rem; font-size: 0.9rem;">
           Track Order
-        </button>
-      </div>
-
-      <!-- Quick Test Sample Order IDs -->
-      <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary); flex-wrap: wrap;">
-        <span>Sample Orders to Test:</span>
-        <button 
-          onclick="document.getElementById('trackingSearchInput').value = 'AGRI-849201'; handleTrackSearch();"
-          style="background: var(--bg-subtle); border: 1px solid var(--border-strong); padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); font-family: monospace; font-size: 0.78rem; font-weight: 700; cursor: pointer;"
-        >
-          AGRI-849201 (Benguet Highland Greens - In Transit)
-        </button>
-        <button 
-          onclick="document.getElementById('trackingSearchInput').value = 'AGRI-592014'; handleTrackSearch();"
-          style="background: var(--bg-subtle); border: 1px solid var(--border-strong); padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); font-family: monospace; font-size: 0.78rem; font-weight: 700; cursor: pointer;"
-        >
-          AGRI-592014 (Sinandomeng Rice - Delivered)
         </button>
       </div>
     </div>

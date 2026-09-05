@@ -139,7 +139,7 @@ window.AgriState = {
   categories: SEED_DATA.categories,
   farmers: SEED_DATA.farmers,
   cart: JSON.parse(localStorage.getItem('agri_cart') || '[]'),
-  orders: JSON.parse(localStorage.getItem('agri_orders') || '[]'),
+  orders: JSON.parse(localStorage.getItem('agri_orders') || '[]').filter(o => o && o.id !== 'AGRI-849201' && o.id !== 'AGRI-592014'),
   currentCategory: 'all',
   currentFarmerFilter: null,
   currentLocation: 'all',
@@ -151,55 +151,8 @@ window.AgriState = {
   user: JSON.parse(localStorage.getItem('agri_user') || 'null')
 };
 
-// Preload initial sample orders if empty so buyers can immediately test tracking
-if (window.AgriState.orders.length === 0) {
-  window.AgriState.orders = [
-    {
-      id: "AGRI-849201",
-      date: "Today, 7:15 AM",
-      items: [
-        { name: "Baguio Beans", price: 95, unit: "kg", quantity: 5, farmer_name: "Dela Cruz Family Farm" },
-        { name: "Fresh Benguet Carrots", price: 85, unit: "kg", quantity: 3, farmer_name: "Dela Cruz Family Farm" }
-      ],
-      subtotal: 730,
-      deliveryFee: 95,
-      total: 825,
-      fulfillment: "delivery",
-      customerName: "Carlos Mendoza",
-      phone: "0917-849-2019",
-      address: "Unit 402, Greenhills, San Juan, Metro Manila",
-      paymentMethod: "GCash",
-      status: "In Transit",
-      driverName: "Kuya Arnel (Cold-Chain Truck 04)",
-      driverPhone: "0928-114-8832",
-      eta: "11:30 AM Today",
-      origin: "La Trinidad, Benguet",
-      destination: "San Juan, Metro Manila"
-    },
-    {
-      id: "AGRI-592014",
-      date: "Yesterday, 3:40 PM",
-      items: [
-        { name: "Sinandomeng Rice (50kg Sack)", price: 2450, unit: "sack", quantity: 1, farmer_name: "Bautista Rice Fields" }
-      ],
-      subtotal: 2450,
-      deliveryFee: 95,
-      total: 2545,
-      fulfillment: "delivery",
-      customerName: "Elena Rodriguez",
-      phone: "0918-223-4411",
-      address: "Brgy. Kapitolyo, Pasig City",
-      paymentMethod: "COD",
-      status: "Delivered",
-      driverName: "Kuya Reynaldo",
-      driverPhone: "0919-332-9012",
-      eta: "Delivered",
-      origin: "Cabanatuan, Nueva Ecija",
-      destination: "Pasig City"
-    }
-  ];
-  localStorage.setItem('agri_orders', JSON.stringify(window.AgriState.orders));
-}
+// Purge any legacy sample orders from storage
+localStorage.setItem('agri_orders', JSON.stringify(window.AgriState.orders));
 
 // Clean SVG Icons
 const ICONS = {
@@ -1089,18 +1042,40 @@ function renderOrderTrackingList() {
   const container = document.getElementById('ordersListContainer');
   if (!container) return;
 
-  if (window.AgriState.orders.length === 0) {
+  const user = window.AgriState.user;
+  const orders = window.AgriState.orders || [];
+
+  if (orders.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted); background: #ffffff; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-        <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-main);">No active orders</h4>
-        <p style="font-size: 0.85rem; margin-top: 0.25rem;">Orders you place in the marketplace will appear here with live tracking.</p>
-        <a href="marketplace.html" class="btn-primary" style="margin-top: 1rem;">Browse Marketplace</a>
+      <div style="text-align: center; padding: 4rem 1.5rem; background: #ffffff; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+        <div style="width: 64px; height: 64px; border-radius: 9999px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+          </svg>
+        </div>
+        <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.4rem;">
+          No Orders Yet
+        </h3>
+        <p style="font-size: 0.925rem; color: var(--text-secondary); max-width: 480px; margin: 0 auto 1.75rem; line-height: 1.6;">
+          You don't have any active orders right now. Explore fresh harvests in our marketplace and start your first purchase directly from verified Philippine farmers!
+        </p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+          <a href="marketplace.html" class="btn-primary" style="padding: 0.7rem 1.5rem; text-decoration: none; font-size: 0.875rem;">
+            Start Your First Purchase &rarr;
+          </a>
+          ${!user ? `
+            <a href="auth.html" class="btn-secondary" style="padding: 0.7rem 1.35rem; text-decoration: none; font-size: 0.875rem;">
+              Log In / Register
+            </a>
+          ` : ''}
+        </div>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = window.AgriState.orders.map(order => {
+  container.innerHTML = orders.map(order => {
     const isDelivered = order.status === 'Delivered';
     const isInTransit = order.status === 'In Transit';
 
@@ -1184,7 +1159,7 @@ function handleTrackSearch() {
       }, 3500);
     }
   } else {
-    showToast(`Order ${query} is currently being scheduled with the farmer.`);
+    showToast(`No order found with ID "${query}". Browse the marketplace to place your first order.`);
   }
 }
 
