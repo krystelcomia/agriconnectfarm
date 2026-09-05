@@ -1,240 +1,795 @@
-<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="image" href="/assets/hero-farmer-DYv3MT8K.jpg"/><link rel="stylesheet" href="/assets/styles-C8OxMI--.css" data-precedence="default"/><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" data-precedence="default"/><title>AgriConnect — Buy Fresh Produce Direct from Filipino Farmers</title><meta name="author" content="AgriConnect"/><meta property="og:type" content="website"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:site" content="@Lovable"/><meta name="description" content="AgriConnect is a Philippine farm-to-buyer marketplace. Farmers list their harvest, buyers order fresh produce directly — no middlemen."/><meta property="og:title" content="AgriConnect — Farm to Buyer Marketplace"/><meta property="og:description" content="Fresh vegetables, fruits, rice, fish and more, straight from local Filipino farmers."/><link rel="modulepreload" href="/assets/index-ukUv44L5.js"/><link rel="modulepreload" href="/assets/jsx-runtime-Bc41UEzt.js"/><link rel="modulepreload" href="/assets/link-BykOM3I6.js"/><link rel="modulepreload" href="/assets/lazyRouteComponent-BgiZA0N_.js"/><link rel="modulepreload" href="/assets/useAuth-hU4ynlxu.js"/><link rel="modulepreload" href="/assets/QueryClientProvider-gDmhre7T.js"/><link rel="modulepreload" href="/assets/useCart-DVgAicP6.js"/><link rel="modulepreload" href="/assets/dist-Diy9uVfv.js"/><link rel="modulepreload" href="/assets/preload-helper-Czpn1I53.js"/><link rel="modulepreload" href="/assets/auth-B4-BDCXV.js"/><link rel="modulepreload" href="/assets/messages-BW-ejEAQ.js"/><link rel="modulepreload" href="/assets/farmers._id-vxWLxlJD.js"/><link rel="modulepreload" href="/assets/orders._id-CkROaCin.js"/><link rel="modulepreload" href="/assets/product._id-BBR4W_Ib.js"/><link rel="modulepreload" href="/assets/routes-CNabzx5s.js"/><link rel="modulepreload" href="/assets/useQuery-CDFtiRJN.js"/><link rel="modulepreload" href="/assets/card-DBaqqncW.js"/><link rel="modulepreload" href="/assets/arrow-right-CV1qz3ME.js"/><link rel="modulepreload" href="/assets/badge-check-DDXoJQGN.js"/><link rel="modulepreload" href="/assets/PageShell-DvSNTiXn.js"/><link rel="modulepreload" href="/assets/search-D6BNWiz9.js"/><link rel="modulepreload" href="/assets/sparkles-QGTkY4Qm.js"/><link rel="modulepreload" href="/assets/truck-_Ynys5Nb.js"/><link rel="modulepreload" href="/assets/format-DfTjCKxI.js"/><link rel="modulepreload" href="/assets/ProductCard-DL7dJxus.js"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/><link rel="icon" href="/favicon.ico" type="image/x-icon"/>
-<style>
-	@font-face {
-		font-family: 'CameraPlainVariable';
-		src: url('https://cdn.gpteng.co/mcp-widgets/v1/fonts/CameraPlainVariable.woff2') format('woff2');
-		font-weight: 100 900;
-		font-style: normal;
-		font-display: swap;
-	}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AgriConnect — Buy Fresh Produce Direct from Filipino Farmers</title>
+  <meta name="description" content="AgriConnect is the premier Philippine farm-to-table marketplace. Buy fresh vegetables, fruits, rice, seafood, and poultry directly from verified Filipino farmers without middlemen." />
+  <meta name="keywords" content="philippine agriculture, buy vegetables online, fresh produce manila, benguet vegetables, guimaras mangoes, direct farmer marketplace" />
+  <meta property="og:title" content="AgriConnect — Farm to Buyer Marketplace" />
+  <meta property="og:description" content="Fresh vegetables, fruits, rice, fish, and poultry straight from local Filipino farmers at transparent farm-gate prices." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/hero-farmer.jpg" />
 
-	#lovable-badge {
-		--badge-bg: #1b1b1b;
-		--badge-text: #c5c1b9;
-		--badge-text-hover: #dcdad5;
-		--badge-radius: 6px;
-		--badge-padding: 8px;
-		--badge-gap: 6px;
-		--badge-shadow: 
-			0 0 0 1px rgba(0, 0, 0, 0.88),
-			0 1px 0 0 rgba(0, 0, 0, 0.04),
-			0 2px 2px -1px rgba(0, 0, 0, 0.08),
-			0 4px 4px -2px rgba(0, 0, 0, 0.08),
-			0 8px 8px -4px rgba(0, 0, 0, 0.08),
-			0 16px 16px -8px rgba(0, 0, 0, 0.08);
-		--badge-transition-duration: 0.2s;
-		--badge-transition-easing: cubic-bezier(0.16, 1, 0.32, 1);
-		--focus-color: #575ECF;
-		--focus-offset: 2px;
-		--focus-width: 2px;
-		
-		position: fixed;
-		bottom: 12px;
-		right: 12px;
-		height: 24px;
-		display: flex;
-		align-items: center;
-		z-index: 1000000;
-		background-color: var(--badge-bg) !important;
-		color: var(--badge-text) !important;
-		border-radius: var(--badge-radius);
-		box-shadow: var(--badge-shadow) !important;
-		font-size: 12px;
-		font-family: CameraPlainVariable, "CameraPlainVariable Fallback", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-		font-weight: 400 !important;
-		text-transform: none !important;
-		font-feature-settings: normal !important;
-		transform: translateZ(0);
-		will-change: transform, opacity;
-	}
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-	#lovable-badge-cta {
-		display: flex;
-		align-items: center;
-		gap: var(--badge-gap);
-		padding: 0 var(--badge-padding);
-		height: 100%;
-		color: inherit;
-		text-decoration: none;
-		white-space: nowrap;
-		border-radius: var(--badge-radius) 0 0 var(--badge-radius);
-		transition: 
-			background-color var(--badge-transition-duration) ease,
-			color var(--badge-transition-duration) ease,
-			transform 0.1s ease;
-	}
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
 
-	#lovable-badge-cta:hover {
-		background: rgba(255, 255, 255, 0.04);
-		color: var(--badge-text-hover);
-	}
+  <!-- Site Navigation Header -->
+  <header class="site-header">
+    <div style="max-width: 1240px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 72px; padding: 0 1.25rem;">
+      <!-- Brand Logo -->
+      <a href="#" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none;">
+        <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #15803d, #16a34a); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; box-shadow: 0 4px 10px rgba(21, 128, 61, 0.3);">
+          🌱
+        </div>
+        <div>
+          <span style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; color: #14532d; letter-spacing: -0.03em; display: block; line-height: 1.1;">
+            AgriConnect
+          </span>
+          <span style="font-size: 0.7rem; font-weight: 700; color: #d97706; text-transform: uppercase; letter-spacing: 0.08em;">
+            Palengke Direct • PH
+          </span>
+        </div>
+      </a>
 
-	#lovable-badge-cta:active {
-		transform: scale(0.98);
-	}
+      <!-- Desktop Nav -->
+      <nav style="display: none; align-items: center; gap: 0.25rem;" class="md-nav">
+        <a href="#marketplace" class="nav-link active">Marketplace</a>
+        <a href="#farmers" class="nav-link">Meet Farmers</a>
+        <a href="#farmMap" class="nav-link">Farm Map</a>
+        <a href="#howItWorks" class="nav-link">How It Works</a>
+        <a href="#orderTracker" class="nav-link">Track Orders</a>
+      </nav>
 
-	#lovable-badge-cta:focus {
-		outline: none;
-	}
+      <!-- Action Buttons -->
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <!-- Sell Harvest CTA -->
+        <button onclick="openSellHarvestModal()" class="btn-harvest" style="padding: 0.55rem 1.1rem; font-size: 0.85rem;" title="List your agricultural produce">
+          <span>🌾</span> <span style="display: none;" class="sm-label">Sell</span> Harvest
+        </button>
 
-	#lovable-badge-cta:focus-visible {
-		outline: var(--focus-width) solid var(--focus-color);
-		outline-offset: var(--focus-offset);
-		z-index: 1;
-	}
+        <!-- Cart Button -->
+        <button onclick="toggleCart(true)" class="btn-secondary" style="position: relative; padding: 0.55rem 0.95rem; border-radius: var(--radius-md);" aria-label="Shopping Cart">
+          <span style="font-size: 1.15rem;">🧺</span>
+          <span class="cart-badge" style="display: none; position: absolute; top: -6px; right: -6px; background: #dc2626; color: white; font-size: 0.725rem; font-weight: 800; width: 20px; height: 20px; border-radius: 9999px; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(220, 38, 38, 0.4);">
+            0
+          </span>
+        </button>
 
-	#lovable-badge-text {
-		line-height: 1;
-	}
+        <!-- User Role Switcher -->
+        <button onclick="toggleMode(window.AgriState.currentMode === 'buyer' ? 'farmer' : 'buyer')" class="btn-secondary" style="font-size: 0.825rem; padding: 0.55rem 0.85rem;" id="userModeBadge">
+          🛒 Buyer View
+        </button>
+      </div>
+    </div>
+  </header>
 
-	#lovable-badge-divider {
-		width: 1px;
-		height: 24px;
-		background-color: rgba(255, 255, 255, 0.04);
-		flex-shrink: 0;
-	}
+  <!-- Hero Section with User's Uploaded Background -->
+  <section class="hero-wrapper">
+    <img src="assets/hero-farmer.jpg" alt="Filipino farmer with fresh harvest in mountain terraces" class="hero-bg" />
+    <div class="hero-overlay"></div>
 
-	#lovable-badge-close {
-		width: 24px;
-		height: 24px;
-		min-width: 24px;
-		min-height: 24px;
-		cursor: pointer;
-		background: none;
-		border: none;
-		padding: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 0 var(--badge-radius) var(--badge-radius) 0;
-		flex-shrink: 0;
-		transition: 
-			background-color var(--badge-transition-duration) ease,
-			transform 0.1s ease;
-	}
+    <div style="position: relative; z-index: 10; max-width: 1240px; margin: 0 auto; padding: 4.5rem 1.25rem 5rem; width: 100%;">
+      <div style="max-width: 680px;">
+        <div class="hero-badge">
+          <span>🇵🇭</span> Authentic Philippine Farm-to-Table Platform
+        </div>
 
-	#lovable-badge-close:hover {
-		background: rgba(255, 255, 255, 0.04);
-	}
+        <h1 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; color: #ffffff; line-height: 1.1; margin-top: 1.25rem; text-shadow: 0 4px 16px rgba(0,0,0,0.4);">
+          Fresh from the farm, straight to your table.
+        </h1>
 
-	#lovable-badge-close:active {
-		transform: scale(0.92);
-	}
+        <p style="font-size: clamp(1rem, 2vw, 1.2rem); color: rgba(255, 255, 255, 0.92); margin-top: 1.25rem; line-height: 1.6; text-shadow: 0 2px 8px rgba(0,0,0,0.4);">
+          Buy directly from verified Filipino farmers in Benguet, Nueva Ecija, Guimaras, and across the islands. 100% farm-gate fair prices, live harvest availability, and zero middlemen.
+        </p>
 
-	#lovable-badge-close:focus {
-		outline: none;
-	}
+        <!-- Integrated Hero Search & Quick Action Box -->
+        <div class="hero-search-box" style="margin-top: 2rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 220px; position: relative;">
+                <input id="heroSearchInput" type="text" placeholder="Search fresh mango, baguio beans, rice, bangus..." style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-strong); border-radius: var(--radius-md); font-size: 0.95rem; outline: none;" />
+              </div>
+              <button onclick="handleHeroSearch()" class="btn-primary" style="padding: 0.75rem 1.5rem; font-size: 0.95rem; white-space: nowrap;">
+                🔍 Find Produce
+              </button>
+            </div>
 
-	#lovable-badge-close:focus-visible {
-		outline: var(--focus-width) solid var(--focus-color);
-		outline-offset: calc(var(--focus-offset) * -1);
-		z-index: 1;
-	}
+            <!-- Quick Category Pills inside Hero -->
+            <div style="display: flex; align-items: center; gap: 0.4rem; overflow-x: auto; padding-bottom: 0.25rem;">
+              <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Trending:</span>
+              <button onclick="quickFilterCategory('Vegetables')" style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: 9999px; padding: 0.25rem 0.65rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">🥬 Benguet Veggies</button>
+              <button onclick="quickFilterCategory('Fruits')" style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: 9999px; padding: 0.25rem 0.65rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">🥭 Guimaras Mango</button>
+              <button onclick="quickFilterCategory('Rice & Grains')" style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: 9999px; padding: 0.25rem 0.65rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">🌾 Nueva Ecija Rice</button>
+              <button onclick="quickFilterCategory('Fish & Seafood')" style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: 9999px; padding: 0.25rem 0.65rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">🐟 Fresh Bangus</button>
+            </div>
+          </div>
+        </div>
 
-	#lovable-badge-close svg path {
-		fill: var(--badge-text);
-		transition: fill var(--badge-transition-duration) ease;
-	}
+        <!-- Trust Features Bar -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 2rem; color: #ffffff;">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span style="font-size: 1.5rem;">⚖️</span>
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem;">No Middlemen</div>
+              <div style="font-size: 0.75rem; opacity: 0.85;">Farmers keep 100% fair price</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span style="font-size: 1.5rem;">₱</span>
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem;">Peso Pricing</div>
+              <div style="font-size: 0.75rem; opacity: 0.85;">Per kilo, sack, or piece</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span style="font-size: 1.5rem;">🚚</span>
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem;">Flexible Delivery</div>
+              <div style="font-size: 0.75rem; opacity: 0.85;">Doorstep or Farm Pickup</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-	#lovable-badge-close:hover svg path {
-		fill: var(--badge-text-hover);
-	}
+  <!-- In-Season Harvest Carousel / Value Banner -->
+  <section style="background: #ffffff; border-bottom: 1px solid var(--border-subtle); padding: 1.75rem 1.25rem;">
+    <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span style="background: #fef3c7; color: #d97706; padding: 0.4rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 700;">
+          ☀️ In Peak Season Now
+        </span>
+        <span style="font-size: 0.925rem; font-weight: 600; color: var(--text-secondary);">
+          Guimaras Carabao Mangoes • Benguet Highland Cabbage • Nueva Ecija Sinandomeng
+        </span>
+      </div>
+      <a href="#marketplace" style="font-size: 0.875rem; font-weight: 700; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.35rem;">
+        Explore 20+ Fresh Listings →
+      </a>
+    </div>
+  </section>
 
-	@media (prefers-reduced-motion: reduce) {
-		#lovable-badge-cta,
-		#lovable-badge-close,
-		#lovable-badge-close svg path {
-			transition: none;
-		}
-		
-		#lovable-badge-cta:active,
-		#lovable-badge-close:active {
-			transform: none;
-		}
-	}
+  <!-- Main Marketplace Section -->
+  <main id="marketplace" style="max-width: 1240px; margin: 0 auto; padding: 3rem 1.25rem 5rem;">
+    
+    <!-- Section Header -->
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 2rem;">
+      <div>
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
+          Direct Palengke Hub
+        </span>
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">
+          Browse Farm Marketplace
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
+          Harvested and updated daily by local growers. Order wholesale or retail.
+        </p>
+      </div>
 
-	@media (prefers-contrast: high) {
-		#lovable-badge {
-			--badge-bg: #000;
-			--badge-text: #fff;
-			--badge-text-hover: #fff;
-			border: 2px solid currentColor;
-		}
-		
-		#lovable-badge-cta:focus-visible,
-		#lovable-badge-close:focus-visible {
-			outline-width: 3px;
-		}
-	}
-</style>
-<script defer src="/~flock.js" data-proxy-url="/~api/analytics"></script><meta name="twitter:title" content="AgriConnect — Farm to Buyer Marketplace"><meta name="twitter:description" content="Fresh vegetables, fruits, rice, fish and more, straight from local Filipino farmers."><meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b30cbf15acc0fe4b6f3b181524ad1229/id-preview-b7fc2edb--b2d97953-0cdc-4dcc-8070-88f1bb8ecb6a.lovable.app-1787716260701.png"><meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b30cbf15acc0fe4b6f3b181524ad1229/id-preview-b7fc2edb--b2d97953-0cdc-4dcc-8070-88f1bb8ecb6a.lovable.app-1787716260701.png"></head><body><!--$--><div class="flex min-h-screen flex-col bg-background"><header class="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur"><div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4"><a class="flex items-center gap-2 active" href="/" data-status="active" aria-current="page"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-leaf h-5 w-5" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg></span><span class="font-display text-xl font-semibold text-primary-deep">AgriConnect</span></a><nav class="ml-6 hidden items-center gap-1 md:flex"><a href="/marketplace" class="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">Marketplace</a><a href="/farmers" class="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">Farmers</a><a href="/map" class="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">Farm map</a><a href="/how-it-works" class="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">How it works</a></nav><div class="ml-auto flex items-center gap-2"><a aria-label="Cart" href="/cart" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 text-xs relative"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-basket h-5 w-5" aria-hidden="true"><path d="m15 11-1 9"></path><path d="m19 11-4-7"></path><path d="M2 11h20"></path><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"></path><path d="M4.5 15.5h15"></path><path d="m5 11 4-7"></path><path d="m9 11 1 9"></path></svg></a><div class="hidden items-center gap-2 md:flex"><a href="/auth?mode=login" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 text-xs">Log in</a><a href="/auth?mode=signup" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-8 rounded-md px-3 text-xs">Get started</a></div><button class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 text-xs md:hidden" aria-label="Open menu" type="button" aria-haspopup="dialog" aria-expanded="false" data-state="closed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-5 w-5" aria-hidden="true"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button></div></div></header><main class="flex-1"><section class="relative overflow-hidden"><div class="absolute inset-0"><img src="/assets/hero-farmer-DYv3MT8K.jpg" alt="Filipino farmer holding a basket of freshly harvested vegetables" width="1600" height="1104" class="h-full w-full object-cover"/><div class="absolute inset-0 bg-gradient-to-r from-foreground/75 via-foreground/40 to-transparent"></div></div><div class="relative mx-auto max-w-6xl px-4 py-24 sm:py-32"><div class="max-w-2xl text-primary-foreground"><span class="inline-flex items-center gap-2 rounded-full bg-background/15 px-4 py-1.5 text-sm font-medium backdrop-blur"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles h-4 w-4" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg> Farm-to-buyer marketplace for the Philippines</span><h1 class="mt-6 text-4xl font-bold leading-tight sm:text-6xl">Fresh from the farm, straight to your table.</h1><p class="mt-5 text-lg opacity-90">AgriConnect helps farmers sell their products directly to buyers through technology — making it easier to find customers, promote produce, manage orders and complete transactions.</p><div class="mt-8 flex flex-wrap gap-3"><a href="/marketplace" class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-10 rounded-md px-8">Browse the marketplace <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a><a href="/auth?mode=signup" class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border shadow-sm hover:text-accent-foreground h-10 rounded-md px-8 border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground/10">Start selling as a farmer</a></div><div class="mt-10 flex flex-wrap gap-8 text-sm"><div><p class="font-display text-2xl font-bold">No middlemen</p><p class="opacity-80">Farmers keep the conversation direct</p></div><div><p class="font-display text-2xl font-bold">₱ Peso pricing</p><p class="opacity-80">Per kilo, sack, tray or piece</p></div><div><p class="font-display text-2xl font-bold">Live inventory</p><p class="opacity-80">Stock updates with every order</p></div></div></div></div></section><section class="border-b border-border/60 bg-secondary/30"><div class="mx-auto max-w-6xl px-4 py-8"><div class="flex flex-wrap items-center gap-3"><p class="text-sm font-semibold uppercase tracking-wider text-primary">Shop by category</p></div></div></section><section class="mx-auto max-w-6xl px-4 py-20"><div class="text-center"><p class="text-sm font-semibold uppercase tracking-wider text-primary">How it works</p><h2 class="mt-2 text-3xl font-bold sm:text-4xl">Farmers → AgriConnect → Buyers</h2><p class="mx-auto mt-3 max-w-2xl text-muted-foreground">A simple, familiar flow from harvest to handover — designed to be easy even for first-time users of online selling.</p></div><div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"><div class="rounded-xl border bg-card text-card-foreground shadow border-border/70 p-6 shadow-[var(--shadow-card)]"><div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-store h-5 w-5" aria-hidden="true"><path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"></path><path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244"></path><path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"></path></svg></div><p class="mt-4 text-xs font-semibold text-accent-foreground">STEP <!-- -->1</p><h3 class="mt-1 text-lg font-semibold">Farmer lists product</h3><p class="mt-2 text-sm text-muted-foreground">Upload a photo, set price per kilo, sack or piece, and the available quantity.</p></div><div class="rounded-xl border bg-card text-card-foreground shadow border-border/70 p-6 shadow-[var(--shadow-card)]"><div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search h-5 w-5" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg></div><p class="mt-4 text-xs font-semibold text-accent-foreground">STEP <!-- -->2</p><h3 class="mt-1 text-lg font-semibold">Buyer discovers it</h3><p class="mt-2 text-sm text-muted-foreground">Buyers search and filter by product, category, price, location and availability.</p></div><div class="rounded-xl border bg-card text-card-foreground shadow border-border/70 p-6 shadow-[var(--shadow-card)]"><div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package-check h-5 w-5" aria-hidden="true"><path d="m16 16 2 2 4-4"></path><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"></path><path d="m7.5 4.27 9 5.15"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><line x1="12" x2="12" y1="22" y2="12"></line></svg></div><p class="mt-4 text-xs font-semibold text-accent-foreground">STEP <!-- -->3</p><h3 class="mt-1 text-lg font-semibold">Order is placed</h3><p class="mt-2 text-sm text-muted-foreground">Add to cart, choose the quantity, then checkout for pickup or delivery.</p></div><div class="rounded-xl border bg-card text-card-foreground shadow border-border/70 p-6 shadow-[var(--shadow-card)]"><div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-badge-check h-5 w-5" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"></path><path d="m9 12 2 2 4-4"></path></svg></div><p class="mt-4 text-xs font-semibold text-accent-foreground">STEP <!-- -->4</p><h3 class="mt-1 text-lg font-semibold">Farmer confirms</h3><p class="mt-2 text-sm text-muted-foreground">The farmer accepts the order and prepares the harvest. Stock updates automatically.</p></div><div class="rounded-xl border bg-card text-card-foreground shadow border-border/70 p-6 shadow-[var(--shadow-card)]"><div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck h-5 w-5" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg></div><p class="mt-4 text-xs font-semibold text-accent-foreground">STEP <!-- -->5</p><h3 class="mt-1 text-lg font-semibold">Pickup or delivery</h3><p class="mt-2 text-sm text-muted-foreground">Track each stage of the order until it reaches the buyer.</p></div><div class="rounded-xl border bg-card text-card-foreground shadow border-border/70 p-6 shadow-[var(--shadow-card)]"><div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake h-5 w-5" aria-hidden="true"><path d="m11 17 2 2a1 1 0 1 0 3-3"></path><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"></path><path d="m21 3 1 11h-2"></path><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"></path><path d="M3 4h8"></path></svg></div><p class="mt-4 text-xs font-semibold text-accent-foreground">STEP <!-- -->6</p><h3 class="mt-1 text-lg font-semibold">Order completed</h3><p class="mt-2 text-sm text-muted-foreground">The buyer reviews the transaction and can reorder anytime.</p></div></div></section><section class="bg-secondary/50 py-20"><div class="mx-auto grid max-w-6xl gap-6 px-4 md:grid-cols-2"><div class="rounded-xl border bg-card text-card-foreground shadow border-primary/20 p-8"><div class="flex items-center gap-2 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-store h-6 w-6" aria-hidden="true"><path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"></path><path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244"></path><path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"></path></svg><h3 class="text-2xl font-bold">For farmers</h3></div><ul class="mt-5 space-y-3 text-sm text-muted-foreground"><li>• Reach households, restaurants and small food businesses directly.</li><li>• Promote your harvest with photos, descriptions and your farm story.</li><li>• Manage inventory and orders in one place — stock updates automatically.</li><li>• Chat with buyers and track your sales.</li><li>• Get AI-generated pricing and demand suggestions for your crops.</li></ul><a href="/auth?mode=signup" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 mt-6">Create a farmer account</a></div><div class="rounded-xl border bg-card text-card-foreground shadow border-accent/30 p-8"><div class="flex items-center gap-2 text-earth"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg><h3 class="text-2xl font-bold">For buyers</h3></div><ul class="mt-5 space-y-3 text-sm text-muted-foreground"><li>• Discover fresh produce from farmers near your location.</li><li>• Search and filter by category, price, availability and place.</li><li>• Add to cart, pick your quantity, then choose pickup or delivery.</li><li>• Track every order from confirmation to completion.</li><li>• Message farmers before and after ordering.</li></ul><a href="/marketplace" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 mt-6">Start shopping</a></div></div></section><section class="mx-auto max-w-6xl px-4 py-20"><div class="flex flex-wrap items-end justify-between gap-4"><div><h2 class="text-3xl font-bold">Fresh on AgriConnect</h2><p class="mt-2 text-muted-foreground">Newly listed harvests from farmers across the Philippines.</p></div><a href="/marketplace" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">See all products <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></div><div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"></div></section><section class="mx-auto max-w-6xl px-4 pb-20"><h2 class="text-3xl font-bold">Meet some of our farmers</h2><div class="mt-8 grid gap-5 md:grid-cols-3"></div></section><section class="mx-auto max-w-6xl px-4 pb-24"><div class="rounded-xl border text-card-foreground shadow flex flex-col items-start gap-6 border-primary/20 bg-soft-gradient p-8 md:flex-row md:items-center"><div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up h-7 w-7" aria-hidden="true"><path d="M16 7h6v6"></path><path d="m22 7-8.5 8.5-5-5L2 17"></path></svg></div><div class="flex-1"><h2 class="text-2xl font-bold">AI Market Assistant for farmers</h2><p class="mt-2 text-sm text-muted-foreground">Get suggested price ranges and demand guidance for your crops. These are AI-generated estimates and suggestions only — not guaranteed market prices.</p></div><a href="/auth?mode=signup" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">Try it as a farmer</a></div></section></main><footer class="mt-20 border-t border-border bg-secondary/40"><div class="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4"><div><div class="flex items-center gap-2"><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-leaf h-4 w-4" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg></span><span class="font-display text-lg font-semibold text-primary-deep">AgriConnect</span></div><p class="mt-3 max-w-xs text-sm text-muted-foreground">Helping Filipino farmers sell directly to buyers — easier customers, better promotion, simpler orders.</p></div><div><h3 class="text-sm font-semibold">Marketplace</h3><ul class="mt-3 space-y-2 text-sm text-muted-foreground"><li><a href="/marketplace" class="hover:text-foreground">Browse products</a></li><li><a href="/farmers" class="hover:text-foreground">Meet the farmers</a></li><li><a href="/cart" class="hover:text-foreground">Your cart</a></li></ul></div><div><h3 class="text-sm font-semibold">Get started</h3><ul class="mt-3 space-y-2 text-sm text-muted-foreground"><li><a href="/auth?mode=signup" class="hover:text-foreground">Sell as a farmer</a></li><li><a href="/auth?mode=signup" class="hover:text-foreground">Buy as a customer</a></li><li><a href="/how-it-works" class="hover:text-foreground">How it works</a></li></ul></div><div><h3 class="text-sm font-semibold">Philippine agriculture</h3><p class="mt-3 text-sm text-muted-foreground">Prices are in Philippine Peso (₱). Product availability depends on each farmer&#x27;s harvest and season.</p></div></div><div class="border-t border-border py-6 text-center text-xs text-muted-foreground">© <!-- -->2026<!-- --> AgriConnect. Farm-to-buyer marketplace for the Philippines.</div></footer></div><script>(function(a,f){let l;try{l=JSON.parse(sessionStorage.getItem(a)||"{}")}catch{return}const n=l?.[f||history.state?.__TSR_key];let c=!1;for(const t in n){const e=n[t],o=e?.scrollX,s=e?.scrollY;if(Number.isFinite(o)&&Number.isFinite(s)){if(t==="window")scrollTo(o,s),c=!0;else if(t)try{const r=document.querySelector(t);r&&(r.scrollLeft=o,r.scrollTop=s)}catch{}}}if(c)return;const i=location.hash.slice(1);if(i){const t=history.state?.__hashScrollIntoViewOptions??!0;if(t){const e=document.getElementById(i);e&&e.scrollIntoView(t)}return}scrollTo(0,0)})("tsr-scroll-restoration-v1_3");document.currentScript.remove()</script><!--/$--><section aria-label="Notifications alt+T" tabindex="-1" aria-live="polite" aria-relevant="additions text" aria-atomic="false"></section><script class="$tsr" id="$tsr-stream-barrier">(self.$R=self.$R||{})["tsr"]=[];self.$_TSR={h(){this.hydrated=!0,this.c()},e(){this.streamEnded=!0,this.c()},c(){this.hydrated&&this.streamEnded&&(delete self.$_TSR,delete self.$R.tsr)},p(e){this.initialized?e():this.buffer.push(e)},buffer:[]};$_TSR.router=($R=>$R[0]={manifest:$R[1]={routes:$R[2]={__root__:$R[3]={preloads:$R[4]=["/assets/index-ukUv44L5.js","/assets/jsx-runtime-Bc41UEzt.js","/assets/link-BykOM3I6.js","/assets/lazyRouteComponent-BgiZA0N_.js","/assets/useAuth-hU4ynlxu.js","/assets/QueryClientProvider-gDmhre7T.js","/assets/useCart-DVgAicP6.js","/assets/dist-Diy9uVfv.js","/assets/preload-helper-Czpn1I53.js","/assets/auth-B4-BDCXV.js","/assets/messages-BW-ejEAQ.js","/assets/farmers._id-vxWLxlJD.js","/assets/orders._id-CkROaCin.js","/assets/product._id-BBR4W_Ib.js"],scripts:$R[5]=[$R[6]={attrs:$R[7]={type:"module",async:!0,src:"/assets/index-ukUv44L5.js"}}]},"/":$R[8]={preloads:$R[9]=["/assets/routes-CNabzx5s.js","/assets/useQuery-CDFtiRJN.js","/assets/card-DBaqqncW.js","/assets/arrow-right-CV1qz3ME.js","/assets/badge-check-DDXoJQGN.js","/assets/PageShell-DvSNTiXn.js","/assets/search-D6BNWiz9.js","/assets/sparkles-QGTkY4Qm.js","/assets/truck-_Ynys5Nb.js","/assets/format-DfTjCKxI.js","/assets/ProductCard-DL7dJxus.js"]}}},matches:$R[10]=[$R[11]={i:"__root__ ",u:1788590293259,s:"success",ssr:!0},$R[12]={i:"  ",u:1788590293259,s:"success",ssr:!0}],lastMatchId:"  "})($R["tsr"]);$_TSR.e();document.currentScript.remove()</script><script type="module" async="" src="/assets/index-ukUv44L5.js"></script>
-<aside
-	id="lovable-badge"
-	role="complementary"
-	dir="ltr"
-	lang="en"
-	aria-label="Edit with Lovable">
-	<a
-		id="lovable-badge-cta" 
-		target="_blank" 
-		href="https://lovable.dev/projects/lovp_7kh62sdhz59pgtn23s7w2ay7sp?utm_source=lovable-badge"
-		rel="noopener nofollow"
-		aria-label="Edit with Lovable">
-		<span id="lovable-badge-text">Edit with</span>
-		<svg xmlns="http://www.w3.org/2000/svg" width="52" height="16" fill="none" viewBox="0 0 52 16">
-  <path fill="#FCFBF8" fill-rule="evenodd" d="M20.318 5.25c.643 0 1.206.14 1.69.418a2.81 2.81 0 0 1 1.118 1.191c.266.513.4 1.115.4 1.807s-.134 1.296-.4 1.812a2.81 2.81 0 0 1-1.118 1.193c-.484.278-1.047.418-1.69.418s-1.208-.14-1.695-.418a2.85 2.85 0 0 1-1.125-1.193c-.262-.516-.393-1.12-.393-1.812s.131-1.294.393-1.807a2.848 2.848 0 0 1 1.125-1.191c.487-.279 1.052-.418 1.695-.418Zm0 1.425c-.27 0-.504.076-.7.228-.193.147-.34.37-.443.67-.102.295-.153.66-.153 1.093 0 .435.05.801.153 1.1.102.3.25.524.443.676.196.147.43.22.7.22.27 0 .502-.073.694-.22.193-.152.341-.375.443-.67.103-.299.153-.667.153-1.106 0-.65-.112-1.145-.337-1.481a1.08 1.08 0 0 0-.953-.51ZM32.7 5.25c.61 0 1.127.1 1.549.3.422.197.74.48.953.849.217.368.325.809.325 1.32v2.704c0 .29.02.562.062.812.044.245.108.4.19.466V12h-1.935a5.895 5.895 0 0 1-.105-.684 7.745 7.745 0 0 1-.02-.228 2.293 2.293 0 0 1-.151.203c-.205.242-.47.437-.793.584-.32.143-.685.215-1.094.215-.406 0-.77-.08-1.094-.24a1.845 1.845 0 0 1-.756-.682 1.984 1.984 0 0 1-.27-1.045c0-.606.178-1.069.535-1.388.356-.324.87-.534 1.542-.633l1.125-.16c.225-.032.403-.074.534-.123a.622.622 0 0 0 .288-.196.549.549 0 0 0 .093-.327.65.65 0 0 0-.11-.367.702.702 0 0 0-.32-.27c-.14-.07-.31-.105-.51-.105-.32 0-.576.083-.768.251-.193.164-.298.39-.314.676h-1.923c.016-.434.147-.82.393-1.155.25-.34.596-.604 1.039-.792.442-.189.954-.283 1.535-.283Zm.99 3.498a.98.98 0 0 1-.215.14 2.49 2.49 0 0 1-.584.178l-.473.092c-.315.061-.553.156-.713.283-.155.127-.233.305-.233.534 0 .23.084.412.252.547.168.135.383.203.645.203s.494-.058.694-.173c.201-.118.355-.282.461-.49.11-.21.166-.448.166-.714v-.6Zm4.526-2.375c.065-.125.138-.243.221-.349.197-.25.437-.44.719-.571.282-.135.6-.203.952-.203.528 0 .988.138 1.377.412.389.275.688.67.896 1.186.21.512.314 1.12.314 1.824 0 .7-.107 1.309-.32 1.825-.213.512-.518.906-.915 1.18-.393.275-.854.412-1.383.412-.352 0-.667-.062-.946-.184a1.832 1.832 0 0 1-.7-.554 2.2 2.2 0 0 1-.234-.383V12h-1.843V3h1.862v3.373Zm1.284.296c-.274 0-.51.085-.707.253-.192.163-.338.397-.436.7a3.376 3.376 0 0 0-.148 1.05c0 .406.05.759.148 1.058.098.299.243.53.436.694.197.164.433.246.707.246.279 0 .512-.082.7-.246.193-.164.336-.395.43-.694.099-.3.148-.652.148-1.058 0-.405-.05-.757-.147-1.056-.095-.299-.238-.53-.43-.694a1.015 1.015 0 0 0-.7-.253Zm9.416-1.419c.602 0 1.136.131 1.604.393.466.262.829.643 1.086 1.143.263.5.394 1.097.394 1.794 0 .25-.002.449-.006.596H47.51c.018.288.071.538.164.75a1.3 1.3 0 0 0 .491.596c.214.13.465.196.757.196.319 0 .583-.082.792-.246.209-.167.34-.403.393-.706h1.862a2.48 2.48 0 0 1-.485 1.235 2.54 2.54 0 0 1-1.051.805c-.439.188-.949.283-1.53.283-.655 0-1.225-.125-1.708-.375a2.672 2.672 0 0 1-1.13-1.143c-.267-.508-.4-1.137-.4-1.887 0-.712.14-1.327.418-1.843a2.86 2.86 0 0 1 1.155-1.186c.491-.27 1.051-.405 1.678-.405Zm-.044 1.345c-.274 0-.516.068-.725.203a1.29 1.29 0 0 0-.479.59 2.045 2.045 0 0 0-.132.498h2.562a1.873 1.873 0 0 0-.138-.602 1.061 1.061 0 0 0-.418-.516 1.243 1.243 0 0 0-.67-.173Z" clip-rule="evenodd"/>
-  <path fill="#FCFBF8" d="m26.605 9.995 1.342-4.566h1.924L27.628 12h-2.07l-2.33-6.57h1.98l1.397 4.565Zm-13.013.143h2.256c1.632 0 1.421 1.837 1.418 1.861h-5.603V3h1.93v7.138Zm31.516 1.861h-1.862V3h1.862v8.999Z"/>
-  <path fill="url(#a)" fill-rule="evenodd" d="M2.7 3c1.492 0 2.7 1.192 2.7 2.663v1.012h.9c1.49 0 2.7 1.192 2.7 2.662S7.791 12 6.3 12H0V5.663C0 4.193 1.209 3 2.7 3Z" clip-rule="evenodd"/>
-  <defs>
-    <radialGradient id="a" cx="0" cy="0" r="1" gradientTransform="matrix(-1.54236 7.07838 -10.231 -2.15602 4.627 5.022)" gradientUnits="userSpaceOnUse">
-      <stop offset=".106" stop-color="#FE7B02"/>
-      <stop offset=".394" stop-color="#FE3F21"/>
-      <stop offset=".608" stop-color="#F858BC"/>
-      <stop offset=".929" stop-color="#575ECF"/>
-    </radialGradient>
-  </defs>
-</svg>
+      <!-- Active Filter Badge Indicator -->
+      <div id="activeFarmerBanner" style="display: none; align-items: center; justify-content: space-between; width: 100%; background: var(--primary-light); color: var(--primary-deep); padding: 0.75rem 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(21, 128, 61, 0.3);"></div>
+    </div>
 
+    <!-- Category Filter Strip -->
+    <div style="overflow-x: auto; padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+      <div id="categoryChips" style="display: flex; gap: 0.5rem; width: max-content;"></div>
+    </div>
 
-	</a>
-	
-	<span id="lovable-badge-divider" aria-hidden="true"></span>
-	
-	<button 
-		id="lovable-badge-close"
-		aria-label="Dismiss"
-		title="Dismiss"
-		type="button">
-		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16" aria-hidden="true">
-			<path d="M10.646 4.646a.5.5 0 1 1 .707.708L8.707 8l2.646 2.646a.5.5 0 1 1-.707.707L8 8.707l-2.646 2.646a.5.5 0 1 1-.708-.707L7.293 8 4.646 5.354a.5.5 0 1 1 .708-.708L8 7.293l2.646-2.647Z"/>
-		</svg>
-	</button>
-</aside>
-<script>
-	// Don't show the lovable-badge if the page is in an iframe or if it's being rendered by puppeteer (screenshot service)
-	if (window.self !== window.top || navigator.userAgent.includes('puppeteer')) {
-		var badge = document.getElementById('lovable-badge');
-		if (badge) {
-			badge.style.display = 'none';
-		}
-	}
+    <!-- Filter & Sort Control Toolbar -->
+    <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: center;">
+      <!-- Search Input -->
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
+          Search Keyword
+        </label>
+        <div style="position: relative;">
+          <input id="searchInput" type="text" placeholder="e.g. carrots, mango, rice..." style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem;" />
+        </div>
+      </div>
 
-	// Add click event listener to close button with animation
-	var closeButton = document.getElementById('lovable-badge-close');
-	if (closeButton) {
-		closeButton.addEventListener('click', function(event) {
-			event.preventDefault();
-			event.stopPropagation();
-			var badge = document.getElementById('lovable-badge');
-			if (badge) {
-				badge.classList.add('closing');
-				setTimeout(function() {
-					if (badge) {
-						badge.style.display = 'none';
-					}
-				}, 240);
-			}
-		});
-	}
-</script>
-</body></html>
+      <!-- Location Filter -->
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
+          Farm Province
+        </label>
+        <select id="locationSelect" onchange="handleLocationChange(this.value)" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; background: #fff;">
+          <option value="all">All Provinces (Luzon & Visayas)</option>
+          <option value="Benguet">Benguet (Highlands)</option>
+          <option value="Nueva Ecija">Nueva Ecija (Rice Capital)</option>
+          <option value="Guimaras">Guimaras (Sweet Mangoes)</option>
+          <option value="Navotas">Navotas (Fish Port)</option>
+          <option value="Quezon">Quezon (Coconut & Roots)</option>
+          <option value="Cavite">Cavite (Poultry & Eggs)</option>
+        </select>
+      </div>
+
+      <!-- Price Range Slider -->
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
+          <span>Max Price:</span>
+          <span id="priceRangeDisplay" style="color: var(--primary-deep); font-weight: 800;">₱3,000</span>
+        </div>
+        <input id="priceRange" type="range" min="50" max="3000" step="50" value="3000" style="width: 100%; accent-color: var(--primary);" />
+      </div>
+
+      <!-- Sort By -->
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
+          Sort By
+        </label>
+        <select onchange="setSort(this.value)" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; background: #fff;">
+          <option value="newest">✨ Newest Harvest</option>
+          <option value="price-asc">₱ Price: Low to High</option>
+          <option value="price-desc">₱ Price: High to Low</option>
+          <option value="rating">★ Highest Customer Rating</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Product Grid Summary Counter -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+      <span id="productsCountLabel" style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">
+        Loading fresh harvests...
+      </span>
+      <button onclick="resetAllFilters()" style="background: none; border: none; font-size: 0.85rem; font-weight: 600; color: var(--primary); cursor: pointer;">
+        Reset Filters
+      </button>
+    </div>
+
+    <!-- Products Responsive Grid -->
+    <div id="productsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem;">
+      <!-- Dynamic cards rendered by assets/app.js -->
+    </div>
+  </main>
+
+  <!-- Meet Our Farmers Section -->
+  <section id="farmers" style="background: #ffffff; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); padding: 5rem 1.25rem;">
+    <div style="max-width: 1240px; margin: 0 auto;">
+      <div style="text-align: center; max-width: 650px; margin: 0 auto 3rem;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
+          Direct From the Source
+        </span>
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">
+          Meet Our Filipino Farmers
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem;">
+          Every mango, sack of rice, and tray of eggs is grown with passion by real farming families across the Philippines.
+        </p>
+      </div>
+
+      <div id="farmersGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+        <!-- Dynamic Farmer cards rendered by assets/app.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Agricultural Farm Map -->
+  <section id="farmMap" style="max-width: 1240px; margin: 0 auto; padding: 5rem 1.25rem;">
+    <div style="display: grid; grid-template-columns: 1fr; gap: 2.5rem; align-items: center;" class="map-grid-container">
+      <div>
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
+          Farm Transparency Map
+        </span>
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">
+          Direct Sourcing from Luzon & Visayas
+        </h2>
+        <p style="color: var(--text-secondary); margin-top: 0.75rem; line-height: 1.6;">
+          AgriConnect connects buyers with active farms across key agricultural regions. See where your food originates, understand harvest seasons, and arrange direct farm gate pickups or cold-chain deliveries.
+        </p>
+
+        <!-- Location Hub Cards -->
+        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.85rem;">
+          <div onclick="handleLocationChange('Benguet')" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-weight: 700; color: var(--primary-deep); display: flex; justify-content: space-between;">
+              <span>⛰️ Benguet Highlands (La Trinidad)</span>
+              <span style="font-size: 0.8rem; background: var(--primary-light); color: var(--primary-deep); padding: 0.15rem 0.5rem; border-radius: 9999px;">High Altitude</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Home of crisp Baguio beans, sweet highland cabbage, and carrots.</p>
+          </div>
+
+          <div onclick="handleLocationChange('Nueva Ecija')" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-weight: 700; color: var(--primary-deep); display: flex; justify-content: space-between;">
+              <span>🌾 Nueva Ecija Plains (Cabanatuan)</span>
+              <span style="font-size: 0.8rem; background: #fef3c7; color: #d97706; padding: 0.15rem 0.5rem; border-radius: 9999px;">Rice Capital</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Aromatic Dinorado, Sinandomeng, and sweet corn harvested fresh from family paddies.</p>
+          </div>
+
+          <div onclick="handleLocationChange('Guimaras')" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-weight: 700; color: var(--primary-deep); display: flex; justify-content: space-between;">
+              <span>🥭 Guimaras Island (Jordan)</span>
+              <span style="font-size: 0.8rem; background: #dcfce7; color: #15803d; padding: 0.15rem 0.5rem; border-radius: 9999px;">World Famous</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">The sweetest Carabao mangoes on earth, carefully hand-picked at peak ripeness.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graphical Regional Showcase Card -->
+      <div style="background: linear-gradient(145deg, #14532d, #166534); border-radius: var(--radius-xl); padding: 2.5rem; color: #ffffff; box-shadow: var(--shadow-modal); position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -20px; bottom: -20px; font-size: 10rem; opacity: 0.1; pointer-events: none;">🇵🇭</div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #fde047; text-transform: uppercase;">
+          FARM NETWORK COVERAGE
+        </div>
+        <h3 style="font-size: 1.75rem; font-weight: 800; margin-top: 0.5rem;">
+          Direct-to-Door Logistics
+        </h3>
+        <p style="color: rgba(255, 255, 255, 0.9); margin-top: 0.75rem; font-size: 0.95rem; line-height: 1.6;">
+          Our scheduled farm collection routes pick up harvest right after dawn and deliver in temperature-controlled crates to Metro Manila, Rizal, Cavite, Bulacan, and Laguna.
+        </p>
+
+        <div style="margin-top: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+          <div style="background: rgba(255, 255, 255, 0.12); padding: 1rem; border-radius: var(--radius-md); backdrop-filter: blur(8px);">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fde047;">94%</div>
+            <div style="font-size: 0.8rem; opacity: 0.9;">Delivered within 24 hours of harvest</div>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.12); padding: 1rem; border-radius: var(--radius-md); backdrop-filter: blur(8px);">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fde047;">₱0</div>
+            <div style="font-size: 0.8rem; opacity: 0.9;">Middleman markup or warehouse holding</div>
+          </div>
+        </div>
+
+        <button onclick="openSellHarvestModal()" class="btn-harvest" style="margin-top: 2rem; width: 100%; justify-content: center; padding: 0.85rem;">
+          🌾 Register Your Farm in the Network
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="howItWorks" style="background: #ffffff; border-top: 1px solid var(--border-subtle); padding: 5rem 1.25rem;">
+    <div style="max-width: 1240px; margin: 0 auto;">
+      <div style="text-align: center; max-width: 600px; margin: 0 auto 3.5rem;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">
+          Transparent Flow
+        </span>
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">
+          How AgriConnect Works
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem;">
+          A simple, secure connection designed for both digital-first buyers and traditional rural farmers.
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
+        <div style="background: var(--bg-main); padding: 1.75rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--primary-light); color: var(--primary-deep); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">
+            1
+          </div>
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Farmer Lists Harvest</h3>
+          <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5;">
+            Farmers post their expected harvest with photos, per-kilo/sack prices, and available stocks with AI price guidance.
+          </p>
+        </div>
+
+        <div style="background: var(--bg-main); padding: 1.75rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">
+            2
+          </div>
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Buyer Selects Produce</h3>
+          <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5;">
+            Households, eateries, and cooperatives order directly from their preferred farm with custom quantities.
+          </p>
+        </div>
+
+        <div style="background: var(--bg-main); padding: 1.75rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">
+            3
+          </div>
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Fresh Pick & Packing</h3>
+          <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5;">
+            Produce is harvested only after order confirmation, ensuring zero storage spoilage and maximum crispness.
+          </p>
+        </div>
+
+        <div style="background: var(--bg-main); padding: 1.75rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">
+            4
+          </div>
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Delivery or Pickup</h3>
+          <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5;">
+            Receive produce via doorstep cold delivery or collect directly from the farm gate with GCash, Maya, or COD.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Order Tracking Section -->
+  <section id="orderTracker" style="max-width: 1240px; margin: 0 auto; padding: 5rem 1.25rem;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 2rem;">
+      <div>
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">
+          Live Order Status
+        </span>
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">
+          Track Your Harvest Orders
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
+          Real-time updates from harvest to doorstep.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <input id="trackingSearchInput" type="text" placeholder="Enter Order ID (e.g. AGRI-123456)" style="padding: 0.6rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem;" />
+        <button onclick="handleTrackSearch()" class="btn-primary" style="padding: 0.6rem 1.1rem; font-size: 0.875rem;">
+          Track
+        </button>
+      </div>
+    </div>
+
+    <div id="ordersListContainer" style="max-width: 800px;">
+      <!-- Dynamic list from assets/app.js -->
+    </div>
+  </section>
+
+  <!-- Slide-Out Shopping Cart Drawer -->
+  <aside id="cartDrawer" class="cart-drawer">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; border-bottom: 1px solid var(--border-subtle);">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 1.35rem;">🧺</span>
+        <h3 style="font-size: 1.25rem; font-weight: 800;">Your Harvest Basket</h3>
+      </div>
+      <button onclick="toggleCart(false)" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">✕</button>
+    </div>
+
+    <!-- Items List Container -->
+    <div id="cartItemsList" style="flex: 1; overflow-y: auto; padding: 1.25rem;">
+      <!-- Dynamic items -->
+    </div>
+
+    <!-- Drawer Footer -->
+    <div style="padding: 1.25rem; border-top: 1px solid var(--border-subtle); background: var(--bg-main);">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.95rem; color: var(--text-secondary);">
+        <span>Subtotal:</span>
+        <span id="cartSubtotal" style="font-weight: 700; color: var(--text-primary);">₱0.00</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.85rem; font-size: 0.95rem; color: var(--text-secondary);">
+        <span>Scheduled Cold Delivery:</span>
+        <span style="font-weight: 700; color: var(--text-primary);">₱95.00</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1.25rem; font-size: 1.2rem; color: var(--primary-deep); border-top: 1px solid var(--border-strong); padding-top: 0.75rem;">
+        <strong>Total Amount:</strong>
+        <strong id="cartTotal">₱0.00</strong>
+      </div>
+      <button id="checkoutBtn" onclick="openCheckoutModal()" class="btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; justify-content: center;">
+        Proceed to Checkout →
+      </button>
+    </div>
+  </aside>
+  <div id="drawerBackdrop" class="drawer-backdrop" onclick="toggleCart(false)"></div>
+
+  <!-- Product Detail Modal -->
+  <div id="productModal" class="modal-overlay">
+    <div class="modal-content" style="position: relative; padding: 2rem;">
+      <button onclick="closeProductModal()" style="position: absolute; top: 16px; right: 16px; background: var(--bg-subtle); border: none; width: 36px; height: 36px; border-radius: 9999px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;">
+        ✕
+      </button>
+      <div id="productModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div id="checkoutModal" class="modal-overlay">
+    <div class="modal-content" style="position: relative; padding: 2rem; max-width: 580px;">
+      <button onclick="closeCheckoutModal()" style="position: absolute; top: 16px; right: 16px; background: var(--bg-subtle); border: none; width: 36px; height: 36px; border-radius: 9999px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+        ✕
+      </button>
+
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">
+        Complete Your Order
+      </h2>
+      <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Direct purchase from verified Filipino farmers. Safe packaging and prompt dispatch.
+      </p>
+
+      <div id="checkoutSummary" style="margin-bottom: 1.25rem;"></div>
+
+      <form onsubmit="submitOrder(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+        <!-- Fulfillment Mode -->
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
+            Fulfillment Method
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer;">
+              <input type="radio" name="fulfillment" value="delivery" checked />
+              <span style="font-size: 0.85rem; font-weight: 600;">🚚 Doorstep Delivery</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer;">
+              <input type="radio" name="fulfillment" value="pickup" />
+              <span style="font-size: 0.85rem; font-weight: 600;">📍 Farm Gate Pickup</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Customer Details -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Full Name *</label>
+            <input type="text" name="fullName" required placeholder="e.g. Maria Santos" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Mobile Phone *</label>
+            <input type="tel" name="phone" required placeholder="0917-XXX-XXXX" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          </div>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Delivery Address (Street / Barangay) *</label>
+          <input type="text" name="address" required placeholder="House/Unit #, Street, Barangay" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">City / Municipality *</label>
+            <input type="text" name="city" required placeholder="e.g. Quezon City, Baguio" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Province *</label>
+            <input type="text" name="province" required placeholder="e.g. Metro Manila, Benguet" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          </div>
+        </div>
+
+        <!-- Payment Selection -->
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
+            Payment Method
+          </label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+              <input type="radio" name="paymentMethod" value="cod" checked />
+              <span>💵 Cash on Delivery</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+              <input type="radio" name="paymentMethod" value="gcash" />
+              <span>📱 GCash / Maya</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" style="margin-top: 0.5rem; padding: 0.85rem; font-size: 1rem; justify-content: center;">
+          Place Harvest Order ✓
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Order Success Confirmation Modal -->
+  <div id="orderSuccessModal" class="modal-overlay">
+    <div class="modal-content" style="position: relative; padding: 2rem; max-width: 520px;">
+      <div id="orderSuccessBody"></div>
+    </div>
+  </div>
+
+  <!-- Farmer Listing Modal ("Sell Your Harvest") -->
+  <div id="sellHarvestModal" class="modal-overlay">
+    <div class="modal-content" style="position: relative; padding: 2rem; max-width: 600px;">
+      <button onclick="closeSellHarvestModal()" style="position: absolute; top: 16px; right: 16px; background: var(--bg-subtle); border: none; width: 36px; height: 36px; border-radius: 9999px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+        ✕
+      </button>
+
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+        <span style="font-size: 1.5rem;">🌾</span>
+        <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary);">
+          List Your Farm Harvest
+        </h2>
+      </div>
+      <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+        Post your crop directly to buyers, hotels, restaurants, and households across the Philippines.
+      </p>
+
+      <form onsubmit="submitNewListing(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Crop / Product Name *</label>
+            <input id="sellCropName" type="text" name="cropName" required placeholder="e.g. Carabao Mango, Red Onion, Bangus" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Category *</label>
+            <select id="sellCategory" name="category" required style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; background: #fff;">
+              <option value="Vegetables">Vegetables</option>
+              <option value="Fruits">Fruits</option>
+              <option value="Rice & Grains">Rice & Grains</option>
+              <option value="Fish & Seafood">Fish & Seafood</option>
+              <option value="Root Crops">Root Crops</option>
+              <option value="Poultry & Eggs">Poultry & Eggs</option>
+              <option value="Coconut Products">Coconut Products</option>
+              <option value="Herbs & Spices">Herbs & Spices</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- AI Pricing Advisor Trigger -->
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Unsure what to charge?</span>
+          <button type="button" onclick="runAIPricingAssistant()" style="background: none; border: none; color: #d97706; font-weight: 700; font-size: 0.825rem; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+            ✨ Check Recommended DA Market Price
+          </button>
+        </div>
+        <div id="aiPriceAdvice" style="display: none;"></div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Price (₱) *</label>
+            <input id="sellPrice" type="number" name="price" required min="1" placeholder="100" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Unit *</label>
+            <select name="unit" required style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; background: #fff;">
+              <option value="kg">kg (Kilogram)</option>
+              <option value="sack">sack (50kg)</option>
+              <option value="tray">tray (30s)</option>
+              <option value="piece">piece</option>
+              <option value="bottle">bottle</option>
+              <option value="bundle">bundle</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Available Stock *</label>
+            <input type="number" name="quantity" required min="1" placeholder="50" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Farm Name</label>
+            <input type="text" name="farmName" placeholder="e.g. Santos Organic Farm" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">City / Town *</label>
+            <input type="text" name="city" required placeholder="e.g. La Trinidad" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Province *</label>
+            <input type="text" name="province" required placeholder="e.g. Benguet" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          </div>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Photo URL</label>
+          <input type="url" name="imageUrl" placeholder="https://images.unsplash.com/photo-..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Harvest Description & Notes</label>
+          <textarea name="description" rows="2" placeholder="Tell buyers when this was picked, farming methods used, and special preparation details..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;"></textarea>
+        </div>
+
+        <button type="submit" class="btn-harvest" style="padding: 0.85rem; font-size: 1rem; justify-content: center;">
+          Publish Harvest Listing 🌾
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Professional Site Footer -->
+  <footer style="background: #0f172a; color: #94a3b8; border-top: 1px solid #1e293b; padding: 4.5rem 1.25rem 2rem;">
+    <div style="max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 3rem; margin-bottom: 3.5rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #16a34a; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+            🌱
+          </div>
+          <span style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; color: #ffffff;">AgriConnect</span>
+        </div>
+        <p style="font-size: 0.875rem; line-height: 1.6; color: #94a3b8;">
+          The leading digital bridge connecting Filipino agricultural producers with consumers and commercial buyers. Fair prices, live harvests, zero middlemen.
+        </p>
+        <div style="margin-top: 1rem; font-size: 0.8rem; color: #22c55e;">
+          ✓ Registered Philippine Agricultural Technology
+        </div>
+      </div>
+
+      <div>
+        <h4 style="color: #ffffff; font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          Marketplace
+        </h4>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.875rem;">
+          <li><a href="#marketplace" onclick="setCategory('Vegetables')" style="color: inherit; text-decoration: none;">Highland Vegetables</a></li>
+          <li><a href="#marketplace" onclick="setCategory('Fruits')" style="color: inherit; text-decoration: none;">Tropical Fruits</a></li>
+          <li><a href="#marketplace" onclick="setCategory('Rice & Grains')" style="color: inherit; text-decoration: none;">Rice & Grains</a></li>
+          <li><a href="#marketplace" onclick="setCategory('Fish & Seafood')" style="color: inherit; text-decoration: none;">Fresh Fish & Seafood</a></li>
+          <li><a href="#marketplace" onclick="setCategory('Poultry & Eggs')" style="color: inherit; text-decoration: none;">Free-Range Poultry</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="color: #ffffff; font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          For Farmers
+        </h4>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.875rem;">
+          <li><a href="javascript:openSellHarvestModal()" style="color: inherit; text-decoration: none;">List a New Harvest</a></li>
+          <li><a href="#howItWorks" style="color: inherit; text-decoration: none;">Farmer Onboarding Guide</a></li>
+          <li><a href="javascript:runAIPricingAssistant()" style="color: inherit; text-decoration: none;">AI Market Price Benchmark</a></li>
+          <li><a href="#farmMap" style="color: inherit; text-decoration: none;">Cold Chain Route Schedules</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="color: #ffffff; font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          Accepted Payments & Assurance
+        </h4>
+        <p style="font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem;">
+          Pay conveniently and safely upon arrival or via preferred Philippine digital wallets:
+        </p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; font-size: 0.75rem; font-weight: 700;">
+          <span style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 6px; color: #38bdf8;">GCash</span>
+          <span style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 6px; color: #4ade80;">Maya</span>
+          <span style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 6px; color: #facc15;">Cash on Delivery</span>
+          <span style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 6px; color: #cbd5e1;">InstaPay / BDO</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="max-width: 1240px; margin: 0 auto; border-top: 1px solid #1e293b; padding-top: 2rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: 0.8rem; gap: 1rem;">
+      <div>
+        © 2026 AgriConnect Philippines. All rights reserved. Direct Farm-to-Buyer Marketplace.
+      </div>
+      <div style="display: flex; gap: 1.5rem;">
+        <a href="#howItWorks" style="color: inherit; text-decoration: none;">Privacy & Terms</a>
+        <a href="#farmers" style="color: inherit; text-decoration: none;">Farmer Verification</a>
+        <a href="#marketplace" style="color: inherit; text-decoration: none;">DA Bantay Presyo Aligned</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Core Interactive Script -->
+  <script src="assets/app.js"></script>
+
+  <!-- Interactive helper handlers -->
+  <script>
+    function handleHeroSearch() {
+      const input = document.getElementById('heroSearchInput');
+      if (input && input.value.trim()) {
+        window.AgriState.searchQuery = input.value.trim();
+        const mainSearch = document.getElementById('searchInput');
+        if (mainSearch) mainSearch.value = input.value.trim();
+        renderProducts();
+        scrollToSection('marketplace');
+      }
+    }
+
+    function quickFilterCategory(cat) {
+      setCategory(cat);
+      scrollToSection('marketplace');
+    }
+
+    function handleLocationChange(loc) {
+      window.AgriState.currentLocation = loc;
+      const select = document.getElementById('locationSelect');
+      if (select) select.value = loc;
+      renderProducts();
+    }
+
+    function handleTrackSearch() {
+      const input = document.getElementById('trackingSearchInput');
+      if (!input) return;
+      const query = input.value.trim().toUpperCase();
+      if (!query) {
+        showToast('Please enter an Order ID to track.');
+        return;
+      }
+      const order = window.AgriState.orders.find(o => o.id.toUpperCase() === query);
+      if (order) {
+        showToast(`Found Order ${order.id}: Status is ${order.status}`);
+      } else {
+        showToast(`Order ${query} is being confirmed with the grower.`);
+      }
+    }
+  </script>
+</body>
+</html>
