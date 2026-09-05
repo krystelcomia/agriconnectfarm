@@ -147,7 +147,8 @@ window.AgriState = {
   maxPrice: 3000,
   inStockOnly: false,
   sortBy: 'newest',
-  currentMode: localStorage.getItem('agri_mode') || 'buyer'
+  currentMode: localStorage.getItem('agri_mode') || 'buyer',
+  user: JSON.parse(localStorage.getItem('agri_user') || 'null')
 };
 
 // Preload initial sample orders if empty so buyers can immediately test tracking
@@ -214,6 +215,7 @@ const ICONS = {
 document.addEventListener('DOMContentLoaded', async () => {
   initUIListeners();
   updateCartBadge();
+  updateAuthUI();
   await loadInitialData();
 
   // Read URL params (e.g. marketplace.html?category=Fruits or ?farmer=Dela+Cruz)
@@ -241,6 +243,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (document.getElementById('ordersListContainer')) {
     renderOrderTrackingList();
+  }
+  if (document.getElementById('authPageContainer')) {
+    initAuthPage();
   }
 });
 
@@ -1734,5 +1739,323 @@ function initUIListeners() {
       if (priceDisplay) priceDisplay.textContent = `₱${Number(e.target.value).toLocaleString()}`;
       renderProducts();
     });
+  }
+}
+
+// -------------------------------------------------------------
+// 9. AUTHENTICATION (LOG IN & CREATE ACCOUNT)
+// -------------------------------------------------------------
+function initAuthPage() {
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get('mode') || params.get('tab');
+  if (mode === 'signup' || mode === 'register' || mode === 'create') {
+    switchAuthTab('signup');
+  } else {
+    switchAuthTab('login');
+  }
+}
+
+function switchAuthTab(tab) {
+  const loginTabBtn = document.getElementById('loginTabBtn');
+  const signupTabBtn = document.getElementById('signupTabBtn');
+  const loginFormSection = document.getElementById('loginFormSection');
+  const signupFormSection = document.getElementById('signupFormSection');
+
+  if (!loginFormSection || !signupFormSection) return;
+
+  if (tab === 'signup') {
+    if (loginTabBtn) {
+      loginTabBtn.classList.remove('active');
+      loginTabBtn.style.color = 'var(--text-secondary)';
+      loginTabBtn.style.background = 'transparent';
+      loginTabBtn.style.boxShadow = 'none';
+    }
+    if (signupTabBtn) {
+      signupTabBtn.classList.add('active');
+      signupTabBtn.style.color = 'var(--primary-deep)';
+      signupTabBtn.style.background = '#ffffff';
+      signupTabBtn.style.boxShadow = 'var(--shadow-sm)';
+    }
+    loginFormSection.style.display = 'none';
+    signupFormSection.style.display = 'block';
+  } else {
+    if (loginTabBtn) {
+      loginTabBtn.classList.add('active');
+      loginTabBtn.style.color = 'var(--primary-deep)';
+      loginTabBtn.style.background = '#ffffff';
+      loginTabBtn.style.boxShadow = 'var(--shadow-sm)';
+    }
+    if (signupTabBtn) {
+      signupTabBtn.classList.remove('active');
+      signupTabBtn.style.color = 'var(--text-secondary)';
+      signupTabBtn.style.background = 'transparent';
+      signupTabBtn.style.boxShadow = 'none';
+    }
+    loginFormSection.style.display = 'block';
+    signupFormSection.style.display = 'none';
+  }
+}
+
+function setAuthRole(role) {
+  const roleInput = document.getElementById('registerRoleInput');
+  const buyerCard = document.getElementById('roleCardBuyer');
+  const farmerCard = document.getElementById('roleCardFarmer');
+  const farmerFields = document.getElementById('farmerExtraFields');
+
+  if (roleInput) roleInput.value = role;
+
+  if (role === 'farmer') {
+    if (farmerCard) {
+      farmerCard.style.borderColor = 'var(--primary)';
+      farmerCard.style.background = 'var(--primary-light)';
+    }
+    if (buyerCard) {
+      buyerCard.style.borderColor = 'var(--border-subtle)';
+      buyerCard.style.background = '#ffffff';
+    }
+    if (farmerFields) farmerFields.style.display = 'block';
+  } else {
+    if (buyerCard) {
+      buyerCard.style.borderColor = 'var(--primary)';
+      buyerCard.style.background = 'var(--primary-light)';
+    }
+    if (farmerCard) {
+      farmerCard.style.borderColor = 'var(--border-subtle)';
+      farmerCard.style.background = '#ffffff';
+    }
+    if (farmerFields) farmerFields.style.display = 'none';
+  }
+}
+
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`;
+  } else {
+    input.type = 'password';
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  }
+}
+
+function handleLogin(e) {
+  e.preventDefault();
+  const form = e.target;
+  const email = form.email.value.trim().toLowerCase();
+  const password = form.password.value;
+
+  if (!email || !password) {
+    showToast('Please enter both email and password.');
+    return;
+  }
+
+  // Check saved registered users
+  const registeredUsers = JSON.parse(localStorage.getItem('agri_users') || '[]');
+  let matchedUser = registeredUsers.find(u => u.email.toLowerCase() === email);
+
+  // Pre-seeded accounts fallback for convenience
+  if (!matchedUser) {
+    if (email.includes('farmer') || email.includes('ramon')) {
+      matchedUser = {
+        id: 'farmer-ramon',
+        full_name: 'Mang Ramon Dela Cruz',
+        email: email,
+        role: 'farmer',
+        farm_name: 'Dela Cruz Family Farm',
+        province: 'Benguet',
+        avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'
+      };
+    } else {
+      matchedUser = {
+        id: 'user-' + Date.now(),
+        full_name: email.split('@')[0].replace('.', ' ').replace(/^./, str => str.toUpperCase()),
+        email: email,
+        role: 'buyer',
+        avatar: null
+      };
+    }
+  }
+
+  // Persist session
+  window.AgriState.user = matchedUser;
+  localStorage.setItem('agri_user', JSON.stringify(matchedUser));
+
+  if (matchedUser.role === 'farmer') {
+    window.AgriState.currentMode = 'farmer';
+    localStorage.setItem('agri_mode', 'farmer');
+  }
+
+  updateAuthUI();
+  showToast(`Welcome back, ${matchedUser.full_name}!`);
+
+  setTimeout(() => {
+    const params = new URLSearchParams(window.location.search);
+    const redirectUrl = params.get('redirect') || (matchedUser.role === 'farmer' ? 'farmers.html' : 'marketplace.html');
+    window.location.href = redirectUrl;
+  }, 600);
+}
+
+function handleRegister(e) {
+  e.preventDefault();
+  const form = e.target;
+  const fullName = form.fullName.value.trim();
+  const email = form.email.value.trim().toLowerCase();
+  const phone = form.phone.value.trim();
+  const password = form.password.value;
+  const confirmPassword = form.confirmPassword.value;
+  const role = form.role.value || 'buyer';
+  const farmName = form.farmName ? form.farmName.value.trim() : '';
+  const province = form.province ? form.province.value.trim() : '';
+  const specialty = form.specialty ? form.specialty.value.trim() : '';
+
+  if (password !== confirmPassword) {
+    showToast('Passwords do not match. Please re-enter.');
+    return;
+  }
+
+  if (password.length < 6) {
+    showToast('Password must be at least 6 characters.');
+    return;
+  }
+
+  const newUser = {
+    id: 'user-' + Date.now(),
+    full_name: fullName,
+    email: email,
+    phone: phone,
+    role: role,
+    farm_name: farmName || (role === 'farmer' ? `${fullName}'s Farm` : ''),
+    province: province || 'Luzon',
+    specialty: specialty || 'Fresh Agricultural Produce',
+    createdAt: new Date().toISOString()
+  };
+
+  // Save to registered list
+  const users = JSON.parse(localStorage.getItem('agri_users') || '[]');
+  const existingIdx = users.findIndex(u => u.email.toLowerCase() === email);
+  if (existingIdx >= 0) {
+    users[existingIdx] = newUser;
+  } else {
+    users.push(newUser);
+  }
+  localStorage.setItem('agri_users', JSON.stringify(users));
+
+  // If farmer, add to local farmer directory as well
+  if (role === 'farmer') {
+    const newFarmer = {
+      id: newUser.id,
+      full_name: newUser.full_name,
+      farm_name: newUser.farm_name,
+      city: 'Local Municipality',
+      province: newUser.province,
+      address: `${newUser.province}, Philippines`,
+      bio: `Direct farmer partner on AgriConnect specializing in ${newUser.specialty}.`,
+      rating: 5.0,
+      reviewsCount: 1,
+      verified: true,
+      phone: newUser.phone,
+      pickupHours: '7:00 AM – 4:00 PM (Mon-Sat)',
+      specialty: newUser.specialty,
+      avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'
+    };
+    window.AgriState.farmers.unshift(newFarmer);
+    window.AgriState.currentMode = 'farmer';
+    localStorage.setItem('agri_mode', 'farmer');
+  }
+
+  // Persist current session
+  window.AgriState.user = newUser;
+  localStorage.setItem('agri_user', JSON.stringify(newUser));
+
+  updateAuthUI();
+  showToast(`Account created successfully! Welcome, ${newUser.full_name}.`);
+
+  setTimeout(() => {
+    window.location.href = role === 'farmer' ? 'farmers.html' : 'marketplace.html';
+  }, 700);
+}
+
+function loginDemoUser(role) {
+  let demoUser;
+  if (role === 'farmer') {
+    demoUser = {
+      id: 'farmer-ramon',
+      full_name: 'Mang Ramon Dela Cruz',
+      email: 'ramon.delacruz@benguetfarm.ph',
+      role: 'farmer',
+      farm_name: 'Dela Cruz Family Farm',
+      province: 'Benguet',
+      avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'
+    };
+    window.AgriState.currentMode = 'farmer';
+    localStorage.setItem('agri_mode', 'farmer');
+  } else {
+    demoUser = {
+      id: 'buyer-juan',
+      full_name: 'Juan Dela Cruz',
+      email: 'juan.delacruz@consumer.ph',
+      role: 'buyer',
+      farm_name: '',
+      province: 'Metro Manila',
+      avatar: null
+    };
+    window.AgriState.currentMode = 'buyer';
+    localStorage.setItem('agri_mode', 'buyer');
+  }
+
+  window.AgriState.user = demoUser;
+  localStorage.setItem('agri_user', JSON.stringify(demoUser));
+
+  updateAuthUI();
+  showToast(`Logged in as ${demoUser.full_name} (${demoUser.role.toUpperCase()})`);
+
+  setTimeout(() => {
+    window.location.href = role === 'farmer' ? 'farmers.html' : 'marketplace.html';
+  }, 500);
+}
+
+function handleLogout() {
+  window.AgriState.user = null;
+  localStorage.removeItem('agri_user');
+  updateAuthUI();
+  showToast('You have been signed out.');
+  if (window.location.pathname.includes('auth.html')) {
+    switchAuthTab('login');
+  } else {
+    setTimeout(() => {
+      window.location.reload();
+    }, 400);
+  }
+}
+
+function updateAuthUI() {
+  const container = document.getElementById('userAuthContainer');
+  const user = window.AgriState.user;
+
+  if (!container) return;
+
+  if (user && user.full_name) {
+    const initials = user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+    container.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <div style="width: 32px; height: 32px; border-radius: 9999px; background: var(--primary); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; box-shadow: var(--shadow-sm);">
+          ${initials}
+        </div>
+        <div style="display: flex; flex-direction: column; line-height: 1.15; text-align: left;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">${user.full_name}</span>
+          <span style="font-size: 0.68rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">${user.role === 'farmer' ? 'Farmer' : 'Buyer'}</span>
+        </div>
+        <button onclick="handleLogout()" class="btn-secondary" style="font-size: 0.725rem; padding: 0.25rem 0.55rem; border-color: var(--border-subtle);" title="Log out">
+          Sign Out
+        </button>
+      </div>
+    `;
+  } else {
+    container.innerHTML = `
+      <a href="auth.html" class="btn-secondary" style="font-size: 0.825rem; padding: 0.45rem 0.85rem; text-decoration: none;">
+        Log In / Register
+      </a>
+    `;
   }
 }

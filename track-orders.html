@@ -30,6 +30,7 @@
         <a href="maps.html" class="nav-link">Maps</a>
         <a href="how-it-works.html" class="nav-link">How It Works</a>
         <a href="track-orders.html" class="nav-link active">Track Orders</a>
+        <a href="auth.html" class="nav-link">Log In</a>
       </nav>
 
       <div class="header-actions">
@@ -45,9 +46,7 @@
           <span id="cartBadge" class="cart-badge">0</span>
         </button>
 
-        <button onclick="toggleMode(window.AgriState.currentMode === 'buyer' ? 'farmer' : 'buyer')" id="userModeBadge" class="btn-secondary" style="font-size: 0.75rem; padding: 0.45rem 0.75rem;">
-          Farmer View
-        </button>
+        <div id="userAuthContainer"></div>
 
         <button class="mobile-menu-btn" onclick="toggleMobileNav()" aria-label="Toggle navigation">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
