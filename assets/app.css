@@ -710,4 +710,129 @@ body.is-farmer .sell-harvest-btn.sell-harvest-mobile-btn {
   display: block !important;
 }
 
+/* Call To Action Photo Banner (How It Works & Landing Pages) */
+.cta-photo-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 36px -10px rgba(15, 60, 30, 0.35);
+  background: #14532d;
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.cta-photo-banner .cta-bg-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  filter: brightness(0.92) saturate(1.15);
+  transform: scale(1.02);
+  transition: transform 0.6s ease;
+}
+
+.cta-photo-banner:hover .cta-bg-img {
+  transform: scale(1.05);
+}
+
+.cta-photo-banner .cta-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(10, 38, 20, 0.92) 0%,
+    rgba(15, 60, 30, 0.86) 50%,
+    rgba(21, 128, 61, 0.75) 100%
+  );
+  backdrop-filter: blur(1px);
+}
+
+.cta-photo-banner .cta-content {
+  position: relative;
+  z-index: 2;
+  padding: 3.5rem 2rem;
+  color: #ffffff;
+  text-align: center;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+/* Farmer Dashboard Hero Banner with Photo Background */
+.farmer-dashboard-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-card);
+  background: #14532d;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+}
+
+.farmer-dashboard-banner .dashboard-banner-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  filter: brightness(0.92) saturate(1.1);
+  transform: scale(1.02);
+  transition: transform 0.6s ease;
+}
+
+.farmer-dashboard-banner:hover .dashboard-banner-bg {
+  transform: scale(1.04);
+}
+
+.farmer-dashboard-banner .dashboard-banner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    95deg,
+    rgba(10, 38, 20, 0.94) 0%,
+    rgba(15, 60, 30, 0.88) 55%,
+    rgba(21, 128, 61, 0.65) 100%
+  );
+  backdrop-filter: blur(1px);
+}
+
+@media (max-width: 768px) {
+  .farmer-dashboard-banner .dashboard-banner-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(10, 38, 20, 0.95) 0%,
+      rgba(15, 60, 30, 0.9) 60%,
+      rgba(21, 128, 61, 0.8) 100%
+    );
+  }
+}
+
+.farmer-dashboard-banner .dashboard-banner-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 2.25rem 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+
 

@@ -57,11 +57,15 @@
   <main style="min-height: calc(100vh - 180px); display: flex; align-items: center; justify-content: center; padding: 3rem 1.25rem 5rem; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);">
     <div id="authPageContainer" style="max-width: 520px; width: 100%; background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-modal); overflow: hidden;">
       
-      <!-- Top Brand Accent Header -->
-      <div style="background: linear-gradient(135deg, #14532d 0%, #15803d 100%); padding: 1.75rem 1.5rem; text-align: center; color: #ffffff;">
-        <img src="assets/logo.png" alt="AgriConnect Logo" style="width: 72px; height: 72px; border-radius: 9999px; object-fit: contain; margin-bottom: 0.5rem; background: #ffffff; padding: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-        <h1 style="font-size: 1.4rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">AgriConnect Portal</h1>
-        <p style="font-size: 0.85rem; opacity: 0.9; margin-top: 0.2rem;">Direct Philippine Farm-to-Table Platform</p>
+      <!-- Top Brand Accent Header with Background Photo -->
+      <div style="position: relative; overflow: hidden; padding: 2rem 1.5rem; text-align: center; color: #ffffff; background: #14532d;">
+        <img src="assets/dashboard-banner.jpg" alt="Benguet Farm Fields" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; filter: brightness(0.85);">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(20, 83, 45, 0.92) 0%, rgba(21, 128, 61, 0.84) 100%); backdrop-filter: blur(1px);"></div>
+        <div style="position: relative; z-index: 2;">
+          <img src="assets/logo.png" alt="AgriConnect Logo" style="width: 72px; height: 72px; border-radius: 9999px; object-fit: contain; margin-bottom: 0.5rem; background: #ffffff; padding: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.25);">
+          <h1 style="font-size: 1.45rem; font-weight: 800; color: #ffffff; letter-spacing: -0.02em; text-shadow: 0 2px 8px rgba(0,0,0,0.3);">AgriConnect Portal</h1>
+          <p style="font-size: 0.85rem; opacity: 0.95; margin-top: 0.2rem; color: #f0fdf4; text-shadow: 0 1px 4px rgba(0,0,0,0.3);">Direct Philippine Farm-to-Table Platform</p>
+        </div>
       </div>
 
       <!-- Tab Switcher Navigation -->

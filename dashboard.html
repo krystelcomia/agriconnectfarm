@@ -56,14 +56,16 @@
   <!-- Farmer Dashboard Main Container -->
   <main style="max-width: 1240px; margin: 2rem auto 5rem; padding: 0 1.25rem;">
     
-    <!-- Farmer Banner & Welcome Profile Header -->
-    <div style="background: linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%); border-radius: var(--radius-lg); padding: 2.25rem 2rem; color: #ffffff; margin-bottom: 2rem; box-shadow: var(--shadow-card); position: relative; overflow: hidden;">
-      <div style="position: relative; z-index: 2; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1.5rem;">
+    <!-- Farmer Banner & Welcome Profile Header with Background Photo -->
+    <div class="farmer-dashboard-banner">
+      <img src="assets/dashboard-banner.jpg" alt="Benguet Mountain Agricultural Terraces" class="dashboard-banner-bg">
+      <div class="dashboard-banner-overlay"></div>
+      <div class="dashboard-banner-content">
         <div style="display: flex; gap: 1.25rem; align-items: center;">
-          <img id="farmerAvatar" src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=400" alt="Farmer Profile" style="width: 76px; height: 76px; border-radius: 9999px; object-fit: cover; border: 3px solid #86efac; box-shadow: var(--shadow-sm);">
+          <img id="farmerAvatar" src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=400" alt="Farmer Profile" style="width: 76px; height: 76px; border-radius: 9999px; object-fit: cover; border: 3px solid #86efac; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
           <div>
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-              <span style="background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.725rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">
+              <span style="background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.725rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">
                 Verified Producer
               </span>
               <span style="color: #86efac; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
@@ -71,20 +73,20 @@
                 0% Middleman Deduction
               </span>
             </div>
-            <h1 id="farmerGreeting" style="font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; margin-top: 0.35rem; color: #ffffff;">
+            <h1 id="farmerGreeting" style="font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; margin-top: 0.35rem; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.35);">
               Kumusta, Mang Ramon!
             </h1>
-            <p id="farmerFarmDetails" style="font-size: 0.9rem; opacity: 0.9; margin-top: 0.25rem;">
+            <p id="farmerFarmDetails" style="font-size: 0.9rem; opacity: 0.95; margin-top: 0.25rem; color: #f0fdf4; text-shadow: 0 1px 4px rgba(0,0,0,0.3);">
               Dela Cruz Family Farm • Sitio Pungayan, La Trinidad, Benguet
             </p>
           </div>
         </div>
 
         <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-          <button onclick="openSellHarvestModal()" class="btn-primary" style="background: #ffffff; color: var(--primary-deep); border-color: #ffffff; font-weight: 700; padding: 0.65rem 1.25rem;">
+          <button onclick="openSellHarvestModal()" class="btn-primary" style="background: #ffffff; color: var(--primary-deep); border-color: #ffffff; font-weight: 700; padding: 0.65rem 1.25rem; box-shadow: 0 4px 12px rgba(0,0,0,0.18);">
             + List New Harvest
           </button>
-          <a href="farmers.html" class="btn-secondary" style="background: rgba(255, 255, 255, 0.15); color: #ffffff; border-color: rgba(255, 255, 255, 0.3); padding: 0.65rem 1.15rem; text-decoration: none;">
+          <a href="farmers.html" class="btn-secondary" style="background: rgba(255, 255, 255, 0.2); color: #ffffff; border-color: rgba(255, 255, 255, 0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 0.65rem 1.15rem; text-decoration: none; font-weight: 600;">
             Public Farm Profile
           </a>
         </div>
