@@ -1559,6 +1559,18 @@ function addToCartFromModal(productId) {
 // 8. FARMER LISTING MODAL
 // -------------------------------------------------------------
 function openSellHarvestModal() {
+  const user = window.AgriState.user;
+  if (!user) {
+    showToast('The "Sell Harvest" feature is only available for registered farmer accounts. Please log in or create a farmer account.');
+    setTimeout(() => {
+      window.location.href = 'auth.html';
+    }, 800);
+    return;
+  }
+  if (user.role !== 'farmer') {
+    showToast('You are currently signed in as a Buyer. Only verified Farmer accounts can list produce for sale.');
+    return;
+  }
   const modal = document.getElementById('sellHarvestModal');
   if (modal) modal.classList.add('open');
 }
@@ -2032,6 +2044,27 @@ function handleLogout() {
 function updateAuthUI() {
   const container = document.getElementById('userAuthContainer');
   const user = window.AgriState.user;
+  const isFarmer = Boolean(user && user.role === 'farmer');
+
+  // Toggle body role classes
+  if (document.body) {
+    document.body.classList.toggle('is-farmer', isFarmer);
+    document.body.classList.toggle('is-buyer', Boolean(user && user.role !== 'farmer'));
+  }
+
+  // Toggle "Sell Harvest" buttons (only available once a farmer account is logged in)
+  const sellBtns = document.querySelectorAll('.sell-harvest-btn');
+  sellBtns.forEach(btn => {
+    if (isFarmer) {
+      if (btn.classList.contains('sell-harvest-mobile-btn') || btn.classList.contains('sell-harvest-block')) {
+        btn.style.setProperty('display', 'block', 'important');
+      } else {
+        btn.style.setProperty('display', 'inline-flex', 'important');
+      }
+    } else {
+      btn.style.setProperty('display', 'none', 'important');
+    }
+  });
 
   if (!container) return;
 
