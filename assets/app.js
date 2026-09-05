@@ -1,8 +1,6 @@
 /**
  * AgriConnect - Core Marketplace Platform Engine
- * Handles live Supabase queries, instant fallback hydration, reactive shopping cart,
- * checkout flow with delivery/pickup & GCash/COD, farmer listing portal with AI pricing,
- * order tracking, and farmer profiles.
+ * Professional, clean farm-to-table platform
  */
 
 // Configuration
@@ -12,14 +10,14 @@ const SUPABASE_KEY = "sb_publishable_c8UFr2fVf7J-s0TsD0IYwQ_XIlg2-KY";
 // Embedded fallback seed data so the system works immediately & offline
 const SEED_DATA = {
   categories: [
-    { id: "cat-veg", name: "Vegetables", slug: "vegetables", icon: "carrot" },
-    { id: "cat-fruit", name: "Fruits", slug: "fruits", icon: "apple" },
-    { id: "cat-rice", name: "Rice & Grains", slug: "rice-grains", icon: "wheat" },
-    { id: "cat-fish", name: "Fish & Seafood", slug: "fish-seafood", icon: "fish" },
-    { id: "cat-root", name: "Root Crops", slug: "root-crops", icon: "sprout" },
-    { id: "cat-poultry", name: "Poultry & Eggs", slug: "poultry-eggs", icon: "egg" },
-    { id: "cat-coco", name: "Coconut Products", slug: "coconut-products", icon: "coconut" },
-    { id: "cat-herb", name: "Herbs & Spices", slug: "herbs-spices", icon: "sparkles" }
+    { id: "cat-veg", name: "Vegetables", slug: "vegetables" },
+    { id: "cat-fruit", name: "Fruits", slug: "fruits" },
+    { id: "cat-rice", name: "Rice & Grains", slug: "rice-grains" },
+    { id: "cat-fish", name: "Fish & Seafood", slug: "fish-seafood" },
+    { id: "cat-root", name: "Root Crops", slug: "root-crops" },
+    { id: "cat-poultry", name: "Poultry & Eggs", slug: "poultry-eggs" },
+    { id: "cat-coco", name: "Coconut Products", slug: "coconut-products" },
+    { id: "cat-herb", name: "Herbs & Spices", slug: "herbs-spices" }
   ],
   farmers: [
     {
@@ -28,11 +26,11 @@ const SEED_DATA = {
       farm_name: "Dela Cruz Family Farm",
       city: "La Trinidad",
       province: "Benguet",
-      bio: "Third-generation highland vegetable farmer growing crisp greens without harmful synthetic chemicals.",
+      bio: "Third-generation highland vegetable farmer cultivating crisp greens without harmful synthetic chemicals.",
       rating: 4.9,
       reviewsCount: 38,
       verified: true,
-      specialty: "Highland Greens & Root Veggies",
+      specialty: "Highland Greens & Root Crops",
       avatar: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=200"
     },
     {
@@ -41,7 +39,7 @@ const SEED_DATA = {
       farm_name: "Bautista Rice Fields",
       city: "Cabanatuan",
       province: "Nueva Ecija",
-      bio: "We harvest, thresh, and mill premium Sinandomeng and Dinorado rice from our family farm every season.",
+      bio: "Harvesting, drying, and milling premium Sinandomeng and Dinorado rice from our family farm every season.",
       rating: 5.0,
       reviewsCount: 42,
       verified: true,
@@ -54,11 +52,11 @@ const SEED_DATA = {
       farm_name: "Villanueva Mango Orchard",
       city: "Jordan",
       province: "Guimaras",
-      bio: "World-famous sweet Guimaras-variety mangoes picked at peak ripeness right from our fertile island orchards.",
+      bio: "World-famous sweet Guimaras carabao mangoes picked at peak ripeness right from our fertile island orchards.",
       rating: 4.9,
       reviewsCount: 51,
       verified: true,
-      specialty: "Guimaras Carabao Mangoes & Bananas",
+      specialty: "Guimaras Carabao Mangoes",
       avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200"
     },
     {
@@ -80,7 +78,7 @@ const SEED_DATA = {
       farm_name: "Lopez Coconut & Root Farm",
       city: "Lucban",
       province: "Quezon",
-      bio: "Fresh buko, cold-pressed virgin coconut oil, cassava, and sweet purple camote from Mount Banahaw foothills.",
+      bio: "Fresh coconut water, cold-pressed virgin coconut oil, cassava, and sweet purple camote from Mount Banahaw.",
       rating: 4.9,
       reviewsCount: 34,
       verified: true,
@@ -97,7 +95,7 @@ const SEED_DATA = {
       rating: 4.8,
       reviewsCount: 26,
       verified: true,
-      specialty: "Free-Range Poultry & Organic Eggs",
+      specialty: "Free-Range Poultry & Fresh Eggs",
       avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200"
     }
   ]
@@ -114,11 +112,20 @@ window.AgriState = {
   currentFarmerFilter: null,
   currentLocation: 'all',
   searchQuery: '',
-  priceCeiling: 3000,
   maxPrice: 3000,
   inStockOnly: true,
   sortBy: 'newest',
-  currentMode: localStorage.getItem('agri_mode') || 'buyer' // 'buyer' or 'farmer'
+  currentMode: localStorage.getItem('agri_mode') || 'buyer'
+};
+
+// Icons (Reusable Clean SVGs)
+const ICONS = {
+  mapPin: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
+  check: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  star: `<svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  plus: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  package: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>`,
+  shoppingBag: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`
 };
 
 // Initialize App
@@ -132,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderOrderTrackingList();
 });
 
-// Load products and farmers from Supabase or Fallback
+// Load products from Supabase or fallback
 async function loadInitialData() {
   try {
     const res = await fetch(`${SUPABASE_URL}/products?select=*,categories(id,name,slug),profiles:farmer_id(full_name,farm_name,city,province,avatar_url)&is_active=eq.true&order=created_at.desc`, {
@@ -145,15 +152,13 @@ async function loadInitialData() {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
         window.AgriState.products = data.map(normalizeProduct);
-        console.log('Loaded products from live Supabase:', window.AgriState.products.length);
         return;
       }
     }
   } catch (e) {
-    console.warn('Supabase fetch failed, falling back to cached seed data:', e);
+    console.warn('Live query unavailable, running with cached data:', e);
   }
 
-  // Fallback to rich embedded seed dataset
   loadSeedProducts();
 }
 
@@ -193,7 +198,7 @@ function loadSeedProducts() {
       farmer_id: "farmer-ramon",
       city: "La Trinidad",
       province: "Benguet",
-      description: "Crisp, sweet highland baguio beans harvested this morning at high altitude.",
+      description: "Crisp, sweet highland baguio beans harvested at high altitude in Benguet.",
       rating: "4.9",
       reviews_count: 32
     },
@@ -261,7 +266,7 @@ function loadSeedProducts() {
       farmer_id: "farmer-nena",
       city: "Cabanatuan",
       province: "Nueva Ecija",
-      description: "Natural pinkish tinge, fragrant aroma, and fluffy cooked texture.",
+      description: "Natural fragrance and soft, fluffy cooked texture. Direct from Nueva Ecija.",
       rating: "4.9",
       reviews_count: 36
     },
@@ -278,7 +283,7 @@ function loadSeedProducts() {
       farmer_id: "farmer-marites",
       city: "Navotas",
       province: "Metro Manila",
-      description: "Fresh daily catch milkfish with thick belly fat and sweet meat. Cleaned upon request.",
+      description: "Fresh daily catch milkfish with thick belly fat and tender meat.",
       rating: "4.8",
       reviews_count: 31
     },
@@ -295,7 +300,7 @@ function loadSeedProducts() {
       farmer_id: "farmer-marites",
       city: "Navotas",
       province: "Metro Manila",
-      description: "Succulent, sweet white shrimp harvested early morning. Ideal for sinigang or buttered garlic.",
+      description: "Sweet white shrimp harvested early morning. Ideal for sinigang or garlic butter.",
       rating: "4.9",
       reviews_count: 22
     },
@@ -329,7 +334,7 @@ function loadSeedProducts() {
       farmer_id: "farmer-cora",
       city: "Silang",
       province: "Cavite",
-      description: "Organic pasture-grazed native chicken with deep, traditional Filipino tinola flavor.",
+      description: "Pasture-raised native chicken with deep, authentic flavor.",
       rating: "4.8",
       reviews_count: 19
     },
@@ -363,7 +368,7 @@ function loadSeedProducts() {
       farmer_id: "farmer-ramon",
       city: "La Trinidad",
       province: "Benguet",
-      description: "Intensely pungent, aromatic native ginger rhizomes. Excellent for salabat and adobo.",
+      description: "Aromatic native ginger rhizomes. Excellent for traditional cooking and tea.",
       rating: "4.9",
       reviews_count: 24
     },
@@ -380,7 +385,7 @@ function loadSeedProducts() {
       farmer_id: "farmer-berting",
       city: "Lucban",
       province: "Quezon",
-      description: "100% pure raw virgin coconut oil, centrifuge-extracted without heating or chemicals.",
+      description: "100% pure raw virgin coconut oil, cold extracted without heat or chemicals.",
       rating: "5.0",
       reviews_count: 37
     },
@@ -397,7 +402,7 @@ function loadSeedProducts() {
       farmer_id: "farmer-berting",
       city: "Lucban",
       province: "Quezon",
-      description: "Sweet coconut water and soft, tender meat harvested straight from tall Quezon palms.",
+      description: "Sweet coconut water and tender meat freshly picked from Lucban groves.",
       rating: "4.8",
       reviews_count: 28
     },
@@ -414,7 +419,7 @@ function loadSeedProducts() {
       farmer_id: "farmer-berting",
       city: "Lucban",
       province: "Quezon",
-      description: "Rich in antioxidants and naturally sweet. Perfect for boiling or merienda.",
+      description: "Naturally sweet and firm purple sweet potatoes from volcanic foothills.",
       rating: "4.7",
       reviews_count: 18
     },
@@ -431,7 +436,7 @@ function loadSeedProducts() {
       farmer_id: "farmer-ramon",
       city: "La Trinidad",
       province: "Benguet",
-      description: "Sweet, crunchy, soil-washed highland carrots packed with beta-carotene.",
+      description: "Sweet, crunchy, soil-washed highland carrots packed with freshness.",
       rating: "4.9",
       reviews_count: 33
     },
@@ -448,21 +453,21 @@ function loadSeedProducts() {
       farmer_id: "farmer-cora",
       city: "Silang",
       province: "Cavite",
-      description: "Juicy, vine-ripened farm tomatoes bursting with rich natural acidity.",
+      description: "Firm, juicy, vine-ripened tomatoes harvested at perfect color.",
       rating: "4.8",
       reviews_count: 25
     }
   ];
 }
 
-// Render Categories Bar & Filter Chips
+// Render Categories Chips (No Emojis)
 function renderCategories() {
   const container = document.getElementById('categoryChips');
   if (!container) return;
 
   let html = `
     <button class="category-chip ${window.AgriState.currentCategory === 'all' ? 'active' : ''}" onclick="setCategory('all')">
-      🌱 All Harvests
+      All Products
     </button>
   `;
 
@@ -471,25 +476,13 @@ function renderCategories() {
     counts[p.category_name] = (counts[p.category_name] || 0) + 1;
   });
 
-  const catIcons = {
-    'Vegetables': '🥬',
-    'Fruits': '🥭',
-    'Rice & Grains': '🌾',
-    'Fish & Seafood': '🐟',
-    'Root Crops': '🥔',
-    'Poultry & Eggs': '🥚',
-    'Coconut Products': '🥥',
-    'Herbs & Spices': '🌿'
-  };
-
   const uniqueCats = Array.from(new Set(window.AgriState.products.map(p => p.category_name)));
   uniqueCats.forEach(cat => {
-    const icon = catIcons[cat] || '🌱';
     const isActive = window.AgriState.currentCategory === cat ? 'active' : '';
     const count = counts[cat] || 0;
     html += `
       <button class="category-chip ${isActive}" onclick="setCategory('${cat}')">
-        ${icon} ${cat} <span style="font-size: 0.75rem; opacity: 0.8; margin-left: 2px;">(${count})</span>
+        ${cat} <span style="font-size: 0.75rem; opacity: 0.75; margin-left: 2px;">(${count})</span>
       </button>
     `;
   });
@@ -497,41 +490,35 @@ function renderCategories() {
   container.innerHTML = html;
 }
 
-// Render Products Catalog with Filters
+// Render Products Catalog with Clean Design
 function renderProducts() {
   const container = document.getElementById('productsGrid');
   const countLabel = document.getElementById('productsCountLabel');
   const banner = document.getElementById('activeFarmerBanner');
   if (!container) return;
 
-  // Filter Active Products
+  // Filter
   let list = window.AgriState.products.filter(p => {
-    // Category
     if (window.AgriState.currentCategory !== 'all' && p.category_name !== window.AgriState.currentCategory) {
       return false;
     }
-    // Farmer Filter
     if (window.AgriState.currentFarmerFilter && p.farmer_id !== window.AgriState.currentFarmerFilter && p.farmer_name !== window.AgriState.currentFarmerFilter) {
       return false;
     }
-    // Location Filter
     if (window.AgriState.currentLocation !== 'all') {
       const locMatch = (p.province + ' ' + p.city).toLowerCase();
       if (!locMatch.includes(window.AgriState.currentLocation.toLowerCase())) {
         return false;
       }
     }
-    // Search Query
     if (window.AgriState.searchQuery.trim()) {
       const q = window.AgriState.searchQuery.toLowerCase();
       const match = (p.name + ' ' + p.category_name + ' ' + p.farmer_name + ' ' + p.city + ' ' + p.province + ' ' + p.description).toLowerCase();
       if (!match.includes(q)) return false;
     }
-    // Price
     if (p.price > window.AgriState.maxPrice) {
       return false;
     }
-    // In stock
     if (window.AgriState.inStockOnly && (!p.is_available || p.quantity <= 0)) {
       return false;
     }
@@ -547,19 +534,16 @@ function renderProducts() {
     list.sort((a, b) => Number(b.rating) - Number(a.rating));
   }
 
-  // Active Farmer Banner
+  // Banner
   if (banner) {
     if (window.AgriState.currentFarmerFilter) {
       banner.style.display = 'flex';
       banner.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <span style="font-size: 1.25rem;">👨‍🌾</span>
-          <div>
-            <strong>Filtering by Farm:</strong> ${window.AgriState.currentFarmerFilter}
-          </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+          <span style="font-weight: 600;">Farm:</span> <span>${window.AgriState.currentFarmerFilter}</span>
         </div>
-        <button onclick="clearFarmerFilter()" style="background: none; border: 1px solid currentColor; padding: 0.25rem 0.75rem; border-radius: 9999px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">
-          Show All Farms ✕
+        <button onclick="clearFarmerFilter()" style="background: none; border: 1px solid currentColor; padding: 0.2rem 0.65rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">
+          Clear Filter
         </button>
       `;
     } else {
@@ -568,19 +552,18 @@ function renderProducts() {
   }
 
   if (countLabel) {
-    countLabel.textContent = `Showing ${list.length} fresh produce item(s)`;
+    countLabel.textContent = `Showing ${list.length} item(s)`;
   }
 
   if (list.length === 0) {
     container.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; background: #ffffff; border-radius: var(--radius-lg); border: 1px dashed var(--border-strong);">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">🌾</div>
-        <h3 style="font-size: 1.35rem; font-weight: 700;">No harvests match your criteria</h3>
-        <p style="color: var(--text-muted); margin-top: 0.5rem; max-width: 420px; margin-left: auto; margin-right: auto;">
-          Try clearing your search term, adjusting your price range, or selecting a different agricultural category.
+      <div style="grid-column: 1/-1; text-align: center; padding: 3.5rem 1rem; background: #ffffff; border-radius: var(--radius-md); border: 1px dashed var(--border-strong);">
+        <h4 style="font-size: 1.15rem; font-weight: 700;">No products found</h4>
+        <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.35rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+          Try broadening your search term or adjusting category and price filters.
         </p>
-        <button onclick="resetAllFilters()" class="btn-secondary" style="margin-top: 1.5rem;">
-          Reset All Filters
+        <button onclick="resetAllFilters()" class="btn-secondary" style="margin-top: 1.25rem;">
+          Reset Filters
         </button>
       </div>
     `;
@@ -591,44 +574,48 @@ function renderProducts() {
     <div class="product-card" id="card-${p.id}">
       <div class="product-img-wrap" onclick="openProductModal('${p.id}')" style="cursor: pointer;">
         <img src="${p.image_url}" alt="${p.name}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=800'">
-        <span class="category-pill">${p.category_name}</span>
-        <span class="stock-tag ${p.quantity > 15 ? 'in-stock' : 'low-stock'}">
-          ${p.quantity > 0 ? `${p.quantity} ${p.unit} left` : 'Out of stock'}
+        <span class="category-badge">${p.category_name}</span>
+        <span class="stock-badge ${p.quantity <= 15 ? 'low' : ''}">
+          ${p.quantity > 0 ? `${p.quantity} ${p.unit} in stock` : 'Sold out'}
         </span>
       </div>
 
-      <div style="padding: 1.25rem; display: flex; flex-direction: column; flex: 1;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
-          <button onclick="filterByFarmer('${p.farmer_name}')" style="background: none; border: none; padding: 0; color: var(--primary); font-size: 0.825rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;" title="View this farmer's harvests">
-            <span>📍</span> ${p.city}, ${p.province}
+      <div style="padding: 1.15rem; display: flex; flex-direction: column; flex: 1;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.3rem;">
+          <button onclick="filterByFarmer('${p.farmer_name}')" style="background: none; border: none; padding: 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;" title="Filter by farm">
+            ${ICONS.mapPin} ${p.city}, ${p.province}
           </button>
-          <div style="font-size: 0.8rem; font-weight: 600; color: #f59e0b; display: flex; align-items: center; gap: 0.2rem;">
-            ★ ${p.rating} <span style="color: var(--text-light); font-weight: 400;">(${p.reviews_count})</span>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #b45309; display: flex; align-items: center; gap: 0.25rem;">
+            ${ICONS.star} ${p.rating}
           </div>
         </div>
 
-        <h3 onclick="openProductModal('${p.id}')" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); cursor: pointer; line-height: 1.35; margin-bottom: 0.4rem;">
+        <h3 onclick="openProductModal('${p.id}')" style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); cursor: pointer; line-height: 1.35; margin-bottom: 0.35rem;">
           ${p.name}
         </h3>
 
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.85rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45;">
+        <div style="font-size: 0.8rem; color: var(--primary); font-weight: 600; margin-bottom: 0.5rem;">
+          ${p.farmer_name}
+        </div>
+
+        <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 0.85rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45;">
           ${p.description}
         </p>
 
-        <div style="margin-top: auto; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+        <div style="margin-top: auto; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <div class="price-display">
+            <div class="price-tag">
               ₱${p.price.toLocaleString()}
             </div>
-            <span class="price-unit">/ ${p.unit}</span>
+            <span class="unit-tag">/ ${p.unit}</span>
           </div>
 
           <div style="display: flex; align-items: center; gap: 0.35rem;">
-            <button onclick="openProductModal('${p.id}')" class="btn-secondary" style="padding: 0.55rem 0.85rem; font-size: 0.825rem;" title="Quick View">
+            <button onclick="openProductModal('${p.id}')" class="btn-secondary" style="padding: 0.45rem 0.75rem; font-size: 0.8rem;">
               View
             </button>
-            <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.55rem 1rem; font-size: 0.85rem;">
-              + Add
+            <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;">
+              Add to Cart
             </button>
           </div>
         </div>
@@ -637,46 +624,48 @@ function renderProducts() {
   `).join('');
 }
 
-// Render Farmer Spotlight Profiles
+// Render Farmer Cards
 function renderFarmers() {
   const container = document.getElementById('farmersGrid');
   if (!container) return;
 
   container.innerHTML = window.AgriState.farmers.map(f => `
-    <div class="farmer-card">
-      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-        <img src="${f.avatar}" alt="${f.full_name}" style="width: 60px; height: 60px; border-radius: 9999px; object-fit: cover; border: 2px solid var(--primary);">
+    <div style="background: #ffffff; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); padding: 1.35rem; box-shadow: var(--shadow-card); transition: var(--transition);">
+      <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.85rem;">
+        <img src="${f.avatar}" alt="${f.full_name}" style="width: 52px; height: 52px; border-radius: 9999px; object-fit: cover; border: 1px solid var(--border-strong);">
         <div>
-          <div style="display: flex; align-items: center; gap: 0.35rem;">
-            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 0;">${f.full_name}</h3>
-            <span style="color: #15803d; font-size: 0.9rem;" title="Verified Grower">✓</span>
+          <div style="display: flex; align-items: center; gap: 0.3rem;">
+            <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0;">${f.full_name}</h4>
+            <span style="color: var(--primary); font-size: 0.85rem;" title="Verified Grower">${ICONS.check}</span>
           </div>
-          <div style="font-size: 0.85rem; font-weight: 600; color: var(--primary);">${f.farm_name}</div>
-          <div style="font-size: 0.8rem; color: var(--text-muted);">📍 ${f.city}, ${f.province}</div>
+          <div style="font-size: 0.825rem; font-weight: 600; color: var(--primary);">${f.farm_name}</div>
+          <div style="font-size: 0.775rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.2rem;">
+            ${ICONS.mapPin} ${f.city}, ${f.province}
+          </div>
         </div>
       </div>
 
-      <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">
-        "${f.bio}"
+      <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.85rem;">
+        ${f.bio}
       </p>
 
-      <div style="background: var(--bg-subtle); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.8rem;">
-        <strong style="color: var(--text-primary);">Specialty:</strong> ${f.specialty}
+      <div style="background: var(--bg-subtle); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.775rem;">
+        <strong style="color: var(--text-main);">Specialty:</strong> ${f.specialty}
       </div>
 
-      <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-subtle); padding-top: 0.85rem;">
-        <div style="font-size: 0.85rem; font-weight: 600; color: #d97706;">
-          ★ ${f.rating} <span style="color: var(--text-muted); font-weight: 400;">(${f.reviewsCount} reviews)</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem;">
+        <div style="font-size: 0.8rem; font-weight: 600; color: #b45309; display: flex; align-items: center; gap: 0.25rem;">
+          ${ICONS.star} ${f.rating} <span style="color: var(--text-muted); font-weight: 400;">(${f.reviewsCount} reviews)</span>
         </div>
-        <button onclick="filterByFarmer('${f.farm_name}')" class="btn-secondary" style="font-size: 0.8rem; padding: 0.45rem 0.9rem;">
-          View Harvests →
+        <button onclick="filterByFarmer('${f.farm_name}')" class="btn-secondary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">
+          View Products
         </button>
       </div>
     </div>
   `).join('');
 }
 
-// Open Detailed Product Modal
+// Product Modal
 function openProductModal(productId) {
   const p = window.AgriState.products.find(item => item.id === productId);
   if (!p) return;
@@ -686,60 +675,62 @@ function openProductModal(productId) {
   if (!modal || !modalBody) return;
 
   modalBody.innerHTML = `
-    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; @media(min-width: 640px) { grid-template-columns: 1fr 1fr; }">
-      <div style="border-radius: var(--radius-lg); overflow: hidden; background: #f1f5f9; position: relative;">
-        <img src="${p.image_url}" alt="${p.name}" style="width: 100%; height: 320px; object-fit: cover;">
-        <span class="category-pill" style="top: 16px; left: 16px;">${p.category_name}</span>
-      </div>
-
-      <div style="display: flex; flex-direction: column;">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">
-            🌱 Fresh Farm Harvest
-          </span>
-          <div style="font-size: 0.85rem; font-weight: 600; color: #f59e0b;">
-            ★ ${p.rating} (${p.reviews_count} reviews)
-          </div>
+    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="border-radius: var(--radius-md); overflow: hidden; background: #f1f5f9; position: relative;">
+          <img src="${p.image_url}" alt="${p.name}" style="width: 100%; height: 280px; object-fit: cover;">
+          <span class="category-badge" style="top: 12px; left: 12px;">${p.category_name}</span>
         </div>
 
-        <h2 style="font-size: 1.65rem; font-weight: 800; margin-top: 0.35rem; color: var(--text-primary); line-height: 1.25;">
-          ${p.name}
-        </h2>
-
-        <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 0.85rem; margin: 1rem 0; display: flex; align-items: center; gap: 0.75rem;">
-          <div style="font-size: 1.75rem;">👨‍🌾</div>
-          <div style="flex: 1;">
-            <div style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary);">${p.farmer_name}</div>
-            <div style="font-size: 0.8rem; color: var(--text-muted);">📍 ${p.city}, ${p.province} • Direct Farm Harvest</div>
-          </div>
-        </div>
-
-        <p style="font-size: 0.925rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.25rem;">
-          ${p.description}
-        </p>
-
-        <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1.25rem;">
-          <span style="font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--primary-deep);">
-            ₱${p.price.toLocaleString()}
-          </span>
-          <span style="font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">
-            per ${p.unit}
-          </span>
-          <span style="margin-left: auto; font-size: 0.85rem; font-weight: 600; color: var(--primary);">
-            ✓ In Stock (${p.quantity} ${p.unit} available)
-          </span>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 1rem; margin-top: auto;">
-          <div style="display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-md); overflow: hidden;">
-            <button onclick="adjustModalQty(-1)" style="padding: 0.6rem 0.9rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer;">-</button>
-            <input id="modalQtyInput" type="number" value="1" min="1" max="${p.quantity}" style="width: 50px; text-align: center; border: none; font-weight: 700; font-size: 1rem;" readonly>
-            <button onclick="adjustModalQty(1, ${p.quantity})" style="padding: 0.6rem 0.9rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer;">+</button>
+        <div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">
+              Direct Farm Produce
+            </span>
+            <div style="font-size: 0.825rem; font-weight: 600; color: #b45309; display: flex; align-items: center; gap: 0.25rem;">
+              ${ICONS.star} ${p.rating} (${p.reviews_count} reviews)
+            </div>
           </div>
 
-          <button onclick="addToCartFromModal('${p.id}')" class="btn-primary" style="flex: 1; padding: 0.75rem 1.25rem;">
-            🛒 Add to Cart
-          </button>
+          <h2 style="font-size: 1.45rem; font-weight: 800; margin-top: 0.25rem; color: var(--text-main); line-height: 1.25;">
+            ${p.name}
+          </h2>
+
+          <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 0.75rem; margin: 0.85rem 0; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">${p.farmer_name}</div>
+              <div style="font-size: 0.775rem; color: var(--text-muted);">${p.city}, ${p.province}</div>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--primary); font-weight: 600;">Verified Grower</span>
+          </div>
+
+          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">
+            ${p.description}
+          </p>
+
+          <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem;">
+            <span class="price-tag" style="font-size: 1.75rem;">
+              ₱${p.price.toLocaleString()}
+            </span>
+            <span class="unit-tag" style="font-size: 0.9rem;">
+              per ${p.unit}
+            </span>
+            <span style="margin-left: auto; font-size: 0.8rem; font-weight: 600; color: var(--primary);">
+              ${p.quantity} ${p.unit} available
+            </span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden;">
+              <button onclick="adjustModalQty(-1)" style="padding: 0.5rem 0.85rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer;">-</button>
+              <input id="modalQtyInput" type="number" value="1" min="1" max="${p.quantity}" style="width: 45px; text-align: center; border: none; font-weight: 700; font-size: 0.9rem;" readonly>
+              <button onclick="adjustModalQty(1, ${p.quantity})" style="padding: 0.5rem 0.85rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer;">+</button>
+            </div>
+
+            <button onclick="addToCartFromModal('${p.id}')" class="btn-primary" style="flex: 1; padding: 0.65rem 1.25rem;">
+              Add to Basket
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -769,7 +760,7 @@ function addToCartFromModal(productId) {
   closeProductModal();
 }
 
-// Shopping Cart Mechanics
+// Shopping Cart Functions
 function addToCart(productId, quantity = 1) {
   const p = window.AgriState.products.find(item => item.id === productId);
   if (!p) return;
@@ -793,7 +784,7 @@ function addToCart(productId, quantity = 1) {
 
   saveCart();
   updateCartBadge();
-  showToast(`✓ Added ${quantity} ${p.unit} of ${p.name} to cart!`);
+  showToast(`Added ${quantity} ${p.unit} of ${p.name} to cart`);
 }
 
 function updateCartQuantity(productId, newQty) {
@@ -814,7 +805,7 @@ function removeFromCart(productId) {
   saveCart();
   renderCartDrawer();
   updateCartBadge();
-  showToast(`Item removed from cart.`);
+  showToast(`Item removed from basket`);
 }
 
 function saveCart() {
@@ -854,12 +845,14 @@ function renderCartDrawer() {
 
   if (window.AgriState.cart.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
-        <div style="font-size: 3.5rem; margin-bottom: 1rem;">🧺</div>
-        <h4 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">Your basket is empty</h4>
-        <p style="font-size: 0.875rem; margin-top: 0.5rem;">Explore our farm catalog to add fresh fruits, vegetables, rice, and seafood.</p>
-        <button onclick="toggleCart(false)" class="btn-primary" style="margin-top: 1.5rem;">
-          Start Shopping
+      <div style="text-align: center; padding: 3.5rem 1rem; color: var(--text-muted);">
+        <div style="width: 44px; height: 44px; margin: 0 auto 0.75rem; border-radius: var(--radius-sm); background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; color: var(--text-light);">
+          ${ICONS.package}
+        </div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">Your basket is empty</h4>
+        <p style="font-size: 0.825rem; margin-top: 0.35rem;">Add produce from the marketplace to proceed with an order.</p>
+        <button onclick="toggleCart(false)" class="btn-primary" style="margin-top: 1.25rem;">
+          Explore Marketplace
         </button>
       </div>
     `;
@@ -874,28 +867,28 @@ function renderCartDrawer() {
     const itemTotal = item.price * item.quantity;
     subtotal += itemTotal;
     return `
-      <div style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border-subtle); align-items: center;">
-        <img src="${item.image_url}" alt="${item.name}" style="width: 70px; height: 70px; border-radius: var(--radius-md); object-fit: cover;">
+      <div style="display: flex; gap: 0.85rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border-subtle); align-items: center;">
+        <img src="${item.image_url}" alt="${item.name}" style="width: 60px; height: 60px; border-radius: var(--radius-sm); object-fit: cover;">
         <div style="flex: 1;">
-          <h5 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.15rem;">${item.name}</h5>
-          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">From ${item.farmer_name}</div>
+          <h5 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.1rem;">${item.name}</h5>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.35rem;">${item.farmer_name}</div>
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <div style="display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);">
-              <button onclick="updateCartQuantity('${item.id}', ${item.quantity - 1})" style="padding: 0.2rem 0.6rem; border: none; background: none; cursor: pointer; font-weight: 700;">-</button>
-              <span style="font-size: 0.85rem; font-weight: 700; padding: 0 0.4rem;">${item.quantity} ${item.unit}</span>
-              <button onclick="updateCartQuantity('${item.id}', ${item.quantity + 1})" style="padding: 0.2rem 0.6rem; border: none; background: none; cursor: pointer; font-weight: 700;">+</button>
+              <button onclick="updateCartQuantity('${item.id}', ${item.quantity - 1})" style="padding: 0.15rem 0.5rem; border: none; background: none; cursor: pointer; font-weight: 700;">-</button>
+              <span style="font-size: 0.8rem; font-weight: 700; padding: 0 0.3rem;">${item.quantity} ${item.unit}</span>
+              <button onclick="updateCartQuantity('${item.id}', ${item.quantity + 1})" style="padding: 0.15rem 0.5rem; border: none; background: none; cursor: pointer; font-weight: 700;">+</button>
             </div>
-            <div style="font-weight: 700; color: var(--primary-deep); font-size: 0.95rem;">
+            <div style="font-weight: 700; color: var(--primary-deep); font-size: 0.9rem;">
               ₱${itemTotal.toLocaleString()}
             </div>
           </div>
         </div>
-        <button onclick="removeFromCart('${item.id}')" style="background: none; border: none; color: var(--text-light); cursor: pointer; padding: 0.25rem; font-size: 1.1rem;" title="Remove">✕</button>
+        <button onclick="removeFromCart('${item.id}')" style="background: none; border: none; color: var(--text-light); cursor: pointer; padding: 0.25rem; font-size: 1rem;" title="Remove">✕</button>
       </div>
     `;
   }).join('');
 
-  const deliveryFee = 95; // Flat rate Metro/Provincial
+  const deliveryFee = 95;
   if (subtotalEl) subtotalEl.textContent = `₱${subtotal.toLocaleString()}`;
   if (totalEl) totalEl.textContent = `₱${(subtotal + deliveryFee).toLocaleString()}`;
   if (checkoutBtn) checkoutBtn.disabled = false;
@@ -916,17 +909,17 @@ function openCheckoutModal() {
 
   if (summaryEl) {
     summaryEl.innerHTML = `
-      <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 1rem; font-size: 0.875rem;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+      <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 0.85rem; font-size: 0.85rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
           <span>Items (${window.AgriState.cart.length}):</span>
           <strong>₱${subtotal.toLocaleString()}</strong>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-          <span>Delivery Fee (Scheduled Cold Transport):</span>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+          <span>Scheduled Cold Delivery:</span>
           <strong>₱${delivery.toLocaleString()}</strong>
         </div>
-        <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-strong); padding-top: 0.5rem; font-size: 1.1rem; color: var(--primary-deep);">
-          <strong>Total Order Amount:</strong>
+        <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-strong); padding-top: 0.45rem; font-size: 1rem; color: var(--primary-deep);">
+          <strong>Total to Pay:</strong>
           <strong>₱${total.toLocaleString()}</strong>
         </div>
       </div>
@@ -941,14 +934,14 @@ function closeCheckoutModal() {
   if (modal) modal.classList.remove('open');
 }
 
-// Complete Order Submission
+// Submit Order
 async function submitOrder(e) {
   e.preventDefault();
   const form = e.target;
   const submitBtn = form.querySelector('button[type="submit"]');
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.innerHTML = `Processing Harvest Order... ⏳`;
+    submitBtn.textContent = 'Processing Order...';
   }
 
   const formData = new FormData(form);
@@ -972,16 +965,13 @@ async function submitOrder(e) {
     status: 'Order Confirmed'
   };
 
-  // Save to State & localStorage
   window.AgriState.orders.unshift(newOrder);
   localStorage.setItem('agri_orders', JSON.stringify(window.AgriState.orders));
 
-  // Clear Cart
   window.AgriState.cart = [];
   saveCart();
   updateCartBadge();
 
-  // Close Checkout Modal & Show Confirmation
   closeCheckoutModal();
   showOrderSuccessModal(newOrder);
   renderOrderTrackingList();
@@ -993,35 +983,37 @@ function showOrderSuccessModal(order) {
   if (!modal || !body) return;
 
   body.innerHTML = `
-    <div style="text-align: center; padding: 1rem 0;">
-      <div style="font-size: 3.5rem; color: #16a34a; margin-bottom: 0.5rem;">🎉</div>
-      <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary);">Salamat sa Pag-Order!</h2>
-      <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
-        Your farm-to-table order has been confirmed directly with the farmer.
+    <div style="text-align: center; padding: 0.5rem 0;">
+      <div style="width: 48px; height: 48px; border-radius: 9999px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+        ${ICONS.check}
+      </div>
+      <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">Order Confirmed</h3>
+      <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;">
+        Your order has been routed to the farm for harvesting and preparation.
       </p>
 
-      <div style="background: var(--bg-subtle); border-radius: var(--radius-lg); padding: 1.25rem; margin: 1.5rem 0; text-align: left; font-size: 0.875rem;">
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
-          <span style="color: var(--text-muted);">Tracking Order ID:</span>
-          <strong style="color: var(--primary-deep); font-family: monospace; font-size: 1rem;">${order.id}</strong>
+      <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 1rem; margin: 1.25rem 0; text-align: left; font-size: 0.85rem;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem; margin-bottom: 0.4rem;">
+          <span style="color: var(--text-muted);">Order Reference:</span>
+          <strong style="color: var(--primary-deep); font-family: monospace;">${order.id}</strong>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
-          <span style="color: var(--text-muted);">Delivery Address:</span>
-          <span>${order.address}</span>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+          <span style="color: var(--text-muted);">Fulfillment:</span>
+          <span style="text-transform: capitalize;">${order.fulfillment}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
-          <span style="color: var(--text-muted);">Payment:</span>
-          <strong style="text-transform: uppercase;">${order.paymentMethod}</strong>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+          <span style="color: var(--text-muted);">Payment Mode:</span>
+          <span style="text-transform: uppercase;">${order.paymentMethod}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-subtle); padding-top: 0.5rem; font-size: 1.05rem;">
-          <strong>Total to Pay:</strong>
+        <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-subtle); padding-top: 0.4rem; font-size: 0.95rem;">
+          <strong>Total:</strong>
           <strong style="color: var(--primary-deep);">₱${order.total.toLocaleString()}</strong>
         </div>
       </div>
 
-      <div style="display: flex; gap: 0.75rem;">
+      <div style="display: flex; gap: 0.5rem;">
         <button onclick="closeSuccessModal(); scrollToSection('orderTracker');" class="btn-primary" style="flex: 1;">
-          Track Delivery Timeline →
+          View Tracking Details
         </button>
         <button onclick="closeSuccessModal();" class="btn-secondary">
           Continue Shopping
@@ -1038,64 +1030,62 @@ function closeSuccessModal() {
   if (modal) modal.classList.remove('open');
 }
 
-// Order Tracking List Renderer
+// Order Tracking List Renderer (Clean progress dots)
 function renderOrderTrackingList() {
   const container = document.getElementById('ordersListContainer');
   if (!container) return;
 
   if (window.AgriState.orders.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
-        <span style="font-size: 2.5rem;">📦</span>
-        <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-top: 0.5rem;">No active orders yet</h4>
-        <p style="font-size: 0.85rem; margin-top: 0.25rem;">When you place an order, live harvest and delivery status will appear here.</p>
+      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); background: #ffffff; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+        <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-main);">No active orders</h4>
+        <p style="font-size: 0.825rem; margin-top: 0.25rem;">Your placed orders and fulfillment status will appear here.</p>
       </div>
     `;
     return;
   }
 
   container.innerHTML = window.AgriState.orders.map(order => `
-    <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm);">
-      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem; margin-bottom: 1rem; gap: 0.5rem;">
+    <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm);">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.65rem; margin-bottom: 0.85rem;">
         <div>
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Order Number</span>
-          <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--primary-deep); font-family: monospace;">${order.id}</h4>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Order ID</span>
+          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--primary-deep); font-family: monospace;">${order.id}</h4>
         </div>
         <div style="text-align: right;">
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Placed on</span>
-          <div style="font-weight: 600; font-size: 0.9rem;">${order.date}</div>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Date:</span>
+          <div style="font-weight: 600; font-size: 0.85rem;">${order.date}</div>
         </div>
       </div>
 
-      <!-- Tracking Steps -->
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 1.25rem 0; text-align: center;">
-        <div style="display: flex; flex-direction: column; align-items: center;">
-          <div style="width: 32px; height: 32px; border-radius: 9999px; background: #16a34a; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">✓</div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 1rem 0; text-align: center;">
+        <div>
+          <div style="width: 24px; height: 24px; border-radius: 9999px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin: 0 auto 0.25rem;">1</div>
           <span style="font-size: 0.75rem; font-weight: 600;">Confirmed</span>
         </div>
-        <div style="display: flex; flex-direction: column; align-items: center;">
-          <div style="width: 32px; height: 32px; border-radius: 9999px; background: #d97706; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">🌾</div>
+        <div>
+          <div style="width: 24px; height: 24px; border-radius: 9999px; background: #d97706; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin: 0 auto 0.25rem;">2</div>
           <span style="font-size: 0.75rem; font-weight: 600;">Harvesting</span>
         </div>
-        <div style="display: flex; flex-direction: column; align-items: center;">
-          <div style="width: 32px; height: 32px; border-radius: 9999px; background: #f1f5f9; color: var(--text-light); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">🚚</div>
+        <div>
+          <div style="width: 24px; height: 24px; border-radius: 9999px; background: var(--bg-subtle); color: var(--text-light); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin: 0 auto 0.25rem;">3</div>
           <span style="font-size: 0.75rem; color: var(--text-muted);">In Transit</span>
         </div>
-        <div style="display: flex; flex-direction: column; align-items: center;">
-          <div style="width: 32px; height: 32px; border-radius: 9999px; background: #f1f5f9; color: var(--text-light); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">🏠</div>
+        <div>
+          <div style="width: 24px; height: 24px; border-radius: 9999px; background: var(--bg-subtle); color: var(--text-light); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin: 0 auto 0.25rem;">4</div>
           <span style="font-size: 0.75rem; color: var(--text-muted);">Delivered</span>
         </div>
       </div>
 
-      <div style="background: var(--bg-subtle); padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+      <div style="background: var(--bg-subtle); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
         <span>${order.items.length} item(s) • Total: <strong>₱${order.total.toLocaleString()}</strong></span>
-        <span style="color: var(--primary); font-weight: 600;">Payment: ${order.paymentMethod.toUpperCase()}</span>
+        <span style="color: var(--primary); font-weight: 600;">${order.status}</span>
       </div>
     </div>
   `).join('');
 }
 
-// Farmer Listing Portal ("Sell Harvest")
+// Farmer Listing Portal
 function openSellHarvestModal() {
   const modal = document.getElementById('sellHarvestModal');
   if (modal) modal.classList.add('open');
@@ -1106,10 +1096,8 @@ function closeSellHarvestModal() {
   if (modal) modal.classList.remove('open');
 }
 
-// AI Price Suggestion Tool for Farmers
 function runAIPricingAssistant() {
   const cropInput = document.getElementById('sellCropName');
-  const cropCategory = document.getElementById('sellCategory');
   const priceInput = document.getElementById('sellPrice');
   const adviceEl = document.getElementById('aiPriceAdvice');
   if (!cropInput || !adviceEl) return;
@@ -1118,26 +1106,26 @@ function runAIPricingAssistant() {
   let suggested = { min: 70, max: 120, unit: 'kg', tip: 'Current high seasonal demand across Luzon.' };
 
   if (crop.includes('mango') || crop.includes('mangga')) {
-    suggested = { min: 160, max: 210, unit: 'kg', tip: 'Sweet grade-A mangoes are yielding strong market premiums.' };
-  } else if (crop.includes('rice') || crop.includes('bigas') || crop.includes('sinandomeng')) {
-    suggested = { min: 2300, max: 2600, unit: 'sack (50kg)', tip: 'Stable farmgate prices; direct wholesale to consumers saves ~₱300 in middleman cuts.' };
-  } else if (crop.includes('cabbage') || crop.includes('repolyo') || crop.includes('bean') || crop.includes('baguio')) {
+    suggested = { min: 160, max: 210, unit: 'kg', tip: 'Sweet grade-A mangoes command premium pricing.' };
+  } else if (crop.includes('rice') || crop.includes('bigas')) {
+    suggested = { min: 2300, max: 2600, unit: 'sack (50kg)', tip: 'Stable farmgate prices; direct wholesale to consumers.' };
+  } else if (crop.includes('cabbage') || crop.includes('bean') || crop.includes('baguio')) {
     suggested = { min: 65, max: 110, unit: 'kg', tip: 'Benguet highland supply is steady; fair direct-to-buyer rate.' };
   } else if (crop.includes('bangus') || crop.includes('fish') || crop.includes('tilapia')) {
-    suggested = { min: 180, max: 240, unit: 'kg', tip: 'Daily market auction rates in Navotas support this price range.' };
+    suggested = { min: 180, max: 240, unit: 'kg', tip: 'Daily market rates in Navotas support this price range.' };
   } else if (crop.includes('egg') || crop.includes('itlog')) {
-    suggested = { min: 240, max: 280, unit: 'tray (30s)', tip: 'Consistent household demand; recommend free-range packaging.' };
+    suggested = { min: 240, max: 280, unit: 'tray (30s)', tip: 'Consistent household demand.' };
   }
 
   adviceEl.style.display = 'block';
   adviceEl.innerHTML = `
-    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: var(--radius-md); padding: 0.85rem; font-size: 0.85rem; color: #92400e;">
-      <strong>🤖 AI Market Price Guide:</strong><br>
-      Recommended price: <strong>₱${suggested.min} – ₱${suggested.max} per ${suggested.unit}</strong><br>
-      <em>Market Insight: ${suggested.tip}</em>
-      <div style="margin-top: 0.5rem;">
-        <button type="button" onclick="applySuggestedPrice(${suggested.min})" style="background: #d97706; color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
-          Apply ₱${suggested.min}
+    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: var(--radius-sm); padding: 0.75rem; font-size: 0.8rem; color: #92400e;">
+      <strong>Market Price Recommendation:</strong><br>
+      Estimated Range: <strong>₱${suggested.min} – ₱${suggested.max} per ${suggested.unit}</strong><br>
+      <em>Note: ${suggested.tip}</em>
+      <div style="margin-top: 0.35rem;">
+        <button type="button" onclick="applySuggestedPrice(${suggested.min})" style="background: #d97706; color: white; border: none; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.725rem; font-weight: 700; cursor: pointer;">
+          Set ₱${suggested.min}
         </button>
       </div>
     </div>
@@ -1149,7 +1137,6 @@ function applySuggestedPrice(price) {
   if (priceInput) priceInput.value = price;
 }
 
-// Submit New Harvest Listing
 function submitNewListing(e) {
   e.preventDefault();
   const form = e.target;
@@ -1179,11 +1166,11 @@ function submitNewListing(e) {
 
   renderCategories();
   renderProducts();
-  showToast(`🎉 Congratulations! Your harvest "${newProd.name}" is now live on the marketplace!`);
+  showToast(`Listing "${newProd.name}" is now active in the marketplace`);
   scrollToSection('marketplace');
 }
 
-// Filter Helper Handlers
+// Filter Handlers
 function setCategory(cat) {
   window.AgriState.currentCategory = cat;
   renderCategories();
@@ -1216,6 +1203,8 @@ function resetAllFilters() {
   if (heroS) heroS.value = '';
   const pr = document.getElementById('priceRange');
   if (pr) pr.value = 3000;
+  const locSel = document.getElementById('locationSelect');
+  if (locSel) locSel.value = 'all';
 
   renderCategories();
   renderProducts();
@@ -1231,9 +1220,9 @@ function toggleMode(mode) {
   localStorage.setItem('agri_mode', mode);
   const badge = document.getElementById('userModeBadge');
   if (badge) {
-    badge.textContent = mode === 'farmer' ? '👨‍🌾 Farmer View' : '🛒 Buyer View';
+    badge.textContent = mode === 'farmer' ? 'Farmer View' : 'Buyer View';
   }
-  showToast(`Switched to ${mode === 'farmer' ? 'Farmer Selling' : 'Buyer Shopping'} Mode`);
+  showToast(`Switched to ${mode === 'farmer' ? 'Farmer' : 'Buyer'} View`);
 }
 
 function showToast(msg) {
@@ -1242,14 +1231,14 @@ function showToast(msg) {
 
   const toast = document.createElement('div');
   toast.className = 'toast';
-  toast.innerHTML = `<span>🍃</span> <div>${msg}</div>`;
+  toast.innerHTML = `<span style="color: #22c55e;">${ICONS.check}</span> <div>${msg}</div>`;
   container.appendChild(toast);
 
   setTimeout(() => {
     toast.style.opacity = '0';
-    toast.style.transform = 'translateY(10px)';
-    setTimeout(() => toast.remove(), 300);
-  }, 3200);
+    toast.style.transform = 'translateY(8px)';
+    setTimeout(() => toast.remove(), 250);
+  }, 2800);
 }
 
 function scrollToSection(id) {
@@ -1257,7 +1246,6 @@ function scrollToSection(id) {
   if (el) el.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Setup Event Listeners
 function initUIListeners() {
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {

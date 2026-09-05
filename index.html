@@ -3,138 +3,157 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AgriConnect — Buy Fresh Produce Direct from Filipino Farmers</title>
-  <meta name="description" content="AgriConnect is the premier Philippine farm-to-table marketplace. Buy fresh vegetables, fruits, rice, seafood, and poultry directly from verified Filipino farmers without middlemen." />
-  <meta name="keywords" content="philippine agriculture, buy vegetables online, fresh produce manila, benguet vegetables, guimaras mangoes, direct farmer marketplace" />
-  <meta property="og:title" content="AgriConnect — Farm to Buyer Marketplace" />
-  <meta property="og:description" content="Fresh vegetables, fruits, rice, fish, and poultry straight from local Filipino farmers at transparent farm-gate prices." />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="assets/hero-farmer.jpg" />
-
-  <!-- Google Fonts -->
+  <title>AgriConnect — Philippine Farm-to-Table Marketplace</title>
+  <meta name="description" content="AgriConnect is the direct farm-to-table marketplace in the Philippines. Buy fresh produce, rice, seafood, and fruits directly from verified local farmers." />
+  
+  <!-- Single unified modern font: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="stylesheet" href="assets/app.css" />
 </head>
-<body>
+<body id="home">
 
-  <!-- Site Navigation Header -->
+  <!-- Professional Site Header -->
   <header class="site-header">
-    <div style="max-width: 1240px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 72px; padding: 0 1.25rem;">
+    <div class="header-inner">
       <!-- Brand Logo -->
-      <a href="#" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none;">
-        <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #15803d, #16a34a); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; box-shadow: 0 4px 10px rgba(21, 128, 61, 0.3);">
-          🌱
+      <a href="#home" class="brand-logo">
+        <div class="brand-icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+          </svg>
         </div>
-        <div>
-          <span style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; color: #14532d; letter-spacing: -0.03em; display: block; line-height: 1.1;">
-            AgriConnect
-          </span>
-          <span style="font-size: 0.7rem; font-weight: 700; color: #d97706; text-transform: uppercase; letter-spacing: 0.08em;">
-            Palengke Direct • PH
-          </span>
-        </div>
+        <span>AgriConnect</span>
       </a>
 
-      <!-- Desktop Nav -->
-      <nav style="display: none; align-items: center; gap: 0.25rem;" class="md-nav">
-        <a href="#marketplace" class="nav-link active">Marketplace</a>
-        <a href="#farmers" class="nav-link">Meet Farmers</a>
-        <a href="#farmMap" class="nav-link">Farm Map</a>
+      <!-- Visible Navigation Menu -->
+      <nav id="headerNav" class="header-nav">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#marketplace" class="nav-link">Marketplace</a>
+        <a href="#farmers" class="nav-link">Farmers</a>
+        <a href="#farmMap" class="nav-link">Maps</a>
         <a href="#howItWorks" class="nav-link">How It Works</a>
         <a href="#orderTracker" class="nav-link">Track Orders</a>
       </nav>
 
-      <!-- Action Buttons -->
-      <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <!-- Sell Harvest CTA -->
-        <button onclick="openSellHarvestModal()" class="btn-harvest" style="padding: 0.55rem 1.1rem; font-size: 0.85rem;" title="List your agricultural produce">
-          <span>🌾</span> <span style="display: none;" class="sm-label">Sell</span> Harvest
+      <!-- Right Action Controls -->
+      <div class="header-actions">
+        <!-- Sell Produce CTA -->
+        <button onclick="openSellHarvestModal()" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.825rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Sell Harvest
         </button>
 
         <!-- Cart Button -->
-        <button onclick="toggleCart(true)" class="btn-secondary" style="position: relative; padding: 0.55rem 0.95rem; border-radius: var(--radius-md);" aria-label="Shopping Cart">
-          <span style="font-size: 1.15rem;">🧺</span>
-          <span class="cart-badge" style="display: none; position: absolute; top: -6px; right: -6px; background: #dc2626; color: white; font-size: 0.725rem; font-weight: 800; width: 20px; height: 20px; border-radius: 9999px; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(220, 38, 38, 0.4);">
+        <button onclick="toggleCart(true)" class="btn-secondary" style="position: relative; padding: 0.5rem 0.85rem;" aria-label="Cart">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <span class="cart-badge" style="display: none; position: absolute; top: -6px; right: -6px; background: #dc2626; color: white; font-size: 0.7rem; font-weight: 700; width: 19px; height: 19px; border-radius: 9999px; align-items: center; justify-content: center;">
             0
           </span>
         </button>
 
-        <!-- User Role Switcher -->
-        <button onclick="toggleMode(window.AgriState.currentMode === 'buyer' ? 'farmer' : 'buyer')" class="btn-secondary" style="font-size: 0.825rem; padding: 0.55rem 0.85rem;" id="userModeBadge">
-          🛒 Buyer View
+        <!-- View Mode Switcher -->
+        <button onclick="toggleMode(window.AgriState.currentMode === 'buyer' ? 'farmer' : 'buyer')" class="btn-secondary" style="font-size: 0.8rem; padding: 0.5rem 0.85rem;" id="userModeBadge">
+          Buyer View
+        </button>
+
+        <!-- Mobile Menu Hamburger -->
+        <button class="mobile-menu-btn" onclick="toggleMobileNav()" aria-label="Toggle Navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/>
+          </svg>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section with User's Uploaded Background -->
+  <!-- Hero Section with User's Photo Background -->
   <section class="hero-wrapper">
-    <img src="assets/hero-farmer.jpg" alt="Filipino farmer with fresh harvest in mountain terraces" class="hero-bg" />
+    <img src="assets/hero-farmer.jpg" alt="Filipino farmer with fresh produce in terraced fields" class="hero-bg" />
     <div class="hero-overlay"></div>
 
-    <div style="position: relative; z-index: 10; max-width: 1240px; margin: 0 auto; padding: 4.5rem 1.25rem 5rem; width: 100%;">
-      <div style="max-width: 680px;">
+    <div class="hero-content">
+      <div style="max-width: 650px;">
         <div class="hero-badge">
-          <span>🇵🇭</span> Authentic Philippine Farm-to-Table Platform
+          <span class="hero-status-dot"></span> Philippine Agricultural Direct Marketplace
         </div>
 
-        <h1 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; color: #ffffff; line-height: 1.1; margin-top: 1.25rem; text-shadow: 0 4px 16px rgba(0,0,0,0.4);">
+        <h1 class="hero-title">
           Fresh from the farm, straight to your table.
         </h1>
 
-        <p style="font-size: clamp(1rem, 2vw, 1.2rem); color: rgba(255, 255, 255, 0.92); margin-top: 1.25rem; line-height: 1.6; text-shadow: 0 2px 8px rgba(0,0,0,0.4);">
+        <p class="hero-subtitle">
           Buy directly from verified Filipino farmers in Benguet, Nueva Ecija, Guimaras, and across the islands. 100% farm-gate fair prices, live harvest availability, and zero middlemen.
         </p>
 
-        <!-- Integrated Hero Search & Quick Action Box -->
-        <div class="hero-search-box" style="margin-top: 2rem;">
-          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <div style="flex: 1; min-width: 220px; position: relative;">
-                <input id="heroSearchInput" type="text" placeholder="Search fresh mango, baguio beans, rice, bangus..." style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-strong); border-radius: var(--radius-md); font-size: 0.95rem; outline: none;" />
-              </div>
-              <button onclick="handleHeroSearch()" class="btn-primary" style="padding: 0.75rem 1.5rem; font-size: 0.95rem; white-space: nowrap;">
-                🔍 Find Produce
-              </button>
+        <!-- Search Bar -->
+        <div class="hero-search-box">
+          <div style="display: flex; gap: 0.5rem;">
+            <div style="flex: 1; display: flex; align-items: center; padding-left: 0.75rem; gap: 0.5rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+              </svg>
+              <input id="heroSearchInput" type="text" placeholder="Search produce (e.g. mango, cabbage, rice, bangus)..." style="width: 100%; border: none; outline: none; font-size: 0.925rem; font-family: inherit; color: var(--text-main);" />
             </div>
-
-            <!-- Quick Category Pills inside Hero -->
-            <div style="display: flex; align-items: center; gap: 0.4rem; overflow-x: auto; padding-bottom: 0.25rem;">
-              <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Trending:</span>
-              <button onclick="quickFilterCategory('Vegetables')" style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: 9999px; padding: 0.25rem 0.65rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">🥬 Benguet Veggies</button>
-              <button onclick="quickFilterCategory('Fruits')" style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: 9999px; padding: 0.25rem 0.65rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">🥭 Guimaras Mango</button>
-              <button onclick="quickFilterCategory('Rice & Grains')" style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: 9999px; padding: 0.25rem 0.65rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">🌾 Nueva Ecija Rice</button>
-              <button onclick="quickFilterCategory('Fish & Seafood')" style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: 9999px; padding: 0.25rem 0.65rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">🐟 Fresh Bangus</button>
-            </div>
+            <button onclick="handleHeroSearch()" class="btn-primary" style="padding: 0.65rem 1.4rem; white-space: nowrap;">
+              Search Produce
+            </button>
           </div>
         </div>
 
-        <!-- Trust Features Bar -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 2rem; color: #ffffff;">
-          <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <span style="font-size: 1.5rem;">⚖️</span>
+        <!-- Quick Trending Tags -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; font-size: 0.8rem; color: rgba(255, 255, 255, 0.9);">
+          <span style="font-weight: 600; opacity: 0.8;">Popular:</span>
+          <button onclick="quickFilterCategory('Vegetables')" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.775rem; cursor: pointer;">Benguet Vegetables</button>
+          <button onclick="quickFilterCategory('Fruits')" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.775rem; cursor: pointer;">Guimaras Mangoes</button>
+          <button onclick="quickFilterCategory('Rice & Grains')" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.775rem; cursor: pointer;">Nueva Ecija Rice</button>
+          <button onclick="quickFilterCategory('Fish & Seafood')" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.775rem; cursor: pointer;">Navotas Seafood</button>
+        </div>
+
+        <!-- Value Stats Row -->
+        <div class="hero-stats-row">
+          <div class="hero-stat-item">
+            <div class="hero-stat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
             <div>
-              <div style="font-weight: 700; font-size: 0.95rem;">No Middlemen</div>
-              <div style="font-size: 0.75rem; opacity: 0.85;">Farmers keep 100% fair price</div>
+              <div style="font-weight: 700; font-size: 0.95rem;">Direct Farmgate Pricing</div>
+              <div style="font-size: 0.775rem; opacity: 0.85;">100% fair returns for local farmers</div>
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <span style="font-size: 1.5rem;">₱</span>
+
+          <div class="hero-stat-item">
+            <div class="hero-stat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
             <div>
-              <div style="font-weight: 700; font-size: 0.95rem;">Peso Pricing</div>
-              <div style="font-size: 0.75rem; opacity: 0.85;">Per kilo, sack, or piece</div>
+              <div style="font-weight: 700; font-size: 0.95rem;">24-Hour Freshness</div>
+              <div style="font-size: 0.775rem; opacity: 0.85;">Harvested on confirmed order</div>
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <span style="font-size: 1.5rem;">🚚</span>
+
+          <div class="hero-stat-item">
+            <div class="hero-stat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>
+              </svg>
+            </div>
             <div>
-              <div style="font-weight: 700; font-size: 0.95rem;">Flexible Delivery</div>
-              <div style="font-size: 0.75rem; opacity: 0.85;">Doorstep or Farm Pickup</div>
+              <div style="font-weight: 700; font-size: 0.95rem;">Live Inventory</div>
+              <div style="font-size: 0.775rem; opacity: 0.85;">Direct transparency on stock</div>
             </div>
           </div>
         </div>
@@ -142,78 +161,73 @@
     </div>
   </section>
 
-  <!-- In-Season Harvest Carousel / Value Banner -->
-  <section style="background: #ffffff; border-bottom: 1px solid var(--border-subtle); padding: 1.75rem 1.25rem;">
+  <!-- Seasonal Highlights Strip -->
+  <section style="background: #ffffff; border-bottom: 1px solid var(--border-subtle); padding: 1.25rem;">
     <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
-      <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <span style="background: #fef3c7; color: #d97706; padding: 0.4rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 700;">
-          ☀️ In Peak Season Now
+      <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem;">
+        <span style="background: var(--harvest-light); color: var(--harvest-gold); padding: 0.25rem 0.65rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.8rem;">
+          In Season Now
         </span>
-        <span style="font-size: 0.925rem; font-weight: 600; color: var(--text-secondary);">
-          Guimaras Carabao Mangoes • Benguet Highland Cabbage • Nueva Ecija Sinandomeng
+        <span style="color: var(--text-secondary); font-weight: 500;">
+          Guimaras Carabao Mangoes · Benguet Highland Cabbage · Nueva Ecija Sinandomeng
         </span>
       </div>
-      <a href="#marketplace" style="font-size: 0.875rem; font-weight: 700; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.35rem;">
-        Explore 20+ Fresh Listings →
+      <a href="#marketplace" style="font-size: 0.85rem; font-weight: 600; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.25rem;">
+        Browse All Products →
       </a>
     </div>
   </section>
 
   <!-- Main Marketplace Section -->
-  <main id="marketplace" style="max-width: 1240px; margin: 0 auto; padding: 3rem 1.25rem 5rem;">
+  <main id="marketplace" style="max-width: 1240px; margin: 0 auto; padding: 3rem 1.25rem 4rem;">
     
     <!-- Section Header -->
-    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 2rem;">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.75rem;">
       <div>
-        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
-          Direct Palengke Hub
-        </span>
-        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">
-          Browse Farm Marketplace
+        <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--text-main);">
+          Marketplace
         </h2>
-        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
-          Harvested and updated daily by local growers. Order wholesale or retail.
+        <p style="color: var(--text-muted); font-size: 0.925rem; margin-top: 0.25rem;">
+          Fresh agricultural produce listed directly by verified Filipino farmers.
         </p>
       </div>
 
-      <!-- Active Filter Badge Indicator -->
-      <div id="activeFarmerBanner" style="display: none; align-items: center; justify-content: space-between; width: 100%; background: var(--primary-light); color: var(--primary-deep); padding: 0.75rem 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(21, 128, 61, 0.3);"></div>
+      <!-- Active Filter Banner -->
+      <div id="activeFarmerBanner" style="display: none; align-items: center; justify-content: space-between; width: 100%; background: var(--primary-light); color: var(--primary-deep); padding: 0.65rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--primary-border);"></div>
     </div>
 
-    <!-- Category Filter Strip -->
-    <div style="overflow-x: auto; padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
-      <div id="categoryChips" style="display: flex; gap: 0.5rem; width: max-content;"></div>
+    <!-- Category Filter Chips -->
+    <div style="overflow-x: auto; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+      <div id="categoryChips" style="display: flex; gap: 0.45rem; width: max-content;"></div>
     </div>
 
-    <!-- Filter & Sort Control Toolbar -->
-    <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: center;">
+    <!-- Filter & Sort Toolbar -->
+    <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.15rem; margin-bottom: 1.75rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: center;">
       <!-- Search Input -->
       <div>
         <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
           Search Keyword
         </label>
-        <div style="position: relative;">
-          <input id="searchInput" type="text" placeholder="e.g. carrots, mango, rice..." style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem;" />
-        </div>
+        <input id="searchInput" type="text" placeholder="Filter by product or farm..." style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit;" />
       </div>
 
-      <!-- Location Filter -->
+      <!-- Province Dropdown -->
       <div>
         <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
-          Farm Province
+          Farm Location
         </label>
-        <select id="locationSelect" onchange="handleLocationChange(this.value)" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; background: #fff;">
-          <option value="all">All Provinces (Luzon & Visayas)</option>
+        <select id="locationSelect" onchange="handleLocationChange(this.value)" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; background: #fff; font-family: inherit;">
+          <option value="all">All Provinces</option>
           <option value="Benguet">Benguet (Highlands)</option>
-          <option value="Nueva Ecija">Nueva Ecija (Rice Capital)</option>
-          <option value="Guimaras">Guimaras (Sweet Mangoes)</option>
-          <option value="Navotas">Navotas (Fish Port)</option>
-          <option value="Quezon">Quezon (Coconut & Roots)</option>
-          <option value="Cavite">Cavite (Poultry & Eggs)</option>
+          <option value="Nueva Ecija">Nueva Ecija (Central Luzon)</option>
+          <option value="Guimaras">Guimaras (Western Visayas)</option>
+          <option value="Navotas">Navotas (Coastal)</option>
+          <option value="Quezon">Quezon (Southern Tagalog)</option>
+          <option value="Cavite">Cavite (Upland)</option>
         </select>
       </div>
 
-      <!-- Price Range Slider -->
+      <!-- Max Price Range -->
       <div>
         <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
           <span>Max Price:</span>
@@ -227,243 +241,227 @@
         <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
           Sort By
         </label>
-        <select onchange="setSort(this.value)" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; background: #fff;">
-          <option value="newest">✨ Newest Harvest</option>
-          <option value="price-asc">₱ Price: Low to High</option>
-          <option value="price-desc">₱ Price: High to Low</option>
-          <option value="rating">★ Highest Customer Rating</option>
+        <select onchange="setSort(this.value)" style="width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; background: #fff; font-family: inherit;">
+          <option value="newest">Newest Harvest</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="rating">Top Rated</option>
         </select>
       </div>
     </div>
 
-    <!-- Product Grid Summary Counter -->
+    <!-- Product Count & Reset -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-      <span id="productsCountLabel" style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">
-        Loading fresh harvests...
+      <span id="productsCountLabel" style="font-size: 0.875rem; font-weight: 600; color: var(--text-muted);">
+        Loading products...
       </span>
-      <button onclick="resetAllFilters()" style="background: none; border: none; font-size: 0.85rem; font-weight: 600; color: var(--primary); cursor: pointer;">
+      <button onclick="resetAllFilters()" style="background: none; border: none; font-size: 0.825rem; font-weight: 600; color: var(--primary); cursor: pointer;">
         Reset Filters
       </button>
     </div>
 
-    <!-- Products Responsive Grid -->
-    <div id="productsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem;">
+    <!-- Product Cards Grid -->
+    <div id="productsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem;">
       <!-- Dynamic cards rendered by assets/app.js -->
     </div>
   </main>
 
-  <!-- Meet Our Farmers Section -->
-  <section id="farmers" style="background: #ffffff; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); padding: 5rem 1.25rem;">
+  <!-- Farmers Directory Section -->
+  <section id="farmers" style="background: #ffffff; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); padding: 4.5rem 1.25rem;">
     <div style="max-width: 1240px; margin: 0 auto;">
-      <div style="text-align: center; max-width: 650px; margin: 0 auto 3rem;">
-        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
-          Direct From the Source
-        </span>
-        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">
-          Meet Our Filipino Farmers
+      <div style="text-align: center; max-width: 600px; margin: 0 auto 2.5rem;">
+        <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--text-main);">
+          Verified Farmers
         </h2>
-        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem;">
-          Every mango, sack of rice, and tray of eggs is grown with passion by real farming families across the Philippines.
+        <p style="color: var(--text-muted); font-size: 0.925rem; margin-top: 0.35rem;">
+          Connect directly with experienced local growers across key agricultural provinces.
         </p>
       </div>
 
-      <div id="farmersGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
-        <!-- Dynamic Farmer cards rendered by assets/app.js -->
+      <div id="farmersGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+        <!-- Dynamic farmer cards -->
       </div>
     </div>
   </section>
 
-  <!-- Interactive Agricultural Farm Map -->
-  <section id="farmMap" style="max-width: 1240px; margin: 0 auto; padding: 5rem 1.25rem;">
-    <div style="display: grid; grid-template-columns: 1fr; gap: 2.5rem; align-items: center;" class="map-grid-container">
+  <!-- Agricultural Maps Section -->
+  <section id="farmMap" style="max-width: 1240px; margin: 0 auto; padding: 4.5rem 1.25rem;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; align-items: center;">
       <div>
-        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
-          Farm Transparency Map
-        </span>
-        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">
-          Direct Sourcing from Luzon & Visayas
+        <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--text-main);">
+          Regional Sourcing Map
         </h2>
-        <p style="color: var(--text-secondary); margin-top: 0.75rem; line-height: 1.6;">
-          AgriConnect connects buyers with active farms across key agricultural regions. See where your food originates, understand harvest seasons, and arrange direct farm gate pickups or cold-chain deliveries.
+        <p style="color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6; font-size: 0.925rem;">
+          AgriConnect maps harvest origins across Luzon and the Visayas. Filter by region to find fresh produce closest to your distribution or household location.
         </p>
 
-        <!-- Location Hub Cards -->
-        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.85rem;">
-          <div onclick="handleLocationChange('Benguet')" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
-            <div style="font-weight: 700; color: var(--primary-deep); display: flex; justify-content: space-between;">
-              <span>⛰️ Benguet Highlands (La Trinidad)</span>
-              <span style="font-size: 0.8rem; background: var(--primary-light); color: var(--primary-deep); padding: 0.15rem 0.5rem; border-radius: 9999px;">High Altitude</span>
+        <!-- Location Cards -->
+        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+          <div onclick="handleLocationChange('Benguet')" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.85rem 1rem; cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-weight: 700; color: var(--primary-deep); font-size: 0.925rem; display: flex; justify-content: space-between;">
+              <span>Benguet Highlands</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Northern Luzon</span>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Home of crisp Baguio beans, sweet highland cabbage, and carrots.</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Crisp Baguio beans, highland cabbage, and carrots.</p>
           </div>
 
-          <div onclick="handleLocationChange('Nueva Ecija')" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
-            <div style="font-weight: 700; color: var(--primary-deep); display: flex; justify-content: space-between;">
-              <span>🌾 Nueva Ecija Plains (Cabanatuan)</span>
-              <span style="font-size: 0.8rem; background: #fef3c7; color: #d97706; padding: 0.15rem 0.5rem; border-radius: 9999px;">Rice Capital</span>
+          <div onclick="handleLocationChange('Nueva Ecija')" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.85rem 1rem; cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-weight: 700; color: var(--primary-deep); font-size: 0.925rem; display: flex; justify-content: space-between;">
+              <span>Nueva Ecija Plains</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Central Luzon</span>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Aromatic Dinorado, Sinandomeng, and sweet corn harvested fresh from family paddies.</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Dinorado, Sinandomeng rice, and fresh sweet corn.</p>
           </div>
 
-          <div onclick="handleLocationChange('Guimaras')" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
-            <div style="font-weight: 700; color: var(--primary-deep); display: flex; justify-content: space-between;">
-              <span>🥭 Guimaras Island (Jordan)</span>
-              <span style="font-size: 0.8rem; background: #dcfce7; color: #15803d; padding: 0.15rem 0.5rem; border-radius: 9999px;">World Famous</span>
+          <div onclick="handleLocationChange('Guimaras')" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.85rem 1rem; cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <div style="font-weight: 700; color: var(--primary-deep); font-size: 0.925rem; display: flex; justify-content: space-between;">
+              <span>Guimaras Island</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Western Visayas</span>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">The sweetest Carabao mangoes on earth, carefully hand-picked at peak ripeness.</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Sweet carabao mangoes picked at peak ripeness.</p>
           </div>
         </div>
       </div>
 
-      <!-- Graphical Regional Showcase Card -->
-      <div style="background: linear-gradient(145deg, #14532d, #166534); border-radius: var(--radius-xl); padding: 2.5rem; color: #ffffff; box-shadow: var(--shadow-modal); position: relative; overflow: hidden;">
-        <div style="position: absolute; right: -20px; bottom: -20px; font-size: 10rem; opacity: 0.1; pointer-events: none;">🇵🇭</div>
-        <div style="font-size: 0.85rem; font-weight: 700; color: #fde047; text-transform: uppercase;">
-          FARM NETWORK COVERAGE
+      <!-- Visual Region Overview Panel -->
+      <div style="background: #0f172a; border-radius: var(--radius-lg); padding: 2rem; color: #ffffff; box-shadow: var(--shadow-card);">
+        <div style="font-size: 0.8rem; font-weight: 700; color: #4ade80; text-transform: uppercase; letter-spacing: 0.05em;">
+          Direct Logistics Network
         </div>
-        <h3 style="font-size: 1.75rem; font-weight: 800; margin-top: 0.5rem;">
-          Direct-to-Door Logistics
+        <h3 style="font-size: 1.45rem; font-weight: 800; margin-top: 0.35rem; color: #ffffff;">
+          Temperature-Controlled Logistics
         </h3>
-        <p style="color: rgba(255, 255, 255, 0.9); margin-top: 0.75rem; font-size: 0.95rem; line-height: 1.6;">
-          Our scheduled farm collection routes pick up harvest right after dawn and deliver in temperature-controlled crates to Metro Manila, Rizal, Cavite, Bulacan, and Laguna.
+        <p style="color: #94a3b8; margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.6;">
+          Scheduled early morning farm pickups guarantee harvest dispatch directly to commercial kitchens, wholesalers, and residential consumers within 24 hours.
         </p>
 
-        <div style="margin-top: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
-          <div style="background: rgba(255, 255, 255, 0.12); padding: 1rem; border-radius: var(--radius-md); backdrop-filter: blur(8px);">
-            <div style="font-size: 1.5rem; font-weight: 800; color: #fde047;">94%</div>
-            <div style="font-size: 0.8rem; opacity: 0.9;">Delivered within 24 hours of harvest</div>
+        <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; font-size: 0.85rem;">
+          <div style="background: rgba(255, 255, 255, 0.06); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div style="font-size: 1.35rem; font-weight: 800; color: #4ade80;">24h</div>
+            <div style="font-size: 0.75rem; color: #94a3b8;">Average delivery time from harvest</div>
           </div>
-          <div style="background: rgba(255, 255, 255, 0.12); padding: 1rem; border-radius: var(--radius-md); backdrop-filter: blur(8px);">
-            <div style="font-size: 1.5rem; font-weight: 800; color: #fde047;">₱0</div>
-            <div style="font-size: 0.8rem; opacity: 0.9;">Middleman markup or warehouse holding</div>
+          <div style="background: rgba(255, 255, 255, 0.06); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div style="font-size: 1.35rem; font-weight: 800; color: #4ade80;">0%</div>
+            <div style="font-size: 0.75rem; color: #94a3b8;">Middleman broker commission</div>
           </div>
         </div>
 
-        <button onclick="openSellHarvestModal()" class="btn-harvest" style="margin-top: 2rem; width: 100%; justify-content: center; padding: 0.85rem;">
-          🌾 Register Your Farm in the Network
+        <button onclick="openSellHarvestModal()" class="btn-primary" style="margin-top: 1.5rem; width: 100%; justify-content: center; padding: 0.75rem;">
+          Enroll Your Farm Location
         </button>
       </div>
     </div>
   </section>
 
   <!-- How It Works Section -->
-  <section id="howItWorks" style="background: #ffffff; border-top: 1px solid var(--border-subtle); padding: 5rem 1.25rem;">
+  <section id="howItWorks" style="background: #ffffff; border-top: 1px solid var(--border-subtle); padding: 4.5rem 1.25rem;">
     <div style="max-width: 1240px; margin: 0 auto;">
-      <div style="text-align: center; max-width: 600px; margin: 0 auto 3.5rem;">
-        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">
-          Transparent Flow
-        </span>
-        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">
-          How AgriConnect Works
+      <div style="text-align: center; max-width: 600px; margin: 0 auto 2.5rem;">
+        <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--text-main);">
+          How It Works
         </h2>
-        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem;">
-          A simple, secure connection designed for both digital-first buyers and traditional rural farmers.
+        <p style="color: var(--text-muted); font-size: 0.925rem; margin-top: 0.35rem;">
+          A transparent, direct procurement process built for both buyers and farmers.
         </p>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
-        <div style="background: var(--bg-main); padding: 1.75rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
-          <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--primary-light); color: var(--primary-deep); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
+        <div style="background: var(--bg-page); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; margin-bottom: 0.85rem; font-size: 0.9rem;">
             1
           </div>
-          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Farmer Lists Harvest</h3>
-          <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5;">
-            Farmers post their expected harvest with photos, per-kilo/sack prices, and available stocks with AI price guidance.
+          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">Farmer Lists Harvest</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+            Growers post current availability, unit prices, and harvest dates directly to the catalog.
           </p>
         </div>
 
-        <div style="background: var(--bg-main); padding: 1.75rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
-          <div style="width: 48px; height: 48px; border-radius: 12px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">
+        <div style="background: var(--bg-page); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; margin-bottom: 0.85rem; font-size: 0.9rem;">
             2
           </div>
-          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Buyer Selects Produce</h3>
-          <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5;">
-            Households, eateries, and cooperatives order directly from their preferred farm with custom quantities.
+          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">Buyer Orders</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+            Select desired quantities and choose between doorstep delivery or farm gate collection.
           </p>
         </div>
 
-        <div style="background: var(--bg-main); padding: 1.75rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
-          <div style="width: 48px; height: 48px; border-radius: 12px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">
+        <div style="background: var(--bg-page); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; margin-bottom: 0.85rem; font-size: 0.9rem;">
             3
           </div>
-          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Fresh Pick & Packing</h3>
-          <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5;">
-            Produce is harvested only after order confirmation, ensuring zero storage spoilage and maximum crispness.
+          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">Harvest & Quality Pack</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+            Produce is harvested fresh upon order confirmation and prepared for temperature-safe dispatch.
           </p>
         </div>
 
-        <div style="background: var(--bg-main); padding: 1.75rem; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
-          <div style="width: 48px; height: 48px; border-radius: 12px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem;">
+        <div style="background: var(--bg-page); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; margin-bottom: 0.85rem; font-size: 0.9rem;">
             4
           </div>
-          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Delivery or Pickup</h3>
-          <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5;">
-            Receive produce via doorstep cold delivery or collect directly from the farm gate with GCash, Maya, or COD.
+          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem;">Fulfillment & Payment</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+            Orders are delivered or picked up with convenient settlement via Cash on Delivery, GCash, or Maya.
           </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Live Order Tracking Section -->
-  <section id="orderTracker" style="max-width: 1240px; margin: 0 auto; padding: 5rem 1.25rem;">
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 2rem;">
+  <!-- Track Orders Section -->
+  <section id="orderTracker" style="max-width: 1240px; margin: 0 auto; padding: 4.5rem 1.25rem;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 1.75rem;">
       <div>
-        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">
-          Live Order Status
-        </span>
-        <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-top: 0.25rem;">
-          Track Your Harvest Orders
+        <h2 style="font-size: 1.85rem; font-weight: 800; color: var(--text-main);">
+          Order Tracking
         </h2>
-        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
-          Real-time updates from harvest to doorstep.
+        <p style="color: var(--text-muted); font-size: 0.925rem; margin-top: 0.25rem;">
+          Track preparation, harvest dispatch, and delivery status.
         </p>
       </div>
 
       <div style="display: flex; gap: 0.5rem;">
-        <input id="trackingSearchInput" type="text" placeholder="Enter Order ID (e.g. AGRI-123456)" style="padding: 0.6rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem;" />
-        <button onclick="handleTrackSearch()" class="btn-primary" style="padding: 0.6rem 1.1rem; font-size: 0.875rem;">
-          Track
+        <input id="trackingSearchInput" type="text" placeholder="Order ID (e.g. AGRI-123456)" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit;" />
+        <button onclick="handleTrackSearch()" class="btn-primary" style="padding: 0.55rem 1rem; font-size: 0.85rem;">
+          Search Order
         </button>
       </div>
     </div>
 
-    <div id="ordersListContainer" style="max-width: 800px;">
+    <div id="ordersListContainer" style="max-width: 780px;">
       <!-- Dynamic list from assets/app.js -->
     </div>
   </section>
 
   <!-- Slide-Out Shopping Cart Drawer -->
   <aside id="cartDrawer" class="cart-drawer">
-    <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; border-bottom: 1px solid var(--border-subtle);">
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
-        <span style="font-size: 1.35rem;">🧺</span>
-        <h3 style="font-size: 1.25rem; font-weight: 800;">Your Harvest Basket</h3>
-      </div>
-      <button onclick="toggleCart(false)" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">✕</button>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.15rem; border-bottom: 1px solid var(--border-subtle);">
+      <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);">Your Cart</h3>
+      <button onclick="toggleCart(false)" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);" aria-label="Close Cart">✕</button>
     </div>
 
     <!-- Items List Container -->
-    <div id="cartItemsList" style="flex: 1; overflow-y: auto; padding: 1.25rem;">
+    <div id="cartItemsList" style="flex: 1; overflow-y: auto; padding: 1.15rem;">
       <!-- Dynamic items -->
     </div>
 
     <!-- Drawer Footer -->
-    <div style="padding: 1.25rem; border-top: 1px solid var(--border-subtle); background: var(--bg-main);">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.95rem; color: var(--text-secondary);">
+    <div style="padding: 1.15rem; border-top: 1px solid var(--border-subtle); background: var(--bg-page);">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem; font-size: 0.875rem; color: var(--text-secondary);">
         <span>Subtotal:</span>
-        <span id="cartSubtotal" style="font-weight: 700; color: var(--text-primary);">₱0.00</span>
+        <span id="cartSubtotal" style="font-weight: 700; color: var(--text-main);">₱0.00</span>
       </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 0.85rem; font-size: 0.95rem; color: var(--text-secondary);">
-        <span>Scheduled Cold Delivery:</span>
-        <span style="font-weight: 700; color: var(--text-primary);">₱95.00</span>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary);">
+        <span>Cold Delivery Fee:</span>
+        <span style="font-weight: 700; color: var(--text-main);">₱95.00</span>
       </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 1.25rem; font-size: 1.2rem; color: var(--primary-deep); border-top: 1px solid var(--border-strong); padding-top: 0.75rem;">
-        <strong>Total Amount:</strong>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 1.1rem; color: var(--primary-deep); border-top: 1px solid var(--border-subtle); padding-top: 0.5rem;">
+        <strong>Total:</strong>
         <strong id="cartTotal">₱0.00</strong>
       </div>
-      <button id="checkoutBtn" onclick="openCheckoutModal()" class="btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; justify-content: center;">
-        Proceed to Checkout →
+      <button id="checkoutBtn" onclick="openCheckoutModal()" class="btn-primary" style="width: 100%; padding: 0.75rem; justify-content: center;">
+        Proceed to Checkout
       </button>
     </div>
   </aside>
@@ -471,8 +469,8 @@
 
   <!-- Product Detail Modal -->
   <div id="productModal" class="modal-overlay">
-    <div class="modal-content" style="position: relative; padding: 2rem;">
-      <button onclick="closeProductModal()" style="position: absolute; top: 16px; right: 16px; background: var(--bg-subtle); border: none; width: 36px; height: 36px; border-radius: 9999px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;">
+    <div class="modal-content" style="position: relative; padding: 1.75rem;">
+      <button onclick="closeProductModal()" style="position: absolute; top: 14px; right: 14px; background: var(--bg-subtle); border: none; width: 32px; height: 32px; border-radius: var(--radius-sm); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" aria-label="Close">
         ✕
       </button>
       <div id="productModalBody"></div>
@@ -481,123 +479,120 @@
 
   <!-- Checkout Modal -->
   <div id="checkoutModal" class="modal-overlay">
-    <div class="modal-content" style="position: relative; padding: 2rem; max-width: 580px;">
-      <button onclick="closeCheckoutModal()" style="position: absolute; top: 16px; right: 16px; background: var(--bg-subtle); border: none; width: 36px; height: 36px; border-radius: 9999px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+    <div class="modal-content" style="position: relative; padding: 1.75rem; max-width: 540px;">
+      <button onclick="closeCheckoutModal()" style="position: absolute; top: 14px; right: 14px; background: var(--bg-subtle); border: none; width: 32px; height: 32px; border-radius: var(--radius-sm); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" aria-label="Close">
         ✕
       </button>
 
-      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">
-        Complete Your Order
-      </h2>
-      <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-        Direct purchase from verified Filipino farmers. Safe packaging and prompt dispatch.
+      <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
+        Order Checkout
+      </h3>
+      <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Direct purchase from local farms. Enter delivery information below.
       </p>
 
-      <div id="checkoutSummary" style="margin-bottom: 1.25rem;"></div>
+      <div id="checkoutSummary" style="margin-bottom: 1rem;"></div>
 
-      <form onsubmit="submitOrder(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+      <form onsubmit="submitOrder(event)" style="display: flex; flex-direction: column; gap: 0.85rem;">
         <!-- Fulfillment Mode -->
         <div>
-          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem; text-transform: uppercase;">
             Fulfillment Method
           </label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.55rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.825rem; font-weight: 600;">
               <input type="radio" name="fulfillment" value="delivery" checked />
-              <span style="font-size: 0.85rem; font-weight: 600;">🚚 Doorstep Delivery</span>
+              <span>Doorstep Delivery</span>
             </label>
-            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.55rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.825rem; font-weight: 600;">
               <input type="radio" name="fulfillment" value="pickup" />
-              <span style="font-size: 0.85rem; font-weight: 600;">📍 Farm Gate Pickup</span>
+              <span>Farm Gate Pickup</span>
             </label>
           </div>
         </div>
 
-        <!-- Customer Details -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+        <!-- Customer Info -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Full Name *</label>
-            <input type="text" name="fullName" required placeholder="e.g. Maria Santos" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Full Name *</label>
+            <input type="text" name="fullName" required placeholder="e.g. Maria Santos" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
           </div>
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Mobile Phone *</label>
-            <input type="tel" name="phone" required placeholder="0917-XXX-XXXX" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Mobile Phone *</label>
+            <input type="tel" name="phone" required placeholder="0917-XXX-XXXX" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
           </div>
         </div>
 
         <div>
-          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Delivery Address (Street / Barangay) *</label>
-          <input type="text" name="address" required placeholder="House/Unit #, Street, Barangay" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Address (Street, Barangay) *</label>
+          <input type="text" name="address" required placeholder="House/Unit #, Street, Barangay" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">City / Municipality *</label>
-            <input type="text" name="city" required placeholder="e.g. Quezon City, Baguio" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">City / Municipality *</label>
+            <input type="text" name="city" required placeholder="e.g. Quezon City, Baguio" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
           </div>
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Province *</label>
-            <input type="text" name="province" required placeholder="e.g. Metro Manila, Benguet" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Province *</label>
+            <input type="text" name="province" required placeholder="e.g. Metro Manila, Benguet" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
           </div>
         </div>
 
-        <!-- Payment Selection -->
+        <!-- Payment Mode -->
         <div>
-          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem; text-transform: uppercase;">
             Payment Method
           </label>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.55rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.825rem; font-weight: 600;">
               <input type="radio" name="paymentMethod" value="cod" checked />
-              <span>💵 Cash on Delivery</span>
+              <span>Cash on Delivery</span>
             </label>
-            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.55rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.825rem; font-weight: 600;">
               <input type="radio" name="paymentMethod" value="gcash" />
-              <span>📱 GCash / Maya</span>
+              <span>GCash / Maya</span>
             </label>
           </div>
         </div>
 
-        <button type="submit" class="btn-primary" style="margin-top: 0.5rem; padding: 0.85rem; font-size: 1rem; justify-content: center;">
-          Place Harvest Order ✓
+        <button type="submit" class="btn-primary" style="margin-top: 0.35rem; padding: 0.75rem; font-size: 0.95rem; justify-content: center;">
+          Confirm Order
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Order Success Confirmation Modal -->
+  <!-- Order Success Modal -->
   <div id="orderSuccessModal" class="modal-overlay">
-    <div class="modal-content" style="position: relative; padding: 2rem; max-width: 520px;">
+    <div class="modal-content" style="position: relative; padding: 1.75rem; max-width: 480px;">
       <div id="orderSuccessBody"></div>
     </div>
   </div>
 
-  <!-- Farmer Listing Modal ("Sell Your Harvest") -->
+  <!-- Farmer Listing Modal -->
   <div id="sellHarvestModal" class="modal-overlay">
-    <div class="modal-content" style="position: relative; padding: 2rem; max-width: 600px;">
-      <button onclick="closeSellHarvestModal()" style="position: absolute; top: 16px; right: 16px; background: var(--bg-subtle); border: none; width: 36px; height: 36px; border-radius: 9999px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+    <div class="modal-content" style="position: relative; padding: 1.75rem; max-width: 580px;">
+      <button onclick="closeSellHarvestModal()" style="position: absolute; top: 14px; right: 14px; background: var(--bg-subtle); border: none; width: 32px; height: 32px; border-radius: var(--radius-sm); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" aria-label="Close">
         ✕
       </button>
 
-      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-        <span style="font-size: 1.5rem;">🌾</span>
-        <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary);">
-          List Your Farm Harvest
-        </h2>
-      </div>
-      <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.5rem;">
-        Post your crop directly to buyers, hotels, restaurants, and households across the Philippines.
+      <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
+        List Harvest Produce
+      </h3>
+      <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        Post your harvest to verified buyers across the Philippines.
       </p>
 
-      <form onsubmit="submitNewListing(event)" style="display: flex; flex-direction: column; gap: 1rem;">
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem;">
+      <form onsubmit="submitNewListing(event)" style="display: flex; flex-direction: column; gap: 0.85rem;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.65rem;">
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Crop / Product Name *</label>
-            <input id="sellCropName" type="text" name="cropName" required placeholder="e.g. Carabao Mango, Red Onion, Bangus" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Product Name *</label>
+            <input id="sellCropName" type="text" name="cropName" required placeholder="e.g. Carabao Mango, Red Onion" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
           </div>
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Category *</label>
-            <select id="sellCategory" name="category" required style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; background: #fff;">
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Category *</label>
+            <select id="sellCategory" name="category" required style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; background: #fff; font-family: inherit;">
               <option value="Vegetables">Vegetables</option>
               <option value="Fruits">Fruits</option>
               <option value="Rice & Grains">Rice & Grains</option>
@@ -610,24 +605,23 @@
           </div>
         </div>
 
-        <!-- AI Pricing Advisor Trigger -->
         <div style="display: flex; align-items: center; justify-content: space-between;">
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Unsure what to charge?</span>
-          <button type="button" onclick="runAIPricingAssistant()" style="background: none; border: none; color: #d97706; font-weight: 700; font-size: 0.825rem; cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
-            ✨ Check Recommended DA Market Price
+          <span style="font-size: 0.775rem; color: var(--text-muted);">Pricing Guidance:</span>
+          <button type="button" onclick="runAIPricingAssistant()" style="background: none; border: none; color: #b45309; font-weight: 600; font-size: 0.775rem; cursor: pointer;">
+            Check DA Market Price Suggestion
           </button>
         </div>
         <div id="aiPriceAdvice" style="display: none;"></div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.65rem;">
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Price (₱) *</label>
-            <input id="sellPrice" type="number" name="price" required min="1" placeholder="100" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Price (₱) *</label>
+            <input id="sellPrice" type="number" name="price" required min="1" placeholder="100" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
           </div>
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Unit *</label>
-            <select name="unit" required style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; background: #fff;">
-              <option value="kg">kg (Kilogram)</option>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Unit *</label>
+            <select name="unit" required style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; background: #fff; font-family: inherit;">
+              <option value="kg">kg</option>
               <option value="sack">sack (50kg)</option>
               <option value="tray">tray (30s)</option>
               <option value="piece">piece</option>
@@ -636,38 +630,38 @@
             </select>
           </div>
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Available Stock *</label>
-            <input type="number" name="quantity" required min="1" placeholder="50" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Stock *</label>
+            <input type="number" name="quantity" required min="1" placeholder="50" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.65rem;">
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Farm Name</label>
-            <input type="text" name="farmName" placeholder="e.g. Santos Organic Farm" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Farm Name</label>
+            <input type="text" name="farmName" placeholder="e.g. Santos Farm" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
           </div>
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">City / Town *</label>
-            <input type="text" name="city" required placeholder="e.g. La Trinidad" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">City / Town *</label>
+            <input type="text" name="city" required placeholder="e.g. La Trinidad" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
           </div>
           <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Province *</label>
-            <input type="text" name="province" required placeholder="e.g. Benguet" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Province *</label>
+            <input type="text" name="province" required placeholder="e.g. Benguet" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
           </div>
         </div>
 
         <div>
-          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Photo URL</label>
-          <input type="url" name="imageUrl" placeholder="https://images.unsplash.com/photo-..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;" />
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Photo URL</label>
+          <input type="url" name="imageUrl" placeholder="https://images.unsplash.com/..." style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;" />
         </div>
 
         <div>
-          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">Harvest Description & Notes</label>
-          <textarea name="description" rows="2" placeholder="Tell buyers when this was picked, farming methods used, and special preparation details..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem;"></textarea>
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem;">Description & Harvest Date</label>
+          <textarea name="description" rows="2" placeholder="Describe quality, farm methods, and freshness details..." style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit;"></textarea>
         </div>
 
-        <button type="submit" class="btn-harvest" style="padding: 0.85rem; font-size: 1rem; justify-content: center;">
-          Publish Harvest Listing 🌾
+        <button type="submit" class="btn-primary" style="padding: 0.75rem; justify-content: center; font-size: 0.95rem;">
+          Publish Harvest Listing
         </button>
       </form>
     </div>
@@ -676,82 +670,86 @@
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- Professional Site Footer -->
-  <footer style="background: #0f172a; color: #94a3b8; border-top: 1px solid #1e293b; padding: 4.5rem 1.25rem 2rem;">
-    <div style="max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 3rem; margin-bottom: 3.5rem;">
+  <!-- Site Footer -->
+  <footer style="background: #0f172a; color: #94a3b8; border-top: 1px solid #1e293b; padding: 4rem 1.25rem 2rem;">
+    <div style="max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2.5rem; margin-bottom: 3rem;">
       <div>
-        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
-          <div style="width: 36px; height: 36px; border-radius: 10px; background: #16a34a; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-            🌱
+        <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.85rem;">
+          <div style="width: 32px; height: 32px; border-radius: 6px; background: #16a34a; color: white; display: flex; align-items: center; justify-content: center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+            </svg>
           </div>
-          <span style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; color: #ffffff;">AgriConnect</span>
+          <span style="font-size: 1.25rem; font-weight: 800; color: #ffffff;">AgriConnect</span>
         </div>
-        <p style="font-size: 0.875rem; line-height: 1.6; color: #94a3b8;">
-          The leading digital bridge connecting Filipino agricultural producers with consumers and commercial buyers. Fair prices, live harvests, zero middlemen.
+        <p style="font-size: 0.825rem; line-height: 1.6; color: #94a3b8;">
+          Digital bridge connecting Filipino agricultural producers with consumers and commercial buyers. Direct prices, live harvests, zero middlemen.
         </p>
-        <div style="margin-top: 1rem; font-size: 0.8rem; color: #22c55e;">
-          ✓ Registered Philippine Agricultural Technology
-        </div>
       </div>
 
       <div>
-        <h4 style="color: #ffffff; font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">
-          Marketplace
+        <h4 style="color: #ffffff; font-size: 0.875rem; font-weight: 700; margin-bottom: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em;">
+          Navigation
         </h4>
-        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.875rem;">
-          <li><a href="#marketplace" onclick="setCategory('Vegetables')" style="color: inherit; text-decoration: none;">Highland Vegetables</a></li>
-          <li><a href="#marketplace" onclick="setCategory('Fruits')" style="color: inherit; text-decoration: none;">Tropical Fruits</a></li>
-          <li><a href="#marketplace" onclick="setCategory('Rice & Grains')" style="color: inherit; text-decoration: none;">Rice & Grains</a></li>
-          <li><a href="#marketplace" onclick="setCategory('Fish & Seafood')" style="color: inherit; text-decoration: none;">Fresh Fish & Seafood</a></li>
-          <li><a href="#marketplace" onclick="setCategory('Poultry & Eggs')" style="color: inherit; text-decoration: none;">Free-Range Poultry</a></li>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.825rem;">
+          <li><a href="#home" style="color: inherit; text-decoration: none;">Home</a></li>
+          <li><a href="#marketplace" style="color: inherit; text-decoration: none;">Marketplace</a></li>
+          <li><a href="#farmers" style="color: inherit; text-decoration: none;">Farmers</a></li>
+          <li><a href="#farmMap" style="color: inherit; text-decoration: none;">Regional Maps</a></li>
+          <li><a href="#howItWorks" style="color: inherit; text-decoration: none;">How It Works</a></li>
+          <li><a href="#orderTracker" style="color: inherit; text-decoration: none;">Order Tracking</a></li>
         </ul>
       </div>
 
       <div>
-        <h4 style="color: #ffffff; font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        <h4 style="color: #ffffff; font-size: 0.875rem; font-weight: 700; margin-bottom: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em;">
           For Farmers
         </h4>
-        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.875rem;">
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.825rem;">
           <li><a href="javascript:openSellHarvestModal()" style="color: inherit; text-decoration: none;">List a New Harvest</a></li>
-          <li><a href="#howItWorks" style="color: inherit; text-decoration: none;">Farmer Onboarding Guide</a></li>
-          <li><a href="javascript:runAIPricingAssistant()" style="color: inherit; text-decoration: none;">AI Market Price Benchmark</a></li>
-          <li><a href="#farmMap" style="color: inherit; text-decoration: none;">Cold Chain Route Schedules</a></li>
+          <li><a href="#howItWorks" style="color: inherit; text-decoration: none;">Onboarding Guidelines</a></li>
+          <li><a href="javascript:runAIPricingAssistant()" style="color: inherit; text-decoration: none;">Price Guidance Calculator</a></li>
+          <li><a href="#farmMap" style="color: inherit; text-decoration: none;">Logistics Network Schedule</a></li>
         </ul>
       </div>
 
       <div>
-        <h4 style="color: #ffffff; font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">
-          Accepted Payments & Assurance
+        <h4 style="color: #ffffff; font-size: 0.875rem; font-weight: 700; margin-bottom: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em;">
+          Payment Methods
         </h4>
-        <p style="font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem;">
-          Pay conveniently and safely upon arrival or via preferred Philippine digital wallets:
+        <p style="font-size: 0.8rem; line-height: 1.5; margin-bottom: 0.75rem;">
+          Supported settlement options across the Philippines:
         </p>
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; font-size: 0.75rem; font-weight: 700;">
-          <span style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 6px; color: #38bdf8;">GCash</span>
-          <span style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 6px; color: #4ade80;">Maya</span>
-          <span style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 6px; color: #facc15;">Cash on Delivery</span>
-          <span style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 6px; color: #cbd5e1;">InstaPay / BDO</span>
+        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; font-size: 0.75rem; font-weight: 600;">
+          <span style="background: #1e293b; padding: 0.25rem 0.55rem; border-radius: 4px; color: #38bdf8;">GCash</span>
+          <span style="background: #1e293b; padding: 0.25rem 0.55rem; border-radius: 4px; color: #4ade80;">Maya</span>
+          <span style="background: #1e293b; padding: 0.25rem 0.55rem; border-radius: 4px; color: #facc15;">Cash on Delivery</span>
+          <span style="background: #1e293b; padding: 0.25rem 0.55rem; border-radius: 4px; color: #cbd5e1;">InstaPay</span>
         </div>
       </div>
     </div>
 
-    <div style="max-width: 1240px; margin: 0 auto; border-top: 1px solid #1e293b; padding-top: 2rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: 0.8rem; gap: 1rem;">
+    <div style="max-width: 1240px; margin: 0 auto; border-top: 1px solid #1e293b; padding-top: 1.5rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: 0.75rem; gap: 0.75rem;">
       <div>
-        © 2026 AgriConnect Philippines. All rights reserved. Direct Farm-to-Buyer Marketplace.
+        © 2026 AgriConnect Philippines. All rights reserved.
       </div>
-      <div style="display: flex; gap: 1.5rem;">
-        <a href="#howItWorks" style="color: inherit; text-decoration: none;">Privacy & Terms</a>
-        <a href="#farmers" style="color: inherit; text-decoration: none;">Farmer Verification</a>
-        <a href="#marketplace" style="color: inherit; text-decoration: none;">DA Bantay Presyo Aligned</a>
+      <div style="display: flex; gap: 1.25rem;">
+        <a href="#howItWorks" style="color: inherit; text-decoration: none;">Privacy Policy</a>
+        <a href="#howItWorks" style="color: inherit; text-decoration: none;">Terms of Service</a>
+        <a href="#farmers" style="color: inherit; text-decoration: none;">Grower Standards</a>
       </div>
     </div>
   </footer>
 
-  <!-- Core Interactive Script -->
+  <!-- Script logic -->
   <script src="assets/app.js"></script>
-
-  <!-- Interactive helper handlers -->
   <script>
+    function toggleMobileNav() {
+      const nav = document.getElementById('headerNav');
+      if (nav) nav.classList.toggle('mobile-open');
+    }
+
     function handleHeroSearch() {
       const input = document.getElementById('heroSearchInput');
       if (input && input.value.trim()) {
@@ -787,7 +785,7 @@
       if (order) {
         showToast(`Found Order ${order.id}: Status is ${order.status}`);
       } else {
-        showToast(`Order ${query} is being confirmed with the grower.`);
+        showToast(`Order ${query} is currently being verified.`);
       }
     }
   </script>
