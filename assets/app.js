@@ -168,6 +168,7 @@ const ICONS = {
 document.addEventListener('DOMContentLoaded', async () => {
   initUIListeners();
   updateCartBadge();
+  initCartPreview();
   updateAuthUI();
   await loadInitialData();
 
@@ -823,7 +824,7 @@ function renderProducts() {
                 🌱 Your Harvest
               </span>
             ` : `
-              <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;" title="Add 1 ${p.unit}">
+              <button onclick="addToCart('${p.id}', 1, this)" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;" title="Add 1 ${p.unit}">
                 + Add
               </button>
             `}
@@ -914,7 +915,7 @@ function renderFarmersDirectory() {
                         Your Listing
                       </span>
                     ` : `
-                      <button onclick="addToCart('${p.id}', 1)" class="btn-primary" style="padding: 0.35rem 0.65rem; font-size: 0.775rem;">
+                      <button onclick="addToCart('${p.id}', 1, this)" class="btn-primary" style="padding: 0.35rem 0.65rem; font-size: 0.775rem;">
                         + Add
                       </button>
                     `}
@@ -1220,7 +1221,7 @@ function handleTrackSearch() {
 // -------------------------------------------------------------
 // 6. SHOPPING CART & CHECKOUT
 // -------------------------------------------------------------
-function addToCart(productId, quantity = 1) {
+function addToCart(productId, quantity = 1, btnElement = null) {
   const p = window.AgriState.products.find(item => item.id === productId);
   if (!p) return;
 
@@ -1247,8 +1248,28 @@ function addToCart(productId, quantity = 1) {
   }
 
   saveCart();
-  updateCartBadge();
+  updateCartBadge(true);
+  renderCartPreview();
+  renderCartDrawer();
   showToast(`Added ${quantity} ${p.unit} of ${p.name} to cart`);
+
+  // Instant visual button feedback if clicked from UI
+  if (!btnElement && window.event && window.event.currentTarget) {
+    btnElement = window.event.currentTarget;
+  }
+  if (btnElement && btnElement.tagName === 'BUTTON') {
+    const origHtml = btnElement.innerHTML;
+    btnElement.innerHTML = `✓ Added`;
+    btnElement.style.background = '#15803d';
+    btnElement.style.borderColor = '#15803d';
+    btnElement.style.color = '#ffffff';
+    setTimeout(() => {
+      btnElement.innerHTML = origHtml;
+      btnElement.style.background = '';
+      btnElement.style.borderColor = '';
+      btnElement.style.color = '';
+    }, 1200);
+  }
 }
 
 function updateCartQuantity(productId, newQty) {
@@ -1261,6 +1282,8 @@ function updateCartQuantity(productId, newQty) {
     item.quantity = Math.min(newQty, item.max_quantity);
     saveCart();
     renderCartDrawer();
+    renderCartPreview();
+    updateCartBadge();
   }
 }
 
@@ -1268,6 +1291,7 @@ function removeFromCart(productId) {
   window.AgriState.cart = window.AgriState.cart.filter(i => i.id !== productId);
   saveCart();
   renderCartDrawer();
+  renderCartPreview();
   updateCartBadge();
   showToast(`Item removed from cart`);
 }
@@ -1276,32 +1300,182 @@ function saveCart() {
   localStorage.setItem('agri_cart', JSON.stringify(window.AgriState.cart));
 }
 
-function updateCartBadge() {
+function updateCartBadge(shouldBump = false) {
   const badges = document.querySelectorAll('.cart-badge');
   const count = window.AgriState.cart.reduce((sum, item) => sum + item.quantity, 0);
   badges.forEach(b => {
     b.textContent = count;
     b.style.display = count > 0 ? 'inline-flex' : 'none';
+    if (shouldBump) {
+      b.classList.remove('bump');
+      void b.offsetWidth; // trigger reflow
+      b.classList.add('bump');
+      setTimeout(() => b.classList.remove('bump'), 300);
+    }
   });
 }
 
 function toggleCart(open = true) {
   const drawer = document.getElementById('cartDrawer');
-  const backdrop = document.getElementById('drawerBackdrop');
-  if (!drawer || !backdrop) return;
+  const backdrop = document.getElementById('cartBackdrop') || document.getElementById('drawerBackdrop');
+  if (!drawer) return;
+
+  // Close preview popover when drawer toggles
+  document.querySelectorAll('.cart-preview-popover.is-visible').forEach(p => p.classList.remove('is-visible'));
 
   if (open) {
     renderCartDrawer();
     drawer.classList.add('open');
-    backdrop.classList.add('open');
+    if (backdrop) backdrop.classList.add('open');
   } else {
     drawer.classList.remove('open');
-    backdrop.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
   }
 }
 
+function initCartPreview() {
+  const cartBtns = document.querySelectorAll('button[aria-label="View Cart"], button[onclick*="toggleCart"]');
+  if (!cartBtns || cartBtns.length === 0) return;
+
+  cartBtns.forEach(btn => {
+    let wrapper = btn.closest('.cart-button-wrap');
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      wrapper.className = 'cart-button-wrap';
+      btn.parentNode.insertBefore(wrapper, btn);
+      wrapper.appendChild(btn);
+    }
+
+    let popover = wrapper.querySelector('.cart-preview-popover');
+    if (!popover) {
+      popover = document.createElement('div');
+      popover.className = 'cart-preview-popover';
+      popover.setAttribute('role', 'region');
+      popover.setAttribute('aria-label', 'Shopping Basket Preview');
+      wrapper.appendChild(popover);
+    }
+
+    let hideTimer = null;
+    const show = () => {
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+      }
+      renderCartPreview();
+      popover.classList.add('is-visible');
+    };
+
+    const scheduleHide = () => {
+      if (hideTimer) clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => {
+        popover.classList.remove('is-visible');
+      }, 200);
+    };
+
+    wrapper.addEventListener('mouseenter', show);
+    wrapper.addEventListener('mouseleave', scheduleHide);
+    wrapper.addEventListener('focusin', show);
+    wrapper.addEventListener('focusout', (e) => {
+      if (!wrapper.contains(e.relatedTarget)) {
+        scheduleHide();
+      }
+    });
+
+    btn.addEventListener('click', () => {
+      popover.classList.remove('is-visible');
+    });
+  });
+
+  renderCartPreview();
+}
+
+function renderCartPreview() {
+  const popovers = document.querySelectorAll('.cart-preview-popover');
+  if (!popovers || popovers.length === 0) return;
+
+  const cart = window.AgriState.cart || [];
+  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  popovers.forEach(popover => {
+    if (cart.length === 0) {
+      popover.innerHTML = `
+        <div class="cart-preview-header">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            ${ICONS.package}
+            <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">Shopping Basket</span>
+          </div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); background: var(--bg-subtle); padding: 0.15rem 0.5rem; border-radius: 9999px;">0 items</span>
+        </div>
+        <div class="cart-preview-items" style="text-align: center; padding: 2rem 1rem;">
+          <div style="width: 42px; height: 42px; margin: 0 auto 0.5rem; border-radius: 50%; background: #f0fdf4; display: flex; align-items: center; justify-content: center; color: var(--primary);">
+            ${ICONS.package}
+          </div>
+          <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">Your basket is empty</div>
+          <p style="font-size: 0.775rem; color: var(--text-muted); margin: 0.25rem 0 0.85rem;">Add fresh harvests directly from local farmers.</p>
+          <a href="marketplace.html" class="btn-primary" style="font-size: 0.775rem; padding: 0.35rem 0.85rem; text-decoration: none; display: inline-block;">
+            Browse Marketplace
+          </a>
+        </div>
+      `;
+      return;
+    }
+
+    const itemsHtml = cart.map(item => {
+      const lineTotal = item.price * item.quantity;
+      return `
+        <div style="display: flex; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border-subtle); align-items: center;">
+          <img src="${item.image_url}" alt="${item.name}" style="width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0; border: 1px solid var(--border-subtle);">
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.35rem;">
+              <h6 style="font-size: 0.825rem; font-weight: 700; margin: 0; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</h6>
+              <button onclick="removeFromCart('${item.id}'); event.stopPropagation();" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0 0.2rem; font-size: 0.85rem; line-height: 1;" title="Remove">✕</button>
+            </div>
+            <div style="font-size: 0.725rem; color: var(--text-muted); margin-bottom: 0.2rem;">${item.farmer_name || 'Direct Farm'}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.775rem;">
+              <span style="color: var(--text-secondary); font-weight: 500;">${item.quantity} ${item.unit} × ₱${item.price.toLocaleString()}</span>
+              <strong style="color: var(--primary-deep); font-weight: 700;">₱${lineTotal.toLocaleString()}</strong>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    popover.innerHTML = `
+      <div class="cart-preview-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          ${ICONS.package}
+          <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">Shopping Basket</span>
+        </div>
+        <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary-deep); background: #dcfce7; padding: 0.15rem 0.55rem; border-radius: 9999px;">
+          ${itemCount} ${itemCount === 1 ? 'item' : 'items'}
+        </span>
+      </div>
+
+      <div class="cart-preview-items">
+        ${itemsHtml}
+      </div>
+
+      <div class="cart-preview-footer">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span style="font-size: 0.825rem; color: var(--text-secondary); font-weight: 600;">Subtotal</span>
+          <strong style="font-size: 1.05rem; font-weight: 800; color: var(--primary-deep);">₱${subtotal.toLocaleString()}</strong>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <button onclick="toggleCart(true); const p = this.closest('.cart-preview-popover'); if(p) p.classList.remove('is-visible');" class="btn-secondary" style="width: 100%; font-size: 0.78rem; padding: 0.45rem 0.5rem; text-align: center;">
+            View Full Basket
+          </button>
+          <button onclick="openCheckoutModal(); const p = this.closest('.cart-preview-popover'); if(p) p.classList.remove('is-visible');" class="btn-primary" style="width: 100%; font-size: 0.78rem; padding: 0.45rem 0.5rem; text-align: center;">
+            Checkout
+          </button>
+        </div>
+      </div>
+    `;
+  });
+}
+
 function renderCartDrawer() {
-  const container = document.getElementById('cartItemsList');
+  const container = document.getElementById('cartItemsList') || document.getElementById('cartItemsContainer');
   const subtotalEl = document.getElementById('cartSubtotal');
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.getElementById('checkoutBtn');
@@ -1363,8 +1537,11 @@ function openCheckoutModal() {
   toggleCart(false);
 
   const modal = document.getElementById('checkoutModal');
+  if (!modal) {
+    window.location.href = 'marketplace.html';
+    return;
+  }
   const summaryEl = document.getElementById('checkoutSummary');
-  if (!modal) return;
 
   const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
   const delivery = 95;
