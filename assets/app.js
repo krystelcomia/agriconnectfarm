@@ -2391,15 +2391,15 @@ function updateAuthUI() {
   if (user && user.full_name) {
     const initials = user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
     container.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; flex-shrink: 0;">
         <div style="width: 32px; height: 32px; border-radius: 9999px; background: var(--primary); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; box-shadow: var(--shadow-sm);">
           ${initials}
         </div>
-        <div style="display: flex; flex-direction: column; line-height: 1.15; text-align: left;">
-          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">${user.full_name}</span>
-          <span style="font-size: 0.68rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">${user.role === 'farmer' ? 'Farmer' : 'Buyer'}</span>
+        <div style="display: flex; flex-direction: column; line-height: 1.15; text-align: left; white-space: nowrap;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main); white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis;" title="${user.full_name}">${user.full_name}</span>
+          <span style="font-size: 0.68rem; color: var(--primary); font-weight: 700; text-transform: uppercase; white-space: nowrap;">${user.role === 'farmer' ? 'Farmer' : 'Buyer'}</span>
         </div>
-        <button onclick="handleLogout()" class="btn-secondary" style="font-size: 0.725rem; padding: 0.25rem 0.55rem; border-color: var(--border-subtle);" title="Log out">
+        <button onclick="handleLogout()" class="btn-secondary" style="font-size: 0.725rem; padding: 0.25rem 0.55rem; border-color: var(--border-subtle); white-space: nowrap;" title="Log out">
           Sign Out
         </button>
       </div>
