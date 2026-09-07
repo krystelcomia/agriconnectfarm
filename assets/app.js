@@ -4492,26 +4492,10 @@ function updateAuthUI() {
   updateCartBadge();
   renderCartPreview();
 
-  // Farmer welcome notification bar
+  // Remove producer welcome notification bar if present
   const farmerBanner = document.getElementById('farmerHeroBanner');
   if (farmerBanner) {
-    if (isFarmer && user) {
-      farmerBanner.style.display = 'block';
-      farmerBanner.innerHTML = `
-        <div style="background: linear-gradient(90deg, #14532d 0%, #166534 100%); color: #ffffff; padding: 0.65rem 1.25rem; font-size: 0.85rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.15);">
-          <div style="display: flex; align-items: center; gap: 0.65rem;">
-            <span style="background: #22c55e; color: #ffffff; padding: 0.15rem 0.55rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em;">PRODUCER</span>
-            <span>Logged in as <strong>${user.full_name}</strong> (${user.farm_name || 'Dela Cruz Family Farm'})</span>
-          </div>
-          <a href="dashboard.html" style="color: #86efac; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 0.35rem; font-size: 0.825rem;">
-            Open Producer Dashboard &rarr;
-          </a>
-        </div>
-      `;
-    } else {
-      farmerBanner.style.display = 'none';
-      farmerBanner.innerHTML = '';
-    }
+    farmerBanner.remove();
   }
 
   // Toggle "Sell Harvest" buttons
