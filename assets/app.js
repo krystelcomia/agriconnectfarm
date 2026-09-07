@@ -240,7 +240,7 @@ function normalizeProduct(p) {
     id: p.id,
     name: p.name,
     category_id: p.category_id,
-    category_name: p.categories?.name || 'Produce',
+    category_name: p.categories?.name || 'Product',
     price: Number(p.price),
     unit: p.unit || 'kg',
     quantity: p.quantity ?? 50,
@@ -917,7 +917,7 @@ function renderFarmersDirectory() {
                   <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between;">
                     <span style="font-weight: 800; color: var(--primary-deep); font-size: 1rem;">₱${p.price.toLocaleString()} <span style="font-size: 0.75rem; font-weight: 500; color: var(--text-muted);">/${p.unit}</span></span>
                     ${isUserOwnProduct(p) ? `
-                      <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; border-radius: 4px; padding: 0.25rem 0.5rem;" title="You are the registered producer of this harvest. Farmers cannot purchase their own produce.">
+                      <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; border-radius: 4px; padding: 0.25rem 0.5rem;" title="You are the registered producer of this harvest. Farmers cannot purchase their own product.">
                         Your Listing
                       </span>
                     ` : `
@@ -1076,7 +1076,7 @@ function selectFarmForDirections(farmerId) {
           ${ICONS.navigation} Open in Google Maps / Waze
         </a>
         <a href="marketplace.html?farmer=${encodeURIComponent(f.farm_name)}" class="btn-secondary" style="padding: 0.65rem 0.85rem;">
-          View Produce
+          View Product
         </a>
       </div>
     </div>
@@ -1812,7 +1812,7 @@ function openSellHarvestModal() {
     return;
   }
   if (user.role !== 'farmer') {
-    showToast('You are currently signed in as a Buyer. Only verified Farmer accounts can list produce for sale.');
+    showToast('You are currently signed in as a Buyer. Only verified Farmer accounts can list product for sale.');
     return;
   }
   window.location.href = 'sell-harvest.html';
@@ -2643,7 +2643,7 @@ function runAIPricingAssistant() {
 
 let currentAiRecommendedPrice = 85;
 
-function getProducePhotoUrl(cropName, categoryId) {
+function getProductPhotoUrl(cropName, categoryId) {
   const name = (cropName || '').toLowerCase();
   if (name.includes('strawberr') || name.includes('fresa')) {
     return 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=800';
@@ -2763,13 +2763,13 @@ function handleListingFormInput() {
   const previewDesc = document.getElementById('previewCropDesc');
   const previewImg = document.getElementById('previewProductImg');
 
-  if (previewTitle) previewTitle.textContent = cropName || 'Highland Produce Listing';
+  if (previewTitle) previewTitle.textContent = cropName || 'Highland Product Listing';
   if (previewCategory) previewCategory.textContent = categoryText;
   if (previewPrice) previewPrice.textContent = `₱${price > 0 ? price.toLocaleString() : '85'}`;
   if (previewUnit) previewUnit.textContent = `/ ${unit}`;
   if (previewQty) previewQty.textContent = `${quantity > 0 ? quantity.toLocaleString() : '150'} ${unit.includes('kg') ? 'kg' : unit}`;
-  if (previewDesc) previewDesc.textContent = desc || 'Freshly harvested mountain produce grown with natural organic compost in Benguet.';
-  if (previewImg) previewImg.src = getProducePhotoUrl(cropName, categoryVal);
+  if (previewDesc) previewDesc.textContent = desc || 'Freshly harvested mountain product grown with natural organic compost in Benguet.';
+  if (previewImg) previewImg.src = getProductPhotoUrl(cropName, categoryVal);
 
   // Auto-adapt AI recommendations dynamically
   triggerAiPriceRecommendation(false);
@@ -2987,7 +2987,7 @@ function handlePageHarvestSubmit(e) {
 
   const cropName = cropInput ? cropInput.value.trim() : '';
   if (!cropName) {
-    showToast('Please enter the crop / produce name.');
+    showToast('Please enter the crop / product name.');
     if (cropInput) cropInput.focus();
     return;
   }
@@ -3030,7 +3030,7 @@ function handlePageHarvestSubmit(e) {
     harvest_date: harvestDate,
     hub_location: hubLocation,
     is_available: true,
-    image_url: getProducePhotoUrl(cropName, categoryVal),
+    image_url: getProductPhotoUrl(cropName, categoryVal),
     farmer_name: (user && (user.farm_name || user.full_name)) || 'Dela Cruz Family Farm',
     farmer_id: (user && user.id) || 'farmer-ramon',
     city: (user && user.city) || 'La Trinidad',
@@ -3050,7 +3050,7 @@ function handlePageHarvestSubmit(e) {
     customListings.unshift(newProd);
     localStorage.setItem('agri_custom_products', JSON.stringify(customListings));
   } catch (err) {
-    console.warn('Could not persist custom produce listing:', err);
+    console.warn('Could not persist custom product listing:', err);
   }
 
   // Refresh grids if present
@@ -3630,7 +3630,7 @@ function handleRegister(e) {
     role: role,
     farm_name: farmName || (role === 'farmer' ? `${fullName}'s Farm` : ''),
     province: province || 'Luzon',
-    specialty: specialty || 'Fresh Agricultural Produce',
+    specialty: specialty || 'Fresh Agricultural Product',
     createdAt: new Date().toISOString()
   };
 
@@ -4065,7 +4065,7 @@ function renderFarmerOwnProducts() {
     container.innerHTML = `
       <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1rem; background: #ffffff; border-radius: var(--radius-md); border: 1px dashed var(--border-strong);">
         <h4 style="font-size: 1.1rem; font-weight: 700;">No crops listed yet</h4>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.35rem 0 1rem;">Start listing your farm produce directly to consumers without middlemen.</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.35rem 0 1rem;">Start listing your farm product directly to consumers without middlemen.</p>
         <button onclick="openSellHarvestModal()" class="btn-primary">+ List Your First Crop</button>
       </div>
     `;
@@ -4616,7 +4616,7 @@ function renderBuyerOrders(filter = currentBuyerOrderFilter) {
           </div>
         </div>
 
-        <!-- Ordered Harvest Produce Items -->
+        <!-- Ordered Harvest Product Items -->
         <div style="margin-bottom: 1.25rem;">
           <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
             Harvest Items Included (${(order.items || []).length})
@@ -4656,7 +4656,7 @@ function renderBuyerOrders(filter = currentBuyerOrderFilter) {
               <button onclick="showBuyerReceipt('${order.id}')" class="btn-secondary" style="font-size: 0.825rem; padding: 0.45rem 0.9rem;">
                 📄 View Invoice
               </button>
-              <button onclick="showToast('Thank you for rating! 5 stars recorded for ${order.origin}.')" class="btn-secondary" style="font-size: 0.825rem; padding: 0.45rem 0.75rem;" title="Rate produce quality">
+              <button onclick="showToast('Thank you for rating! 5 stars recorded for ${order.origin}.')" class="btn-secondary" style="font-size: 0.825rem; padding: 0.45rem 0.75rem;" title="Rate product quality">
                 ⭐ Rate Quality
               </button>
             `}
@@ -4721,7 +4721,7 @@ function renderBuyerSupportedFarms() {
         </div>
 
         <div style="background: var(--bg-page); border-radius: var(--radius-sm); padding: 0.65rem 0.75rem; font-size: 0.775rem; color: var(--text-secondary); margin-bottom: 0.85rem;">
-          <div style="color: var(--text-muted); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.2rem;">Produce You Sourced:</div>
+          <div style="color: var(--text-muted); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.2rem;">Product You Sourced:</div>
           <strong style="color: var(--text-main);">${farm.crops}</strong>
         </div>
       </div>
@@ -4770,7 +4770,7 @@ function reorderBuyerItems(orderId) {
   updateCartBadge();
   renderCartDrawer();
   toggleCart(true);
-  showToast(`Added ${order.items.length} produce item(s) from #${order.id} to your basket!`);
+  showToast(`Added ${order.items.length} product item(s) from #${order.id} to your basket!`);
 }
 
 function showBuyerReceipt(orderId) {
