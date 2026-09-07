@@ -2504,37 +2504,30 @@ function updateAuthUI() {
   if (document.body) {
     document.body.classList.toggle('is-farmer', isFarmer);
     document.body.classList.toggle('is-buyer', Boolean(user && user.role !== 'farmer'));
+    document.body.classList.toggle('is-logged-in', Boolean(user));
   }
 
-  // Header Nav Dashboard link handling
+  // Header Nav: Clean up any Dashboard link from main navigation bar (moved to header-actions)
   const headerNav = document.getElementById('headerNav');
   if (headerNav) {
-    let dashboardLink = headerNav.querySelector('a[href="dashboard.html"]');
+    const existingDashLinks = headerNav.querySelectorAll('a[href="dashboard.html"]');
+    existingDashLinks.forEach(link => link.remove());
+  }
+
+  // Header Actions: Toggle Dashboard button in the former Sell Harvest position
+  const headerDashBtns = document.querySelectorAll('.header-dashboard-btn');
+  headerDashBtns.forEach(btn => {
     if (user) {
-      if (!dashboardLink) {
-        dashboardLink = document.createElement('a');
-        dashboardLink.id = 'userDashboardNavLink';
-        dashboardLink.href = 'dashboard.html';
-        dashboardLink.className = `nav-link ${window.location.pathname.includes('dashboard.html') ? 'active' : ''}`;
-        const homeLink = headerNav.querySelector('a[href="index.html"]');
-        if (homeLink && homeLink.nextSibling) {
-          headerNav.insertBefore(dashboardLink, homeLink.nextSibling);
-        } else {
-          headerNav.prepend(dashboardLink);
-        }
-      }
-      dashboardLink.style.display = 'inline-flex';
-      if (isFarmer) {
-        dashboardLink.innerHTML = `<span style="display:inline-flex;align-items:center;gap:0.35rem;"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;"></span>Dashboard</span>`;
+      btn.style.setProperty('display', 'inline-flex', 'important');
+      if (window.location.pathname.includes('dashboard.html')) {
+        btn.classList.add('active');
       } else {
-        dashboardLink.innerHTML = `<span style="display:inline-flex;align-items:center;gap:0.35rem;"><span style="width:7px;height:7px;border-radius:50%;background:#0284c7;"></span>Dashboard</span>`;
+        btn.classList.remove('active');
       }
     } else {
-      if (dashboardLink && !window.location.pathname.includes('dashboard.html')) {
-        dashboardLink.style.display = 'none';
-      }
+      btn.style.setProperty('display', 'none', 'important');
     }
-  }
+  });
 
   // Farmer welcome notification bar
   const farmerBanner = document.getElementById('farmerHeroBanner');
@@ -3150,6 +3143,9 @@ function switchDashboardRole(role) {
     if (buyerView) buyerView.style.display = 'block';
     if (farmerView) farmerView.style.display = 'none';
 
+    const topSellBtn = document.getElementById('topBarSellHarvestBtn');
+    if (topSellBtn) topSellBtn.style.display = 'none';
+
     if (btnBuyer) {
       btnBuyer.style.background = 'var(--primary)';
       btnBuyer.style.color = '#ffffff';
@@ -3174,6 +3170,9 @@ function switchDashboardRole(role) {
   } else {
     if (buyerView) buyerView.style.display = 'none';
     if (farmerView) farmerView.style.display = 'block';
+
+    const topSellBtn = document.getElementById('topBarSellHarvestBtn');
+    if (topSellBtn) topSellBtn.style.display = 'inline-flex';
 
     if (btnFarmer) {
       btnFarmer.style.background = 'var(--primary)';
