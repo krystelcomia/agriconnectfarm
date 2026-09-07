@@ -1321,14 +1321,39 @@ function saveCart() {
 }
 
 function updateCartBadge(shouldBump = false) {
+  const user = window.AgriState.user;
+  const isFarmer = Boolean(user && user.role === 'farmer');
+
+  if (isFarmer) {
+    const orders = getFarmerOrders();
+    const pendingCount = orders.filter(o => o.status_code === 'pending').length;
+    const badges = document.querySelectorAll('.cart-badge, .farmer-orders-badge');
+    badges.forEach(b => {
+      b.textContent = pendingCount;
+      b.style.display = pendingCount > 0 ? 'inline-flex' : 'none';
+      b.style.background = '#d97706';
+      b.style.color = '#ffffff';
+      b.title = `${pendingCount} orders pending harvest`;
+      if (shouldBump) {
+        b.classList.remove('bump');
+        void b.offsetWidth;
+        b.classList.add('bump');
+        setTimeout(() => b.classList.remove('bump'), 300);
+      }
+    });
+    return;
+  }
+
   const badges = document.querySelectorAll('.cart-badge');
-  const count = window.AgriState.cart.reduce((sum, item) => sum + item.quantity, 0);
+  const count = (window.AgriState.cart || []).reduce((sum, item) => sum + item.quantity, 0);
   badges.forEach(b => {
     b.textContent = count;
     b.style.display = count > 0 ? 'inline-flex' : 'none';
+    b.style.background = 'var(--primary)';
+    b.style.color = '#ffffff';
     if (shouldBump) {
       b.classList.remove('bump');
-      void b.offsetWidth; // trigger reflow
+      void b.offsetWidth;
       b.classList.add('bump');
       setTimeout(() => b.classList.remove('bump'), 300);
     }
@@ -1353,8 +1378,295 @@ function toggleCart(open = true) {
   }
 }
 
+// -------------------------------------------------------------
+// FARMER ORDERS DRAWER & QUICK FULFILLMENT CONTROLLER
+// -------------------------------------------------------------
+let currentFarmerDrawerFilter = 'all';
+
+function toggleFarmerOrdersDrawer(open = true) {
+  let drawer = document.getElementById('farmerOrdersDrawer');
+  let backdrop = document.getElementById('farmerOrdersBackdrop');
+
+  if (!drawer) {
+    drawer = document.createElement('aside');
+    drawer.id = 'farmerOrdersDrawer';
+    drawer.className = 'farmer-orders-drawer';
+    drawer.setAttribute('aria-label', 'Farmer Order Management');
+
+    backdrop = document.createElement('div');
+    backdrop.id = 'farmerOrdersBackdrop';
+    backdrop.className = 'drawer-backdrop';
+    backdrop.onclick = () => toggleFarmerOrdersDrawer(false);
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(drawer);
+  }
+
+  // Close preview popovers
+  document.querySelectorAll('.cart-preview-popover.is-visible').forEach(p => p.classList.remove('is-visible'));
+
+  if (open) {
+    renderFarmerOrdersDrawer(currentFarmerDrawerFilter);
+    drawer.classList.add('open');
+    if (backdrop) backdrop.classList.add('open');
+  } else {
+    drawer.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+  }
+}
+
+function renderFarmerOrdersDrawer(filter = 'all') {
+  currentFarmerDrawerFilter = filter;
+  const drawer = document.getElementById('farmerOrdersDrawer');
+  if (!drawer) return;
+
+  const user = window.AgriState.user || { full_name: 'Mang Ramon Dela Cruz', farm_name: 'Dela Cruz Family Farm' };
+  const orders = getFarmerOrders();
+  const pendingOrders = orders.filter(o => o.status_code === 'pending');
+  const deliveredOrders = orders.filter(o => o.status_code === 'delivered');
+  const totalPayout = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+
+  let filtered = orders;
+  if (filter === 'pending') filtered = pendingOrders;
+  if (filter === 'delivered') filtered = deliveredOrders;
+
+  drawer.innerHTML = `
+    <!-- Header -->
+    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #14532d 0%, #166534 100%); color: #ffffff;">
+      <div style="display: flex; align-items: center; gap: 0.65rem;">
+        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+            <path d="m9 14 2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #ffffff;">Farmer Orders Management</h3>
+          <p style="margin: 0.15rem 0 0; font-size: 0.75rem; color: #86efac; opacity: 0.95;">
+            ${user.full_name} • ${user.farm_name || 'Dela Cruz Family Farm'}
+          </p>
+        </div>
+      </div>
+      <button onclick="toggleFarmerOrdersDrawer(false)" style="background: none; border: none; font-size: 1.6rem; color: #ffffff; cursor: pointer; line-height: 1; padding: 0.2rem 0.5rem;" aria-label="Close Drawer">&times;</button>
+    </div>
+
+    <!-- Quick Stats -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; padding: 0.85rem 1.25rem; background: var(--bg-page); border-bottom: 1px solid var(--border-subtle); text-align: center;">
+      <div style="background: #ffffff; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Total Orders</div>
+        <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-main);">${orders.length}</div>
+      </div>
+      <div style="background: #fef3c7; padding: 0.5rem; border-radius: 8px; border: 1px solid #fde68a;">
+        <div style="font-size: 0.68rem; color: #92400e; font-weight: 700; text-transform: uppercase;">Pending</div>
+        <div style="font-size: 1.05rem; font-weight: 800; color: #b45309;">${pendingOrders.length}</div>
+      </div>
+      <div style="background: #dcfce7; padding: 0.5rem; border-radius: 8px; border: 1px solid #bbf7d0;">
+        <div style="font-size: 0.68rem; color: #166534; font-weight: 700; text-transform: uppercase;">Total Payout</div>
+        <div style="font-size: 1.05rem; font-weight: 800; color: #15803d;">₱${totalPayout.toLocaleString()}</div>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div style="display: flex; gap: 0.4rem; padding: 0.75rem 1.25rem; background: #ffffff; border-bottom: 1px solid var(--border-subtle);">
+      <button onclick="renderFarmerOrdersDrawer('all')" class="${filter === 'all' ? 'btn-primary' : 'btn-secondary'}" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; flex: 1;">
+        All (${orders.length})
+      </button>
+      <button onclick="renderFarmerOrdersDrawer('pending')" class="${filter === 'pending' ? 'btn-primary' : 'btn-secondary'}" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; flex: 1;">
+        Pending (${pendingOrders.length})
+      </button>
+      <button onclick="renderFarmerOrdersDrawer('delivered')" class="${filter === 'delivered' ? 'btn-primary' : 'btn-secondary'}" style="font-size: 0.75rem; padding: 0.35rem 0.65rem; flex: 1;">
+        Delivered (${deliveredOrders.length})
+      </button>
+    </div>
+
+    <!-- Orders List -->
+    <div style="flex: 1; overflow-y: auto; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.85rem; background: #f8fafc;">
+      ${filtered.length === 0 ? `
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">📦</div>
+          <p style="font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem;">No orders found in this tab.</p>
+          <p style="font-size: 0.8rem; margin: 0;">New incoming orders from buyers will appear here automatically.</p>
+        </div>
+      ` : filtered.map(o => `
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 0.65rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-main); font-family: monospace;">${o.id}</span>
+                <span style="font-size: 0.725rem; color: var(--text-muted);">• ${o.placed_at}</span>
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                Buyer: <strong>${o.customer_name}</strong>
+              </div>
+            </div>
+            <span style="font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 9999px; ${o.status_code === 'pending' ? 'background: #fef3c7; color: #b45309; border: 1px solid #fde68a;' : 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;'}">
+              ${o.status_code === 'pending' ? '⏳ Pending Harvest' : '✓ Delivered & Paid'}
+            </span>
+          </div>
+
+          <div style="font-size: 0.775rem; color: var(--text-muted); background: var(--bg-page); padding: 0.5rem 0.65rem; border-radius: 6px; display: flex; flex-direction: column; gap: 0.25rem;">
+            <div>📍 <strong>Ship to:</strong> ${o.delivery_address} • 📞 ${o.customer_phone}</div>
+            <div>🚚 <strong>Logistics:</strong> ${o.delivery_method}</div>
+          </div>
+
+          <div style="border-top: 1px dashed var(--border-subtle); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+            ${o.items.map(i => `
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                <span><strong>${i.quantity} ${i.unit}</strong> × ${i.name}</span>
+                <span style="color: var(--text-muted);">₱${(i.price * i.quantity).toLocaleString()}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 0.65rem; margin-top: 0.2rem;">
+            <div>
+              <div style="font-size: 0.675rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Direct Payout</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: var(--primary-deep);">₱${o.total_amount.toLocaleString()}</div>
+            </div>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              ${o.status_code === 'pending' ? `
+                <button onclick="updateFarmerOrderStatus('${o.id}', 'delivered')" class="btn-primary" style="font-size: 0.75rem; padding: 0.4rem 0.75rem; font-weight: 700;">
+                  ✓ Mark Delivered
+                </button>
+              ` : `
+                <button onclick="updateFarmerOrderStatus('${o.id}', 'pending')" class="btn-secondary" style="font-size: 0.7rem; padding: 0.35rem 0.55rem; color: var(--text-muted);" title="Re-open order if needed">
+                  ↺ Re-open
+                </button>
+              `}
+              <button onclick="openFarmerOrderDetailsModal('${o.id}')" class="btn-secondary" style="font-size: 0.75rem; padding: 0.4rem 0.65rem;" title="View Slip">
+                🖨️ Slip
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Footer -->
+    <div style="padding: 1rem 1.25rem; border-top: 1px solid var(--border-subtle); background: #ffffff; display: flex; gap: 0.65rem;">
+      <a href="dashboard.html" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.85rem; padding: 0.65rem;">
+        Open Full Dashboard &rarr;
+      </a>
+      <button onclick="toggleFarmerOrdersDrawer(false)" class="btn-secondary" style="font-size: 0.85rem; padding: 0.65rem 1rem;">
+        Close
+      </button>
+    </div>
+  `;
+}
+
+function openFarmerOrderDetailsModal(orderId) {
+  const orders = getFarmerOrders();
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+
+  let modal = document.getElementById('farmerReceiptModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'farmerReceiptModal';
+    modal.className = 'modal-overlay';
+    modal.onclick = function(e) { if (e.target === modal) closeFarmerReceiptModal(); };
+    document.body.appendChild(modal);
+  }
+
+  const itemsRows = order.items.map(i => `
+    <tr>
+      <td style="padding: 0.45rem 0; font-weight: 600; color: var(--text-main); font-size: 0.85rem;">
+        ${i.name}
+      </td>
+      <td style="padding: 0.45rem 0; text-align: center; color: var(--text-secondary); font-size: 0.85rem;">
+        ${i.quantity} ${i.unit || 'kg'}
+      </td>
+      <td style="padding: 0.45rem 0; text-align: right; font-weight: 700; color: var(--text-main); font-size: 0.85rem;">
+        ₱${((i.price || 0) * (i.quantity || 1)).toLocaleString()}
+      </td>
+    </tr>
+  `).join('');
+
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 480px; padding: 1.75rem; border-radius: var(--radius-md); background: #ffffff; box-shadow: var(--shadow-modal);">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.85rem; margin-bottom: 1rem;">
+        <div>
+          <div style="font-weight: 800; font-size: 1.1rem; color: var(--primary-deep);">Farmer Harvest Dispatch Slip</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Invoice & Packing Sheet • ${order.id}</div>
+        </div>
+        <button onclick="closeFarmerReceiptModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; font-size: 0.8rem; margin-bottom: 1rem; background: var(--bg-page); padding: 0.75rem; border-radius: 8px;">
+        <div>
+          <span style="color: var(--text-muted); font-size: 0.725rem;">Date Placed:</span>
+          <div style="font-weight: 700;">${order.placed_at}</div>
+        </div>
+        <div>
+          <span style="color: var(--text-muted); font-size: 0.725rem;">Current Status:</span>
+          <div style="font-weight: 700; color: ${order.status_code === 'pending' ? '#b45309' : '#15803d'};">
+            ${order.status}
+          </div>
+        </div>
+        <div>
+          <span style="color: var(--text-muted); font-size: 0.725rem;">Buyer:</span>
+          <div style="font-weight: 700;">${order.customer_name}</div>
+        </div>
+        <div>
+          <span style="color: var(--text-muted); font-size: 0.725rem;">Phone:</span>
+          <div style="font-weight: 700;">${order.customer_phone}</div>
+        </div>
+        <div style="grid-column: span 2;">
+          <span style="color: var(--text-muted); font-size: 0.725rem;">Shipping Address:</span>
+          <div style="font-weight: 700;">${order.delivery_address}</div>
+        </div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border-subtle); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">
+            <th style="padding: 0.5rem 0; text-align: left;">Harvest Item</th>
+            <th style="padding: 0.5rem 0; text-align: center;">Qty</th>
+            <th style="padding: 0.5rem 0; text-align: right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsRows}
+        </tbody>
+      </table>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; font-weight: 800; color: var(--primary-deep); margin-bottom: 1.25rem;">
+        <span>Direct Farmgate Payout:</span>
+        <span>₱${(order.total_amount || 0).toLocaleString()}</span>
+      </div>
+
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.65rem 0.85rem; font-size: 0.75rem; color: #166534; text-align: center; margin-bottom: 1.25rem;">
+        ✓ Guaranteed 100% Payout to Farmer • Zero Middleman Deductions
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button onclick="window.print()" class="btn-secondary" style="flex: 1; font-size: 0.8rem; padding: 0.55rem;">
+          🖨️ Print Packing Slip
+        </button>
+        ${order.status_code === 'pending' ? `
+          <button onclick="updateFarmerOrderStatus('${order.id}', 'delivered'); closeFarmerReceiptModal();" class="btn-primary" style="flex: 1; font-size: 0.8rem; padding: 0.55rem;">
+            ✓ Mark as Delivered
+          </button>
+        ` : `
+          <button onclick="closeFarmerReceiptModal()" class="btn-primary" style="flex: 1; font-size: 0.8rem; padding: 0.55rem;">
+            Close
+          </button>
+        `}
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('active');
+}
+
+function closeFarmerReceiptModal() {
+  const modal = document.getElementById('farmerReceiptModal');
+  if (modal) modal.classList.remove('active');
+}
+
 function initCartPreview() {
-  const cartBtns = document.querySelectorAll('button[aria-label="View Cart"], button[onclick*="toggleCart"]');
+  const cartBtns = document.querySelectorAll('button[aria-label="View Cart"], button[aria-label="Manage Farmer Orders"], button[onclick*="toggleCart"], button[onclick*="toggleFarmerOrdersDrawer"]');
   if (!cartBtns || cartBtns.length === 0) return;
 
   cartBtns.forEach(btn => {
@@ -1412,6 +1724,83 @@ function initCartPreview() {
 function renderCartPreview() {
   const popovers = document.querySelectorAll('.cart-preview-popover');
   if (!popovers || popovers.length === 0) return;
+
+  const user = window.AgriState.user;
+  const isFarmer = Boolean(user && user.role === 'farmer');
+
+  if (isFarmer) {
+    const orders = getFarmerOrders();
+    const pendingOrders = orders.filter(o => o.status_code === 'pending');
+
+    popovers.forEach(popover => {
+      popover.innerHTML = `
+        <div class="cart-preview-header" style="background: linear-gradient(135deg, #14532d 0%, #166534 100%); color: #ffffff; padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+              <path d="m9 14 2 2 4-4"/>
+            </svg>
+            <div>
+              <div style="font-weight: 800; font-size: 0.875rem; color: #ffffff; line-height: 1.1;">Farmer Received Orders</div>
+              <div style="font-size: 0.7rem; color: #86efac; opacity: 0.9;">${user.farm_name || 'Dela Cruz Family Farm'}</div>
+            </div>
+          </div>
+          <span style="font-size: 0.7rem; font-weight: 800; background: #fef3c7; color: #b45309; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid #fde68a;">
+            ${pendingOrders.length} Pending
+          </span>
+        </div>
+
+        <div class="cart-preview-items" style="max-height: 310px; overflow-y: auto; padding: 0.65rem 0.85rem; display: flex; flex-direction: column; gap: 0.65rem;">
+          ${orders.length === 0 ? `
+            <div style="text-align: center; padding: 1.5rem 1rem; color: var(--text-muted); font-size: 0.85rem;">
+              No received orders yet.
+            </div>
+          ` : orders.slice(0, 4).map(o => `
+            <div style="background: var(--bg-page); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.65rem 0.75rem; display: flex; flex-direction: column; gap: 0.35rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 800; font-size: 0.825rem; color: var(--text-main); font-family: monospace;">${o.id}</span>
+                <span style="font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px; ${o.status_code === 'pending' ? 'background: #fef3c7; color: #b45309; border: 1px solid #fde68a;' : 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;'}">
+                  ${o.status_code === 'pending' ? '⏳ Pending Harvest' : '✓ Delivered & Paid'}
+                </span>
+              </div>
+              <div style="font-size: 0.775rem; color: var(--text-secondary); line-height: 1.25;">
+                Buyer: <strong>${o.customer_name}</strong> • <span style="color: var(--text-muted);">${o.delivery_address}</span>
+              </div>
+              <div style="font-size: 0.725rem; color: var(--text-muted);">
+                ${o.items.map(i => `${i.quantity} ${i.unit} ${i.name}`).join(', ')}
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-subtle); padding-top: 0.35rem; margin-top: 0.15rem;">
+                <span style="font-weight: 800; font-size: 0.85rem; color: var(--primary-deep);">₱${o.total_amount.toLocaleString()}</span>
+                <div style="display: flex; gap: 0.35rem;">
+                  ${o.status_code === 'pending' ? `
+                    <button onclick="updateFarmerOrderStatus('${o.id}', 'delivered'); event.stopPropagation();" class="btn-primary" style="font-size: 0.68rem; padding: 0.22rem 0.55rem; border-radius: 4px; font-weight: 700;">
+                      ✓ Mark Delivered
+                    </button>
+                  ` : `
+                    <span style="font-size: 0.7rem; color: #166534; font-weight: 800;">✓ Payout Escrowed</span>
+                  `}
+                  <button onclick="openFarmerOrderDetailsModal('${o.id}'); event.stopPropagation();" class="btn-secondary" style="font-size: 0.68rem; padding: 0.22rem 0.55rem; border-radius: 4px;">
+                    Slip / Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="padding: 0.75rem 1rem; border-top: 1px solid var(--border-subtle); background: #ffffff; display: flex; gap: 0.5rem;">
+          <button onclick="toggleFarmerOrdersDrawer(true)" class="btn-primary" style="flex: 1; font-size: 0.775rem; padding: 0.5rem 0.65rem; text-align: center; font-weight: 700;">
+            Manage All Orders (${orders.length}) &rarr;
+          </button>
+          <a href="dashboard.html" class="btn-secondary" style="font-size: 0.775rem; padding: 0.5rem 0.75rem; text-decoration: none; text-align: center; font-weight: 700;">
+            Dashboard
+          </a>
+        </div>
+      `;
+    });
+    return;
+  }
 
   const cart = window.AgriState.cart || [];
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -3830,6 +4219,37 @@ function updateAuthUI() {
     }
   });
 
+  // Toggle Header Cart Button vs Farmer Orders Management Button
+  const cartBtns = document.querySelectorAll('button[aria-label="View Cart"], button[aria-label="Manage Farmer Orders"], button[onclick*="toggleCart"], button[onclick*="toggleFarmerOrdersDrawer"]');
+  cartBtns.forEach(btn => {
+    if (isFarmer) {
+      btn.setAttribute('aria-label', 'Manage Farmer Orders');
+      btn.setAttribute('title', 'Manage Farmer Received Orders');
+      btn.setAttribute('onclick', 'toggleFarmerOrdersDrawer(true)');
+      btn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          <path d="m9 14 2 2 4-4"/>
+        </svg>
+        <span class="cart-badge farmer-orders-badge" style="display: none;">0</span>
+      `;
+    } else {
+      btn.setAttribute('aria-label', 'View Cart');
+      btn.setAttribute('title', 'View Cart');
+      btn.setAttribute('onclick', 'toggleCart(true)');
+      btn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m7.5 4.27 9 5.15"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+        </svg>
+        <span id="cartBadge" class="cart-badge" style="display: none;">0</span>
+      `;
+    }
+  });
+
+  updateCartBadge();
+  renderCartPreview();
+
   // Farmer welcome notification bar
   const farmerBanner = document.getElementById('farmerHeroBanner');
   if (farmerBanner) {
@@ -4107,6 +4527,11 @@ function updateFarmerOrderStatus(orderId, newStatusCode) {
   order.status = newStatusCode === 'delivered' ? 'Delivered' : 'Pending Harvest';
   saveFarmerOrders(orders);
   renderFarmerOrders();
+  if (typeof renderFarmerOrdersDrawer === 'function') {
+    renderFarmerOrdersDrawer(currentFarmerDrawerFilter);
+  }
+  renderCartPreview();
+  updateCartBadge(true);
   showToast(`Order ${orderId} marked as ${order.status}! Escrow payout updated.`);
 }
 

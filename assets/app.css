@@ -595,13 +595,13 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
-/* Cart Drawer */
-.cart-drawer {
+.cart-drawer,
+.farmer-orders-drawer {
   position: fixed;
   top: 0;
   right: -100%;
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
   height: 100vh;
   background: #ffffff;
   z-index: 120;
@@ -611,7 +611,8 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
 }
 
-.cart-drawer.open {
+.cart-drawer.open,
+.farmer-orders-drawer.open {
   right: 0;
 }
 
