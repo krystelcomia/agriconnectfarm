@@ -5172,7 +5172,7 @@ function renderAgriMateChips() {
     { label: '🌾 Ask About Farming', query: 'Ask About Farming' },
     { label: '📦 How to Order', query: 'How to Order' },
     { label: '🚜 How to Sell', query: 'How to Sell' },
-    { label: '❓ AgriConnect Help', query: 'AgriConnect Help' }
+    { label: '❓ FAQ & Help', query: 'FAQ' }
   ];
 
   chipsEl.innerHTML = chips.map(c => `
@@ -5359,17 +5359,86 @@ function getAgriMateBotReply(query, role) {
     `;
   }
 
-  // 6. Quick Action: "AgriConnect Help" / FAQs & Support
-  if (q.includes('help') || q.includes('faq') || q.includes('support') || q.includes('contact') || q.includes('refund') || q.includes('about')) {
+  // FAQ 1: Delivery fees and cold-chain transport
+  if (q.includes('delivery fee') || q.includes('cold-chain') || q.includes('cold chain') || (q.includes('delivery') && (q.includes('work') || q.includes('fee') || q.includes('transport'))) || q.includes('how do delivery fees')) {
     return `
-      🌱 <strong>AgriConnect Platform Guide & FAQs:</strong>
-      <ul style="margin: 0.35rem 0 0.5rem 1.2rem; padding: 0; font-size: 0.825rem; line-height: 1.55;">
-        <li><strong>Direct Farmgate Connection:</strong> We eliminate predatory middlemen so farmers earn fair wages and buyers get freshest crops.</li>
-        <li><strong>Freshness Guarantee:</strong> All produce is protected by our 4-Hour Farm-to-Door cold-chain guarantee. If damaged, we provide a full refund or immediate replacement.</li>
-        <li><strong>Interactive Map:</strong> Find participating farms, roadside stalls, and GPS directions on our <a href="maps.html" style="color:#15803d; font-weight:700;">Interactive Map</a>.</li>
-        <li><strong>Verified Directory:</strong> Learn about our partner agricultural cooperatives on the <a href="farmers.html" style="color:#15803d; font-weight:700;">Farmers Directory</a>.</li>
-      </ul>
-      Feel free to ask me anything else about AgriConnect features!
+      🚚 <strong>How do delivery fees and cold-chain transport work?</strong><br><br>
+      We operate scheduled cold-chain delivery routes linking <strong>Benguet, Nueva Ecija, Cavite, and Laguna</strong> directly with Metro Manila and major urban centers.<br><br>
+      • <strong>Flat Delivery Fee:</strong> A transparent flat fee of <strong>₱95</strong> for standard household packages.<br>
+      • <strong>Commercial Freight:</strong> Calculated by freight weight for restaurant and supermarket bulk volumes.<br>
+      • <strong>Temperature-Regulated:</strong> All produce travels in refrigerated transit within 4 to 24 hours of harvest, reducing spoilage to under 5%.
+    `;
+  }
+
+  // FAQ 2: Bulk purchasing for restaurants, hotels, supermarkets
+  if (q.includes('bulk') || q.includes('restaurant') || q.includes('hotel') || q.includes('supermarket') || (q.includes('commercial') && q.includes('purchase')) || q.includes('can restaurants')) {
+    return `
+      🏨 <strong>Can restaurants, hotels, or supermarkets purchase in bulk?</strong><br><br>
+      <strong>Yes!</strong> Commercial buyers can place orders by the crate, sack (50kg), or weekly recurring subscription.<br><br>
+      • Browse available wholesale units directly on our <a href="marketplace.html" style="color:#15803d; font-weight:700;">Marketplace</a>.<br>
+      • Or check our <a href="farmers.html" style="color:#15803d; font-weight:700;">Farmers Directory</a> to coordinate directly with certified producers for institutional pricing and harvest scheduling.
+    `;
+  }
+
+  // FAQ 3: How AgriConnect verifies genuine farmers
+  if (q.includes('verify') || q.includes('genuine') || q.includes('legit') || q.includes('accreditation') || q.includes('validation') || q.includes('how does agriconnect verify')) {
+    return `
+      🛡️ <strong>How does AgriConnect verify that a farmer is genuine?</strong><br><br>
+      Every grower on AgriConnect undergoes an on-site validation check through <strong>local Municipal Agricultural Offices (MAO)</strong> and Department of Agriculture registries (<strong>DA-RSBSA</strong>).<br><br>
+      We physically verify land titles/leases, sustainable chemical-free farming practices, and farmer identity before awarding the <em>Verified Farmer</em> green badge on the platform.
+    `;
+  }
+
+  // FAQ 4: Farm visits & direct farmgate buying
+  if (q.includes('visit') || q.includes('in person') || q.includes('farm gate') || q.includes('farmgate') || q.includes('can i visit the farm')) {
+    return `
+      📍 <strong>Can I visit the farm in person and buy directly at the farm gate?</strong><br><br>
+      <strong>Yes!</strong> Our <a href="maps.html" style="color:#15803d; font-weight:700;">Interactive Maps section</a> provides exact GPS coordinates and expressway driving directions for each farm.<br><br>
+      We recommend notifying the farmer via their contact phone number or pickup hours listed on their profile beforehand so they can prepare your freshly gathered harvest upon arrival!
+    `;
+  }
+
+  // 6. Quick Action: "FAQ & Help" / Frequently Asked Questions Hub
+  if (q === 'faq' || q === 'frequently asked questions' || q.includes('help') || q.includes('faq') || q.includes('support') || q.includes('question')) {
+    return `
+      📋 <strong>Help & Transparency • Frequently Asked Questions</strong><br>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.35rem 0 0.65rem 0;">
+        Here are answers to the most common questions about AgriConnect. Tap any question below or click to expand:
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 0.75rem;">
+        <button type="button" class="agrimate-faq-btn" onclick="handleAgriMateChip('How do delivery fees and cold-chain transport work?')">
+          🚚 How do delivery fees and cold-chain transport work?
+        </button>
+        <button type="button" class="agrimate-faq-btn" onclick="handleAgriMateChip('Can restaurants, hotels, or supermarkets purchase in bulk?')">
+          🏨 Can restaurants, hotels, or supermarkets purchase in bulk?
+        </button>
+        <button type="button" class="agrimate-faq-btn" onclick="handleAgriMateChip('How does AgriConnect verify that a farmer is genuine?')">
+          🛡️ How does AgriConnect verify that a farmer is genuine?
+        </button>
+        <button type="button" class="agrimate-faq-btn" onclick="handleAgriMateChip('Can I visit the farm in person and buy directly at the farm gate?')">
+          📍 Can I visit the farm in person and buy directly at the farm gate?
+        </button>
+      </div>
+
+      <div class="agrimate-faq-accordion">
+        <details class="agrimate-faq-item">
+          <summary>🚚 Delivery Fees & Cold-Chain</summary>
+          <p>Scheduled cold-chain routes link Benguet, Nueva Ecija, Cavite, and Laguna directly with Metro Manila. Delivery is a transparent flat ₱95 fee (or calculated by freight weight for bulk commercial orders).</p>
+        </details>
+        <details class="agrimate-faq-item">
+          <summary>🏨 Bulk & Wholesale Purchases</summary>
+          <p>Yes! Commercial buyers can order by crate, 50kg sack, or weekly recurring subscription. Coordinate directly with producers on our <a href="farmers.html" style="color:var(--primary); font-weight:700;">Farmers Directory</a>.</p>
+        </details>
+        <details class="agrimate-faq-item">
+          <summary>🛡️ Farmer Verification & Accreditation</summary>
+          <p>Every grower undergoes on-site validation checks with Municipal Agricultural Offices (MAO) and Department of Agriculture registries, verifying land titles, practices, and identity.</p>
+        </details>
+        <details class="agrimate-faq-item">
+          <summary>📍 Visiting Farms in Person</summary>
+          <p>Yes! Visit our <a href="maps.html" style="color:var(--primary); font-weight:700;">Maps section</a> for exact GPS coordinates and driving directions. Please contact the farmer beforehand.</p>
+        </details>
+      </div>
     `;
   }
 
