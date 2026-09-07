@@ -1818,6 +1818,38 @@ function closeSellHarvestModal() {
   if (modal) modal.classList.remove('open');
 }
 
+// -------------------------------------------------------------
+// 8B. FARMER PROFILE MODAL ("MY PROFILE")
+// -------------------------------------------------------------
+function openFarmerProfileModal() {
+  const user = window.AgriState.user;
+  const modal = document.getElementById('farmerProfileModal');
+  if (!modal) return;
+
+  if (user) {
+    const nameEl = document.getElementById('profileModalName');
+    const infoNameEl = document.getElementById('profileInfoFullName');
+    const farmEl = document.getElementById('profileModalFarm');
+    const phoneEl = document.getElementById('profileInfoPhone');
+    const emailEl = document.getElementById('profileInfoEmail');
+    const avatarEl = document.getElementById('profileModalAvatar');
+
+    if (nameEl && user.full_name) nameEl.textContent = user.full_name;
+    if (infoNameEl && user.full_name) infoNameEl.textContent = user.full_name;
+    if (farmEl) farmEl.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • Benguet Farmers Multi-Purpose Cooperative (BFMPC)`;
+    if (phoneEl && user.phone) phoneEl.textContent = user.phone;
+    if (emailEl && user.email) emailEl.textContent = user.email;
+    if (avatarEl && user.avatar) avatarEl.src = user.avatar;
+  }
+
+  modal.classList.add('open');
+}
+
+function closeFarmerProfileModal() {
+  const modal = document.getElementById('farmerProfileModal');
+  if (modal) modal.classList.remove('open');
+}
+
 function runAIPricingAssistant() {
   const cropInput = document.getElementById('sellCropName');
   const priceInput = document.getElementById('sellPrice');
@@ -3120,11 +3152,8 @@ function initDashboard() {
   const portalSubIndicator = document.getElementById('portalSubIndicator');
   const farmerView = document.getElementById('farmerDashboardView');
   const buyerView = document.getElementById('buyerDashboardView');
-  const topSellBtn = document.getElementById('topBarSellHarvestBtn');
-
   if (farmerView) farmerView.style.display = 'block';
   if (buyerView) buyerView.style.display = 'none';
-  if (topSellBtn) topSellBtn.style.display = 'inline-flex';
   if (portalHeaderTitle) portalHeaderTitle.textContent = 'Farmer Producer Dashboard';
   if (portalRoleBadge) {
     portalRoleBadge.textContent = 'Producer Experience';
