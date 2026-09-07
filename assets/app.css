@@ -672,7 +672,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Toast Container */
 .toast-container {
   position: fixed;
-  bottom: 24px;
+  bottom: 96px;
   right: 24px;
   z-index: 140;
   display: flex;
@@ -1070,6 +1070,485 @@ body.is-farmer .sell-harvest-btn.sell-harvest-mobile-btn {
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.92); }
+}
+
+/* =============================================================
+   AGRIMATE AI FARMING ASSISTANT
+   ============================================================= */
+
+/* Floating Chat Button */
+.agrimate-trigger-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  color: #ffffff;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 8px 25px -4px rgba(21, 128, 61, 0.5), 0 4px 10px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.agrimate-trigger-btn:hover {
+  transform: translateY(-4px) scale(1.06);
+  box-shadow: 0 12px 30px -4px rgba(21, 128, 61, 0.65), 0 6px 14px rgba(0, 0, 0, 0.16);
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+}
+
+.agrimate-trigger-btn:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.agrimate-trigger-btn .trigger-icon {
+  width: 30px;
+  height: 30px;
+  transition: transform 0.25s ease;
+}
+
+.agrimate-trigger-btn:hover .trigger-icon {
+  transform: rotate(6deg) scale(1.1);
+}
+
+/* Online Pulsing Indicator Dot */
+.agrimate-badge-dot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 8px #22c55e;
+  animation: pulseSprout 2s infinite ease-in-out;
+}
+
+@keyframes pulseSprout {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+/* Floating Chat Window */
+.agrimate-window {
+  position: fixed;
+  bottom: 96px;
+  right: 24px;
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  height: 590px;
+  max-height: calc(100vh - 120px);
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid rgba(22, 101, 52, 0.15);
+  box-shadow: 0 20px 45px -8px rgba(15, 23, 42, 0.25), 0 8px 18px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px) scale(0.94);
+  transform-origin: bottom right;
+  transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1), transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.agrimate-window.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* Chat Header */
+.agrimate-header {
+  background: linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%);
+  color: #ffffff;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.agrimate-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.agrimate-avatar-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.agrimate-titles h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.agrimate-titles p {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  margin: 0.1rem 0 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.agrimate-status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 6px #4ade80;
+}
+
+.agrimate-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.agrimate-role-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.agrimate-role-badge:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.agrimate-header-btn {
+  background: rgba(255, 255, 255, 0.14);
+  border: none;
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.agrimate-header-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Chat Body */
+.agrimate-body {
+  flex: 1;
+  background: #f8fafc;
+  padding: 1rem 1.15rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  scroll-behavior: smooth;
+}
+
+/* Messages */
+.agrimate-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 86%;
+  animation: msgPop 0.2s ease-out;
+}
+
+@keyframes msgPop {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.agrimate-msg.bot {
+  align-self: flex-start;
+}
+
+.agrimate-msg.user {
+  align-self: flex-end;
+}
+
+.agrimate-bubble {
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  border-radius: 16px;
+  position: relative;
+  word-break: break-word;
+}
+
+.agrimate-msg.bot .agrimate-bubble {
+  background: #ffffff;
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.agrimate-msg.user .agrimate-bubble {
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 2px 8px rgba(21, 128, 61, 0.25);
+}
+
+.agrimate-time {
+  font-size: 0.675rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.agrimate-msg.bot .agrimate-time {
+  align-self: flex-start;
+  margin-left: 0.35rem;
+}
+
+.agrimate-msg.user .agrimate-time {
+  align-self: flex-end;
+  margin-right: 0.35rem;
+}
+
+/* Quick Action Chips */
+.agrimate-chips-container {
+  padding: 0.5rem 0.85rem 0.35rem;
+  background: #ffffff;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.agrimate-chip {
+  background: var(--bg-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.agrimate-chip:hover {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+  transform: translateY(-1px);
+}
+
+/* Input Area */
+.agrimate-footer {
+  background: #ffffff;
+  border-top: 1px solid var(--border-subtle);
+  padding: 0.65rem 0.85rem 0.75rem;
+}
+
+.agrimate-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-page);
+  border: 1px solid var(--border-strong);
+  border-radius: 9999px;
+  padding: 0.25rem 0.4rem 0.25rem 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.agrimate-input-row:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.12);
+  background: #ffffff;
+}
+
+.agrimate-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: var(--text-main);
+  outline: none;
+}
+
+.agrimate-input::placeholder {
+  color: var(--text-muted);
+  font-size: 0.825rem;
+}
+
+.agrimate-send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #15803d;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.agrimate-send-btn:hover {
+  background: #166534;
+  transform: scale(1.05);
+}
+
+.agrimate-send-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Typing Indicator */
+.agrimate-typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.55rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  width: fit-content;
+  margin-bottom: 0.35rem;
+}
+
+.agrimate-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #15803d;
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+
+.agrimate-dot:nth-child(2) { animation-delay: 0.2s; }
+.agrimate-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Product Card in Chat */
+.agrimate-product-card {
+  display: flex;
+  gap: 0.65rem;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 0.65rem;
+  margin-top: 0.5rem;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease;
+}
+
+.agrimate-product-card:hover {
+  border-color: #86efac;
+}
+
+.agrimate-product-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.agrimate-product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.agrimate-product-name {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agrimate-product-sub {
+  font-size: 0.725rem;
+  color: var(--text-muted);
+}
+
+.agrimate-product-price {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #15803d;
+  margin-top: 0.15rem;
+}
+
+.agrimate-product-action {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.agrimate-product-action:hover {
+  background: #15803d;
+  color: #ffffff;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+  .agrimate-window {
+    right: 12px;
+    bottom: 84px;
+    width: calc(100vw - 24px);
+    height: calc(100vh - 100px);
+    border-radius: 16px;
+  }
+  .agrimate-trigger-btn {
+    right: 16px;
+    bottom: 16px;
+    width: 54px;
+    height: 54px;
+  }
 }
 
 

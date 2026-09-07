@@ -171,6 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCartPreview();
   updateAuthUI();
   await loadInitialData();
+  initAgriMate();
 
   // Read URL params (e.g. marketplace.html?category=Fruits or ?farmer=Dela+Cruz)
   const params = new URLSearchParams(window.location.search);
@@ -4974,4 +4975,472 @@ function initFarmerDashboard() {
   renderFarmerOrders('all');
   renderFarmerOwnProducts();
 }
+
+/* ==========================================================================
+   AGRIMATE - AI FARMING ASSISTANT
+   ========================================================================== */
+
+window.AgriMateState = {
+  isOpen: false,
+  role: 'buyer', // 'buyer' or 'farmer'
+  isTyping: false,
+  messages: []
+};
+
+// Extensible AI API Integration Interface
+// Supports plugging in Gemini, OpenAI, or a custom backend endpoint:
+// e.g.: window.AgriMateAPI.endpoint = 'https://your-api.com/api/chat';
+window.AgriMateAPI = {
+  endpoint: null,
+  apiKey: null,
+
+  async ask(prompt, role, history) {
+    if (this.endpoint) {
+      try {
+        const res = await fetch(this.endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(this.apiKey ? { 'Authorization': `Bearer ${this.apiKey}` } : {})
+          },
+          body: JSON.stringify({ prompt, role, history })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && (data.reply || data.message || data.text)) {
+            return data.reply || data.message || data.text;
+          }
+        }
+      } catch (err) {
+        console.warn('[AgriMate] External AI API unavailable, falling back to knowledge engine:', err);
+      }
+    }
+    // Default: Built-in Intelligent Agricultural & Platform Engine
+    return getAgriMateBotReply(prompt, role);
+  }
+};
+
+function initAgriMate() {
+  if (document.getElementById('agrimateChatTrigger')) return;
+
+  // Set default role based on current logged in user
+  const user = window.AgriState?.user;
+  if (user && user.role === 'farmer') {
+    window.AgriMateState.role = 'farmer';
+  } else {
+    window.AgriMateState.role = 'buyer';
+  }
+
+  // Create and inject Trigger Button
+  const triggerBtn = document.createElement('button');
+  triggerBtn.id = 'agrimateChatTrigger';
+  triggerBtn.className = 'agrimate-trigger-btn';
+  triggerBtn.setAttribute('aria-label', 'Chat with AgriMate AI Farming Assistant');
+  triggerBtn.setAttribute('title', 'Chat with AgriMate 🌱');
+  triggerBtn.innerHTML = `
+    <span class="agrimate-badge-dot"></span>
+    <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 20h10"/>
+      <path d="M12 20v-8"/>
+      <path d="M12 12c-3.5 0-7-2.5-7-7 4.5 0 7 3.5 7 7Z" fill="rgba(255,255,255,0.3)"/>
+      <path d="M12 12c3.5 0 7-2.5 7-7-4.5 0-7 3.5-7 7Z" fill="rgba(255,255,255,0.3)"/>
+    </svg>
+  `;
+  triggerBtn.onclick = () => toggleAgriMate();
+  document.body.appendChild(triggerBtn);
+
+  // Create and inject Floating Chat Window
+  const chatWindow = document.createElement('div');
+  chatWindow.id = 'agrimateChatWindow';
+  chatWindow.className = 'agrimate-window';
+  chatWindow.setAttribute('role', 'dialog');
+  chatWindow.setAttribute('aria-modal', 'true');
+  chatWindow.setAttribute('aria-labelledby', 'agrimateTitle');
+  chatWindow.innerHTML = `
+    <div class="agrimate-header">
+      <div class="agrimate-brand">
+        <div class="agrimate-avatar-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #4ade80;">
+            <path d="M7 20h10"/>
+            <path d="M12 20v-8"/>
+            <path d="M12 12c-3.5 0-7-2.5-7-7 4.5 0 7 3.5 7 7Z" fill="#4ade80" fill-opacity="0.35"/>
+            <path d="M12 12c3.5 0 7-2.5 7-7-4.5 0-7 3.5-7 7Z" fill="#4ade80" fill-opacity="0.35"/>
+          </svg>
+        </div>
+        <div class="agrimate-titles">
+          <h3 id="agrimateTitle">AgriMate 🌱</h3>
+          <p><span class="agrimate-status-dot"></span> Your AI Farming Assistant</p>
+        </div>
+      </div>
+      <div class="agrimate-header-actions">
+        <button id="agrimateRoleToggle" class="agrimate-role-badge" title="Click to toggle between Buyer and Farmer Mode">
+          ${window.AgriMateState.role === 'farmer' ? '🚜 Farmer Mode' : '🌱 Buyer Mode'}
+        </button>
+        <button id="agrimateCloseBtn" class="agrimate-header-btn" aria-label="Close Chat Window">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="agrimateMessages" class="agrimate-body"></div>
+
+    <div id="agrimateChips" class="agrimate-chips-container"></div>
+
+    <div class="agrimate-footer">
+      <form id="agrimateForm" class="agrimate-input-row" onsubmit="handleAgriMateSubmit(event)">
+        <input type="text" id="agrimateInput" class="agrimate-input" placeholder="Ask AgriMate about products, farming, orders..." autocomplete="off" />
+        <button type="submit" id="agrimateSendBtn" class="agrimate-send-btn" aria-label="Send Message">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(chatWindow);
+
+  // Bind Close Button
+  document.getElementById('agrimateCloseBtn').onclick = () => toggleAgriMate(false);
+
+  // Bind Role Toggle
+  document.getElementById('agrimateRoleToggle').onclick = () => toggleAgriMateRole();
+
+  // Render initial greeting and quick action chips
+  renderAgriMateInitialState();
+}
+
+function toggleAgriMate(forceState) {
+  const win = document.getElementById('agrimateChatWindow');
+  const trigger = document.getElementById('agrimateChatTrigger');
+  if (!win) return;
+
+  const nextState = (typeof forceState === 'boolean') ? forceState : !win.classList.contains('open');
+  window.AgriMateState.isOpen = nextState;
+
+  if (nextState) {
+    win.classList.add('open');
+    if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    const input = document.getElementById('agrimateInput');
+    if (input) {
+      setTimeout(() => input.focus(), 280);
+    }
+  } else {
+    win.classList.remove('open');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+}
+
+function toggleAgriMateRole() {
+  const nextRole = window.AgriMateState.role === 'farmer' ? 'buyer' : 'farmer';
+  window.AgriMateState.role = nextRole;
+
+  const badge = document.getElementById('agrimateRoleToggle');
+  if (badge) {
+    badge.textContent = nextRole === 'farmer' ? '🚜 Farmer Mode' : '🌱 Buyer Mode';
+  }
+
+  // Post assistant transition notice
+  const note = nextRole === 'farmer'
+    ? `Switched to <strong>Farmer Mode 🚜</strong>! How can I assist with your harvest listings, direct farmgate pricing, DA-RSBSA accreditation, or batch orders?`
+    : `Switched to <strong>Buyer Mode 🌱</strong>! Looking for fresh farm harvests, price checks, or help with placing and tracking your orders?`;
+
+  appendAgriMateMessage('bot', note);
+  renderAgriMateChips();
+}
+
+function renderAgriMateInitialState() {
+  const messagesEl = document.getElementById('agrimateMessages');
+  if (!messagesEl) return;
+
+  messagesEl.innerHTML = '';
+
+  const greetingHtml = `Hi! I’m <strong>AgriMate 🌱</strong><br>Your AI assistant for AgriConnect. How can I help you today?`;
+  appendAgriMateMessage('bot', greetingHtml, false);
+  renderAgriMateChips();
+}
+
+function renderAgriMateChips() {
+  const chipsEl = document.getElementById('agrimateChips');
+  if (!chipsEl) return;
+
+  const chips = [
+    { label: '🔍 Find Products', query: 'Find Products' },
+    { label: '🌾 Ask About Farming', query: 'Ask About Farming' },
+    { label: '📦 How to Order', query: 'How to Order' },
+    { label: '🚜 How to Sell', query: 'How to Sell' },
+    { label: '❓ AgriConnect Help', query: 'AgriConnect Help' }
+  ];
+
+  chipsEl.innerHTML = chips.map(c => `
+    <button type="button" class="agrimate-chip" onclick="handleAgriMateChip('${c.query.replace(/'/g, "\\'")}')">
+      ${c.label}
+    </button>
+  `).join('');
+}
+
+function handleAgriMateChip(query) {
+  sendAgriMateMessage(query);
+}
+
+function handleAgriMateSubmit(e) {
+  if (e) e.preventDefault();
+  const input = document.getElementById('agrimateInput');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  sendAgriMateMessage(text);
+}
+
+async function sendAgriMateMessage(userText) {
+  if (window.AgriMateState.isTyping) return;
+
+  appendAgriMateMessage('user', userText);
+
+  // Show typing indicator
+  setAgriMateTyping(true);
+
+  // Realistic generation delay
+  const minDelay = 400 + Math.random() * 250;
+  const startTime = Date.now();
+
+  try {
+    const reply = await window.AgriMateAPI.ask(userText, window.AgriMateState.role, window.AgriMateState.messages);
+    const elapsed = Date.now() - startTime;
+    if (elapsed < minDelay) {
+      await new Promise(r => setTimeout(r, minDelay - elapsed));
+    }
+    setAgriMateTyping(false);
+    appendAgriMateMessage('bot', reply);
+  } catch (err) {
+    setAgriMateTyping(false);
+    appendAgriMateMessage('bot', "I'm having a little trouble connecting right now, but you can explore our <a href='marketplace.html' style='color:#15803d; font-weight:700;'>Marketplace</a> or check our <a href='how-it-works.html' style='color:#15803d; font-weight:700;'>How It Works</a> guide anytime!");
+  }
+}
+
+function appendAgriMateMessage(sender, htmlContent, recordHistory = true) {
+  const messagesEl = document.getElementById('agrimateMessages');
+  if (!messagesEl) return;
+
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `agrimate-msg ${sender}`;
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  msgDiv.innerHTML = `
+    <div class="agrimate-bubble">${htmlContent}</div>
+    <span class="agrimate-time">${timeStr}</span>
+  `;
+
+  messagesEl.appendChild(msgDiv);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  if (recordHistory) {
+    window.AgriMateState.messages.push({
+      sender,
+      content: htmlContent,
+      timestamp: Date.now()
+    });
+  }
+}
+
+function setAgriMateTyping(isTyping) {
+  window.AgriMateState.isTyping = isTyping;
+  const messagesEl = document.getElementById('agrimateMessages');
+  const sendBtn = document.getElementById('agrimateSendBtn');
+  if (sendBtn) sendBtn.disabled = isTyping;
+  if (!messagesEl) return;
+
+  let typingEl = document.getElementById('agrimateTypingIndicator');
+  if (isTyping) {
+    if (!typingEl) {
+      typingEl = document.createElement('div');
+      typingEl.id = 'agrimateTypingIndicator';
+      typingEl.className = 'agrimate-msg bot';
+      typingEl.innerHTML = `
+        <div class="agrimate-bubble agrimate-typing" style="display:inline-flex;">
+          <span class="agrimate-dot"></span>
+          <span class="agrimate-dot"></span>
+          <span class="agrimate-dot"></span>
+        </div>
+      `;
+      messagesEl.appendChild(typingEl);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  } else {
+    if (typingEl) typingEl.remove();
+  }
+}
+
+// Built-in Intelligent Agricultural & Platform Engine
+function getAgriMateBotReply(query, role) {
+  const q = (query || '').toLowerCase().trim();
+  const products = window.AgriState?.products || [];
+
+  // 1. Quick Action: "Find Products" or general product catalog browsing
+  if (q === 'find products' || q === 'products' || q === 'browse' || q === 'search products') {
+    const sample = products.slice(0, 3);
+    const cardsHtml = sample.map(renderAgriMateProductCard).join('');
+    return `
+      Here are top featured fresh harvests straight from our local farms:
+      <div style="display:flex; flex-direction:column; gap:8px; margin:8px 0;">
+        ${cardsHtml}
+      </div>
+      Looking for something specific? You can type any crop name like <em>"tomatoes"</em>, <em>"strawberries"</em>, or <em>"rice"</em>, or visit our full <a href="marketplace.html" style="color:#15803d; font-weight:700; text-decoration:underline;">Marketplace</a>!
+    `;
+  }
+
+  // 2. Specific Crop / Product Search
+  const matchingProducts = products.filter(p => {
+    const name = (p.name || '').toLowerCase();
+    const cat = (p.category_name || '').toLowerCase();
+    const desc = (p.description || '').toLowerCase();
+    const farmer = (p.farmer_name || '').toLowerCase();
+    return name.includes(q) || cat.includes(q) || desc.includes(q) || farmer.includes(q);
+  });
+
+  if (matchingProducts.length > 0 && q.length >= 3 && !['hello', 'hi', 'help', 'order', 'sell'].includes(q)) {
+    const topMatches = matchingProducts.slice(0, 3);
+    const cardsHtml = topMatches.map(renderAgriMateProductCard).join('');
+    return `
+      I found <strong>${matchingProducts.length} product(s)</strong> matching <em>"${escapeHtml(query)}"</em>:
+      <div style="display:flex; flex-direction:column; gap:8px; margin:8px 0;">
+        ${cardsHtml}
+      </div>
+      ${matchingProducts.length > 3 ? `<p style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">+ ${matchingProducts.length - 3} more items available in the <a href="marketplace.html" style="color:#15803d; font-weight:700;">Marketplace</a>.</p>` : ''}
+    `;
+  }
+
+  // 3. Quick Action: "Ask About Farming" / Agricultural Advice
+  if (q.includes('farming') || q.includes('agriculture') || q.includes('crop') || q.includes('soil') || q.includes('pest') || q.includes('fertilizer') || q.includes('plant')) {
+    return `
+      🌾 <strong>Farming & Agricultural Insights</strong><br><br>
+      Here are core sustainable practices tailored for Philippine farming:
+      <ul style="margin: 0.35rem 0 0.5rem 1.2rem; padding: 0; font-size: 0.825rem; line-height: 1.55;">
+        <li><strong>Organic Pest Control:</strong> Use neem oil extract or chili-garlic spray to repel aphids and caterpillars without chemical residues.</li>
+        <li><strong>Soil Health:</strong> Enrich your soil with vermicompost and carbonized rice hull (CRH) to retain moisture and foster beneficial microbes.</li>
+        <li><strong>Seasonal Calendar:</strong> Highland Benguet crops (strawberries, cabbage) flourish in cooler months, while lowland crops (eggplants, melons) thrive in dry sunny spells.</li>
+        <li><strong>Cold-Chain Care:</strong> Harvest early in the morning (5:00 AM – 8:00 AM) to preserve moisture, natural sugars, and crispness.</li>
+      </ul>
+      Need specific guidance on pest management, soil preparation, or crop scheduling? Ask me anytime!
+    `;
+  }
+
+  // 4. Quick Action: "How to Order" / Buyer Guidance
+  if (q.includes('how to order') || q.includes('order') || q.includes('buy') || q.includes('cart') || q.includes('payment') || q.includes('delivery')) {
+    return `
+      📦 <strong>How to Order on AgriConnect:</strong>
+      <ol style="margin: 0.35rem 0 0.5rem 1.2rem; padding: 0; font-size: 0.825rem; line-height: 1.55;">
+        <li><strong>Browse:</strong> Visit our <a href="marketplace.html" style="color:#15803d; font-weight:700;">Marketplace</a> to explore fresh farm harvests.</li>
+        <li><strong>Add to Basket:</strong> Click the <strong>"+ Add"</strong> button on your desired produce (log in to your account first).</li>
+        <li><strong>Checkout:</strong> Review your items in the cart drawer and select your preferred payment (<strong>GCash, Maya, COD, or Bank Transfer</strong>).</li>
+        <li><strong>Track:</strong> Enjoy cold-chain delivery within 4 to 24 hours of harvest, and track progress live on <a href="track-orders.html" style="color:#15803d; font-weight:700;">Track Orders</a>!</li>
+      </ol>
+      Every purchase directly supports verified Filipino smallholder farmers!
+    `;
+  }
+
+  // 5. Quick Action: "How to Sell" / Farmer Guidance
+  if (q.includes('how to sell') || q.includes('sell') || q.includes('list') || q.includes('farmer') || q.includes('harvest') || q.includes('fee') || q.includes('commission')) {
+    return `
+      🚜 <strong>Selling Your Harvest with AgriConnect:</strong>
+      <ol style="margin: 0.35rem 0 0.5rem 1.2rem; padding: 0; font-size: 0.825rem; line-height: 1.55;">
+        <li><strong>Create Account:</strong> Sign up with your farm details and get verified through DA-RSBSA accreditation.</li>
+        <li><strong>List Your Crops:</strong> Go to <a href="sell-harvest.html" style="color:#15803d; font-weight:700;">Sell Harvest</a> to enter your crop type, available volume, harvest schedule, and price per kg.</li>
+        <li><strong>0% Platform Commission:</strong> AgriConnect does <em>not</em> take a cut of your farmgate earnings. You keep 100% of your listed price!</li>
+        <li><strong>Consolidated Logistics:</strong> AgriConnect refrigerated transit collects verified orders from agrarian hubs.</li>
+      </ol>
+      Ready to list? Tap <a href="sell-harvest.html" style="color:#15803d; font-weight:700; text-decoration:underline;">Sell Harvest</a> now!
+    `;
+  }
+
+  // 6. Quick Action: "AgriConnect Help" / FAQs & Support
+  if (q.includes('help') || q.includes('faq') || q.includes('support') || q.includes('contact') || q.includes('refund') || q.includes('about')) {
+    return `
+      🌱 <strong>AgriConnect Platform Guide & FAQs:</strong>
+      <ul style="margin: 0.35rem 0 0.5rem 1.2rem; padding: 0; font-size: 0.825rem; line-height: 1.55;">
+        <li><strong>Direct Farmgate Connection:</strong> We eliminate predatory middlemen so farmers earn fair wages and buyers get freshest crops.</li>
+        <li><strong>Freshness Guarantee:</strong> All produce is protected by our 4-Hour Farm-to-Door cold-chain guarantee. If damaged, we provide a full refund or immediate replacement.</li>
+        <li><strong>Interactive Map:</strong> Find participating farms, roadside stalls, and GPS directions on our <a href="maps.html" style="color:#15803d; font-weight:700;">Interactive Map</a>.</li>
+        <li><strong>Verified Directory:</strong> Learn about our partner agricultural cooperatives on the <a href="farmers.html" style="color:#15803d; font-weight:700;">Farmers Directory</a>.</li>
+      </ul>
+      Feel free to ask me anything else about AgriConnect features!
+    `;
+  }
+
+  // 7. Price inquiries
+  if (q.includes('price') || q.includes('cost') || q.includes('presyo') || q.includes('how much')) {
+    return `
+      💰 <strong>Transparent Farmgate Pricing:</strong><br>
+      Prices on AgriConnect are set directly by our partnered farmers with <strong>0% middleman markup</strong>.
+      <br><br>
+      You can browse real-time prices in our <a href="marketplace.html" style="color:#15803d; font-weight:700;">Marketplace</a>, or tell me which product you want to check (e.g. <em>"Price of strawberries"</em> or <em>"Price of Dinorado rice"</em>)!
+    `;
+  }
+
+  // 8. Greetings & general pleasantries
+  if (q.includes('hello') || q.includes('hi') || q.includes('kamusta') || q.includes('kumusta') || q.includes('good morning') || q.includes('good afternoon')) {
+    return `
+      Kumusta! 👋 I’m AgriMate, your AI Farming Assistant.
+      <br><br>
+      I can help you search farm products, understand harvesting and selling, guide your checkout, or provide sustainable agriculture advice. What would you like to explore today?
+    `;
+  }
+
+  // 9. Default friendly fallback with contextual suggestions
+  return `
+    I'd love to help you with that! As your AI Farming Assistant, I can:
+    <ul style="margin: 0.35rem 0 0.5rem 1.2rem; padding: 0; font-size: 0.825rem; line-height: 1.55;">
+      <li>Find fresh products (e.g., <em>"Do you have organic strawberries?"</em>)</li>
+      <li>Guide you on <strong>How to Order</strong> and payment methods</li>
+      <li>Help farmers list their harvest on <strong>Sell Harvest</strong></li>
+      <li>Provide sustainable farming, pest control, and soil tips</li>
+    </ul>
+    You can also click any of the quick action buttons below!
+  `;
+}
+
+function renderAgriMateProductCard(p) {
+  const imgUrl = p.image_url || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300';
+  const price = (p.price || 0).toLocaleString();
+  const unit = p.unit || 'kg';
+  const name = escapeHtml(p.name || 'Farm Product');
+  const farmer = escapeHtml(p.farmer_name || p.origin || 'Verified Farmer');
+  const stock = p.stock || 50;
+
+  return `
+    <div class="agrimate-product-card">
+      <img src="${imgUrl}" alt="${name}" class="agrimate-product-img" onerror="this.src='https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300'">
+      <div class="agrimate-product-info">
+        <div class="agrimate-product-name">${name}</div>
+        <div class="agrimate-product-sub">👨‍🌾 ${farmer} • ${stock} ${unit} in stock</div>
+        <div class="agrimate-product-price">₱${price} / ${unit}</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; justify-content: center;">
+        <button onclick="openProductModal('${p.id}')" class="agrimate-product-action" title="View product details" style="padding: 0.25rem 0.5rem; font-size: 0.72rem;">
+          👁️ Details
+        </button>
+        <button onclick="addToCart('${p.id}')" class="agrimate-product-action" title="Add to basket" style="background: #15803d; color: #ffffff; border-color: #15803d; padding: 0.25rem 0.5rem; font-size: 0.72rem;">
+          🛒 + Add
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 
