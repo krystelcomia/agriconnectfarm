@@ -1228,6 +1228,19 @@ function handleTrackSearch() {
 // 6. SHOPPING CART & CHECKOUT
 // -------------------------------------------------------------
 function addToCart(productId, quantity = 1, btnElement = null) {
+  const user = window.AgriState.user;
+  if (!user) {
+    showToast('Please log in to your account before adding items to the cart.');
+    const modal = document.getElementById('productDetailModal');
+    if (modal) modal.classList.remove('open');
+    setTimeout(() => {
+      const page = window.location.pathname.split('/').pop() || 'marketplace.html';
+      const search = window.location.search || '';
+      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
+    }, 800);
+    return;
+  }
+
   const p = window.AgriState.products.find(item => item.id === productId);
   if (!p) return;
 
@@ -1538,7 +1551,32 @@ function renderCartDrawer() {
   if (checkoutBtn) checkoutBtn.disabled = false;
 }
 
+function proceedToCheckout() {
+  const user = window.AgriState.user;
+  if (!user) {
+    showToast('Please log in to your account before proceeding to checkout.');
+    setTimeout(() => {
+      const page = window.location.pathname.split('/').pop() || 'marketplace.html';
+      const search = window.location.search || '';
+      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
+    }, 800);
+    return;
+  }
+  openCheckoutModal();
+}
+
 function openCheckoutModal() {
+  const user = window.AgriState.user;
+  if (!user) {
+    showToast('Please log in to your account before proceeding to checkout.');
+    setTimeout(() => {
+      const page = window.location.pathname.split('/').pop() || 'marketplace.html';
+      const search = window.location.search || '';
+      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
+    }, 800);
+    return;
+  }
+
   if (window.AgriState.cart.length === 0) return;
   toggleCart(false);
 
@@ -3675,7 +3713,9 @@ function handleRegister(e) {
   showToast(`Account created successfully! Welcome, ${newUser.full_name}.`);
 
   setTimeout(() => {
-    window.location.href = 'dashboard.html';
+    const params = new URLSearchParams(window.location.search);
+    const redirectUrl = params.get('redirect') || 'dashboard.html';
+    window.location.href = redirectUrl;
   }, 700);
 }
 
@@ -3714,7 +3754,9 @@ function loginDemoUser(role) {
   showToast(`Logged in as ${demoUser.full_name} (${demoUser.role.toUpperCase()})`);
 
   setTimeout(() => {
-    window.location.href = 'dashboard.html';
+    const params = new URLSearchParams(window.location.search);
+    const redirectUrl = params.get('redirect') || 'dashboard.html';
+    window.location.href = redirectUrl;
   }, 500);
 }
 
@@ -4739,6 +4781,15 @@ function renderBuyerSupportedFarms() {
 }
 
 function reorderBuyerItems(orderId) {
+  const user = window.AgriState.user;
+  if (!user) {
+    showToast('Please log in to your account before adding items to the cart.');
+    setTimeout(() => {
+      window.location.href = 'auth.html?redirect=dashboard.html';
+    }, 800);
+    return;
+  }
+
   const orders = getBuyerOrders();
   const order = orders.find(o => o.id === orderId);
   if (!order || !order.items || order.items.length === 0) {
