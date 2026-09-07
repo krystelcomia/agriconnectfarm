@@ -3114,88 +3114,31 @@ let currentBuyerOrderFilter = 'all';
 let currentDashboardRole = 'buyer';
 
 function initDashboard() {
-  const user = window.AgriState.user;
-  const params = new URLSearchParams(window.location.search);
-  const requestedRole = params.get('role');
-
-  if (requestedRole === 'farmer' || requestedRole === 'buyer') {
-    currentDashboardRole = requestedRole;
-  } else if (user && user.role === 'farmer') {
-    currentDashboardRole = 'farmer';
-  } else {
-    currentDashboardRole = 'buyer';
-  }
-
-  switchDashboardRole(currentDashboardRole);
-}
-
-function switchDashboardRole(role) {
-  currentDashboardRole = role;
-  const buyerView = document.getElementById('buyerDashboardView');
-  const farmerView = document.getElementById('farmerDashboardView');
-  const btnBuyer = document.getElementById('btnRoleBuyer');
-  const btnFarmer = document.getElementById('btnRoleFarmer');
+  currentDashboardRole = 'farmer';
   const portalHeaderTitle = document.getElementById('portalHeaderTitle');
   const portalRoleBadge = document.getElementById('portalRoleBadge');
   const portalSubIndicator = document.getElementById('portalSubIndicator');
+  const farmerView = document.getElementById('farmerDashboardView');
+  const buyerView = document.getElementById('buyerDashboardView');
+  const topSellBtn = document.getElementById('topBarSellHarvestBtn');
 
-  if (role === 'buyer') {
-    if (buyerView) buyerView.style.display = 'block';
-    if (farmerView) farmerView.style.display = 'none';
-
-    const topSellBtn = document.getElementById('topBarSellHarvestBtn');
-    if (topSellBtn) topSellBtn.style.display = 'none';
-
-    if (btnBuyer) {
-      btnBuyer.style.background = 'var(--primary)';
-      btnBuyer.style.color = '#ffffff';
-      btnBuyer.style.boxShadow = '0 2px 6px rgba(21,128,61,0.25)';
-    }
-    if (btnFarmer) {
-      btnFarmer.style.background = 'transparent';
-      btnFarmer.style.color = 'var(--text-secondary)';
-      btnFarmer.style.boxShadow = 'none';
-    }
-
-    if (portalHeaderTitle) portalHeaderTitle.textContent = 'Buyer Dashboard';
-    if (portalRoleBadge) {
-      portalRoleBadge.textContent = 'Consumer Experience';
-      portalRoleBadge.style.background = 'var(--primary-light)';
-      portalRoleBadge.style.color = 'var(--primary)';
-    }
-    if (portalSubIndicator) portalSubIndicator.textContent = 'Orders, Deliveries & Direct Farm Transparency';
-
-    document.title = 'Buyer Dashboard | AgriConnect Philippine Farm-to-Table Platform';
-    renderBuyerDashboard();
-  } else {
-    if (buyerView) buyerView.style.display = 'none';
-    if (farmerView) farmerView.style.display = 'block';
-
-    const topSellBtn = document.getElementById('topBarSellHarvestBtn');
-    if (topSellBtn) topSellBtn.style.display = 'inline-flex';
-
-    if (btnFarmer) {
-      btnFarmer.style.background = 'var(--primary)';
-      btnFarmer.style.color = '#ffffff';
-      btnFarmer.style.boxShadow = '0 2px 6px rgba(21,128,61,0.25)';
-    }
-    if (btnBuyer) {
-      btnBuyer.style.background = 'transparent';
-      btnBuyer.style.color = 'var(--text-secondary)';
-      btnBuyer.style.boxShadow = 'none';
-    }
-
-    if (portalHeaderTitle) portalHeaderTitle.textContent = 'Farmer Producer Dashboard';
-    if (portalRoleBadge) {
-      portalRoleBadge.textContent = 'Producer Experience';
-      portalRoleBadge.style.background = '#dcfce7';
-      portalRoleBadge.style.color = '#15803d';
-    }
-    if (portalSubIndicator) portalSubIndicator.textContent = 'Harvest Listings, Sales Revenue & Orders Fulfillment';
-
-    document.title = 'Farmer Dashboard | AgriConnect Philippine Farm-to-Table Platform';
-    initFarmerDashboard();
+  if (farmerView) farmerView.style.display = 'block';
+  if (buyerView) buyerView.style.display = 'none';
+  if (topSellBtn) topSellBtn.style.display = 'inline-flex';
+  if (portalHeaderTitle) portalHeaderTitle.textContent = 'Farmer Producer Dashboard';
+  if (portalRoleBadge) {
+    portalRoleBadge.textContent = 'Producer Experience';
+    portalRoleBadge.style.background = '#dcfce7';
+    portalRoleBadge.style.color = '#15803d';
   }
+  if (portalSubIndicator) portalSubIndicator.textContent = 'Harvest Listings, Sales Revenue & Orders Fulfillment';
+
+  document.title = 'Farmer Producer Dashboard | AgriConnect Philippine Farm-to-Table Platform';
+  initFarmerDashboard();
+}
+
+function switchDashboardRole(role) {
+  initDashboard();
 }
 
 function renderBuyerDashboard() {
