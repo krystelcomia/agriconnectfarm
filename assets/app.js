@@ -147,6 +147,7 @@ window.AgriState = {
   maxPrice: 3000,
   inStockOnly: false,
   sortBy: 'newest',
+  farmerMarketView: 'my_products',
   currentMode: localStorage.getItem('agri_mode') || 'buyer',
   user: JSON.parse(localStorage.getItem('agri_user') || 'null')
 };
@@ -173,13 +174,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadInitialData();
   initAgriMate();
 
-  // Read URL params (e.g. marketplace.html?category=Fruits or ?farmer=Dela+Cruz)
+  // Read URL params (e.g. marketplace.html?category=Fruits or ?farmer=Dela+Cruz or ?view=my_products)
   const params = new URLSearchParams(window.location.search);
   if (params.get('category')) {
     window.AgriState.currentCategory = params.get('category');
   }
   if (params.get('farmer')) {
     window.AgriState.currentFarmerFilter = params.get('farmer');
+  }
+  if (params.get('view')) {
+    window.AgriState.farmerMarketView = params.get('view');
   }
 
   // Page-specific initializers
@@ -683,7 +687,7 @@ function isUserOwnProduct(product) {
   // 1. Check direct farmer_id match or demo alias
   if (product.farmer_id) {
     if (product.farmer_id === user.id) return true;
-    if (user.id === 'farmer-ramon' && product.farmer_id === 'farmer-ramon') return true;
+    if (user.id === 'farmer-ramon' && (product.farmer_id === 'farmer-ramon' || product.farmer_id === '11111111-1111-4111-8111-111111111111')) return true;
   }
 
   // 2. Check farm name
@@ -700,16 +704,89 @@ function isUserOwnProduct(product) {
     if (pFarm.includes(uName)) return true;
   }
 
+  // 4. Default farmer fallback for Ramon Dela Cruz demo
+  if (user.id === 'farmer-ramon' && product.farmer_name && product.farmer_name.toLowerCase().includes('dela cruz')) {
+    return true;
+  }
+
   return false;
+}
+
+function setFarmerMarketView(view) {
+  window.AgriState.farmerMarketView = view;
+  renderProducts();
 }
 
 function renderProducts() {
   const container = document.getElementById('productsGrid');
-  const countLabel = document.getElementById('productsCountLabel');
+  const countLabel = document.getElementById('productsCountLabel') || document.getElementById('productCount');
   const banner = document.getElementById('activeFarmerBanner');
   if (!container) return;
 
+  const user = window.AgriState.user;
+  const isFarmer = Boolean(user && user.role === 'farmer');
+  const isViewingMyProducts = isFarmer && (window.AgriState.farmerMarketView !== 'all');
+
+  // Dynamic Marketplace / My Products Header for Farmer
+  const subtitleEl = document.getElementById('marketplaceSubtitle');
+  const titleEl = document.getElementById('marketplaceTitle');
+  const descEl = document.getElementById('marketplaceDescription');
+  const farmerControls = document.getElementById('farmerMarketControls');
+  const btnMyProducts = document.getElementById('btnViewMyProducts');
+  const btnAllMarket = document.getElementById('btnViewAllMarket');
+  const farmerOwnCount = document.getElementById('farmerOwnCount');
+  const farmerTotalCount = document.getElementById('farmerTotalCount');
+
+  const ownProductsList = window.AgriState.products.filter(p => isUserOwnProduct(p));
+
+  if (farmerControls) {
+    if (isFarmer) {
+      farmerControls.style.display = 'flex';
+      if (farmerOwnCount) farmerOwnCount.textContent = ownProductsList.length;
+      if (farmerTotalCount) farmerTotalCount.textContent = window.AgriState.products.length;
+
+      if (isViewingMyProducts) {
+        if (subtitleEl) subtitleEl.textContent = 'Farm Inventory & Active Listings';
+        if (titleEl) titleEl.textContent = 'My Products';
+        if (descEl) descEl.textContent = `Viewing all ${ownProductsList.length} crops and harvests you are actively selling directly to buyers as a registered farmer.`;
+        if (btnMyProducts) {
+          btnMyProducts.className = 'btn-primary';
+          btnMyProducts.style.background = 'var(--primary)';
+          btnMyProducts.style.color = '#ffffff';
+        }
+        if (btnAllMarket) {
+          btnAllMarket.className = 'btn-secondary';
+          btnAllMarket.style.background = '#ffffff';
+          btnAllMarket.style.color = 'var(--text-main)';
+        }
+      } else {
+        if (subtitleEl) subtitleEl.textContent = 'Philippine Agricultural Catalog';
+        if (titleEl) titleEl.textContent = 'All Marketplace Products';
+        if (descEl) descEl.textContent = 'Browsing all platform harvests from verified Filipino farmers across the islands.';
+        if (btnMyProducts) {
+          btnMyProducts.className = 'btn-secondary';
+          btnMyProducts.style.background = '#ffffff';
+          btnMyProducts.style.color = 'var(--text-main)';
+        }
+        if (btnAllMarket) {
+          btnAllMarket.className = 'btn-primary';
+          btnAllMarket.style.background = 'var(--primary)';
+          btnAllMarket.style.color = '#ffffff';
+        }
+      }
+    } else {
+      farmerControls.style.display = 'none';
+      if (subtitleEl) subtitleEl.textContent = 'Philippine Agricultural Catalog';
+      if (titleEl) titleEl.textContent = 'Direct Farmgate Product';
+      if (descEl) descEl.textContent = 'Every purchase directly supports our local farmers. 100% transparent pricing and guaranteed freshness.';
+    }
+  }
+
   let list = window.AgriState.products.filter(p => {
+    // If viewing farmer's own products
+    if (isViewingMyProducts && !isUserOwnProduct(p)) {
+      return false;
+    }
     if (window.AgriState.currentCategory !== 'all' && p.category_name !== window.AgriState.currentCategory) {
       return false;
     }
@@ -761,10 +838,26 @@ function renderProducts() {
   }
 
   if (countLabel) {
-    countLabel.textContent = `Showing ${list.length} item(s)`;
+    countLabel.textContent = isViewingMyProducts 
+      ? `Showing ${list.length} item(s) (Your Farm Listings)` 
+      : `Showing ${list.length} item(s)`;
   }
 
   if (list.length === 0) {
+    if (isViewingMyProducts) {
+      container.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 3.5rem 1rem; background: #ffffff; border-radius: var(--radius-md); border: 1px dashed var(--border-strong);">
+          <h4 style="font-size: 1.15rem; font-weight: 700;">No crops found in this view</h4>
+          <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.35rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+            You have no active products listed matching your filters. List your harvest directly to consumers!
+          </p>
+          <a href="sell-harvest.html" class="btn-primary" style="margin-top: 1.25rem; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+            + List Your Harvest Now
+          </a>
+        </div>
+      `;
+      return;
+    }
     container.innerHTML = `
       <div style="grid-column: 1/-1; text-align: center; padding: 3.5rem 1rem; background: #ffffff; border-radius: var(--radius-md); border: 1px dashed var(--border-strong);">
         <h4 style="font-size: 1.15rem; font-weight: 700;">No products found</h4>
@@ -783,12 +876,17 @@ function renderProducts() {
     const isOwn = isUserOwnProduct(p);
     return `
     <div class="product-card" id="card-${p.id}">
-      <div class="product-img-wrap" onclick="openProductModal('${p.id}')" style="cursor: pointer;">
+      <div class="product-img-wrap" onclick="openProductModal('${p.id}')" style="cursor: pointer; position: relative;">
         <img src="${p.image_url}" alt="${p.name}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=800'">
         <span class="category-badge">${p.category_name}</span>
         <span class="stock-badge ${p.quantity <= 15 ? 'low' : ''}">
           ${p.quantity > 0 ? `${p.quantity} ${p.unit} in stock` : 'Sold out'}
         </span>
+        ${isOwn ? `
+          <span style="position: absolute; bottom: 8px; left: 8px; background: rgba(21, 128, 61, 0.92); color: white; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.03em; box-shadow: var(--shadow-sm);">
+            🌱 Your Harvest
+          </span>
+        ` : ''}
       </div>
 
       <div style="padding: 1.15rem; display: flex; flex-direction: column; flex: 1;">
@@ -827,9 +925,9 @@ function renderProducts() {
               Details
             </button>
             ${isOwn ? `
-              <span style="font-size: 0.725rem; font-weight: 700; color: #15803d; background: #dcfce7; border: 1px solid #86efac; border-radius: 9999px; padding: 0.35rem 0.65rem; display: inline-flex; align-items: center; gap: 0.25rem;" title="You are the registered producer of this harvest. Direct producer listings cannot be self-purchased.">
-                🌱 Your Harvest
-              </span>
+              <button onclick="editFarmerProductPrice('${p.id}')" class="btn-secondary" style="padding: 0.45rem 0.75rem; font-size: 0.8rem; border-color: #86efac; color: #166534; background: #f0fdf4; font-weight: 700;" title="Update Price or Inventory">
+                Edit Stock
+              </button>
             ` : `
               <button onclick="addToCart('${p.id}', 1, this)" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;" title="Add 1 ${p.unit}">
                 + Add
@@ -4512,6 +4610,15 @@ function updateAuthUI() {
     }
   });
 
+  // Update "Marketplace" navbar link to "My Products" if logged in as farmer
+  const marketplaceNavLinks = document.querySelectorAll('a[href="marketplace.html"], a[href="marketplace.html#"]');
+  marketplaceNavLinks.forEach(link => {
+    if (link.classList.contains('nav-link')) {
+      link.textContent = isFarmer ? "My Products" : "Marketplace";
+      link.setAttribute('title', isFarmer ? "View all products you are selling as a farmer" : "Browse marketplace");
+    }
+  });
+
   // Update "Track Orders" navbar link to "Track Buyers' Orders" if logged in as farmer
   const trackNavLinks = document.querySelectorAll('a[href="track-orders.html"], a[href="track-orders.html#"]');
   trackNavLinks.forEach(link => {
@@ -4519,6 +4626,12 @@ function updateAuthUI() {
       link.textContent = isFarmer ? "Track Buyers' Orders" : "Track Orders";
     }
   });
+
+  // Update hero browse marketplace button on index.html if present
+  const heroBrowseBtn = document.querySelector('.hero-actions a[href="marketplace.html"]');
+  if (heroBrowseBtn) {
+    heroBrowseBtn.innerHTML = isFarmer ? 'View My Products &rarr;' : 'Browse Marketplace &rarr;';
+  }
 
   if (!container) return;
 
@@ -4947,6 +5060,9 @@ function editFarmerProductPrice(productId) {
   p.price = newPrice;
   p.quantity = newQty;
   renderFarmerOwnProducts();
+  if (document.getElementById('productsGrid')) {
+    renderProducts();
+  }
   showToast(`Updated "${p.name}" to ₱${newPrice}/${p.unit} with ${newQty} in stock!`);
 }
 

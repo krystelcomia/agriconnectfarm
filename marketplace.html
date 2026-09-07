@@ -60,15 +60,15 @@
   <!-- Marketplace Main Content -->
   <main style="max-width: 1240px; margin: 2rem auto 4rem; padding: 0 1.25rem;">
     <!-- Page Header & Overview -->
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; margin-bottom: 1.75rem; gap: 1rem;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; gap: 1rem;">
       <div>
-        <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
+        <span id="marketplaceSubtitle" style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
           Philippine Agricultural Catalog
         </span>
-        <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-main); margin-top: 0.25rem; letter-spacing: -0.02em;">
+        <h1 id="marketplaceTitle" style="font-size: 2.2rem; font-weight: 800; color: var(--text-main); margin-top: 0.25rem; letter-spacing: -0.02em;">
           Direct Farmgate Product
         </h1>
-        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.25rem;">
+        <p id="marketplaceDescription" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.25rem;">
           Every purchase directly supports our local farmers. 100% transparent pricing and guaranteed freshness.
         </p>
       </div>
@@ -78,6 +78,23 @@
           Loading products...
         </span>
       </div>
+    </div>
+
+    <!-- Farmer Mode Controls (Active for Logged-In Farmer) -->
+    <div id="farmerMarketControls" style="display: none; margin-bottom: 1.5rem; background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem 1.15rem; box-shadow: var(--shadow-sm); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;">Filter:</span>
+        <button id="btnViewMyProducts" onclick="setFarmerMarketView('my_products')" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700;">
+          🌱 My Products (<span id="farmerOwnCount">0</span>)
+        </button>
+        <button id="btnViewAllMarket" onclick="setFarmerMarketView('all')" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600;">
+          🌐 Browse All Marketplace (<span id="farmerTotalCount">0</span>)
+        </button>
+      </div>
+      <a href="sell-harvest.html" class="btn-primary" style="padding: 0.5rem 1.15rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.45rem; text-decoration: none; background: #166534;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>+ Sell New Harvest</span>
+      </a>
     </div>
 
     <!-- Category Filter Chips -->
