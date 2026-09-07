@@ -1105,6 +1105,194 @@ function renderOrderTrackingList() {
   if (!container) return;
 
   const user = window.AgriState.user;
+  const isFarmer = Boolean(user && user.role === 'farmer');
+
+  // Update Page Headers & Search Placeholder based on Role
+  const titleEl = document.getElementById('trackPageTitle');
+  const subtitleEl = document.getElementById('trackPageSubtitle');
+  const tagEl = document.getElementById('trackPageTag');
+  const searchInput = document.getElementById('trackingSearchInput');
+
+  if (isFarmer) {
+    if (titleEl) titleEl.textContent = "Track Buyers' Orders";
+    if (subtitleEl) subtitleEl.textContent = "Monitor real-time fulfillment, cold-chain transit, and remaining arrival times (in days or minutes) before your farm's harvest reaches each buyer.";
+    if (tagEl) tagEl.textContent = "PRODUCER LOGISTICS & BUYER FULFILLMENT";
+    if (searchInput) searchInput.placeholder = "Enter Buyer Order ID (e.g. ORD-8491) or Buyer Name";
+  } else {
+    if (titleEl) titleEl.textContent = "Track Your Farm Orders";
+    if (subtitleEl) subtitleEl.textContent = "Follow your harvest from the morning pick in Benguet or Nueva Ecija through temperature-controlled transit directly to your door.";
+    if (tagEl) tagEl.textContent = "Cold-Chain Real-Time Monitoring";
+    if (searchInput) searchInput.placeholder = "Enter Order ID to track";
+  }
+
+  // -----------------------------------------------------------
+  // FARMER VIEW: Track Buyers' Orders
+  // -----------------------------------------------------------
+  if (isFarmer) {
+    const orders = getFarmerOrders();
+
+    if (orders.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 4rem 1.5rem; background: #ffffff; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+          <div style="width: 64px; height: 64px; border-radius: 9999px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+              <path d="m9 14 2 2 4-4"/>
+            </svg>
+          </div>
+          <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.4rem;">
+            No Buyer Orders Received Yet
+          </h3>
+          <p style="font-size: 0.925rem; color: var(--text-secondary); max-width: 480px; margin: 0 auto 1.75rem; line-height: 1.6;">
+            When buyers order fresh harvests from your farm, their live cold-chain transit and remaining delivery times will appear here!
+          </p>
+          <a href="sell-harvest.html" class="btn-primary" style="padding: 0.7rem 1.5rem; text-decoration: none; font-size: 0.875rem;">
+            Manage Harvest Listings &rarr;
+          </a>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = orders.map(order => {
+      const isDelivered = order.status_code === 'delivered' || (order.status || '').toLowerCase().includes('delivered');
+      const isInTransit = order.status_code === 'in_transit' || (order.status || '').toLowerCase().includes('transit');
+      const step = isDelivered ? 4 : (isInTransit ? 3 : 2);
+
+      // Remaining time display formatting
+      let remainingDisplay = order.remaining_time;
+      if (!remainingDisplay) {
+        if (isDelivered) remainingDisplay = "Delivered to Buyer (0 mins remaining)";
+        else if (order.id === 'ORD-8491') remainingDisplay = "45 minutes remaining";
+        else if (order.id === 'ORD-8495') remainingDisplay = "2 hours 15 minutes remaining";
+        else remainingDisplay = "1 day remaining (Tomorrow)";
+      }
+
+      return `
+        <div id="order-${order.id}" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.6rem; margin-bottom: 1.75rem; box-shadow: var(--shadow-sm); transition: border-color 0.3s ease, box-shadow 0.3s ease;">
+          <!-- Top Row: Order ID, Timestamp, and Live Status Badge -->
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.85rem; margin-bottom: 1rem; gap: 0.5rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.7rem; color: #15803d; background: #dcfce7; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 9999px; text-transform: uppercase;">BUYER ORDER</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Placed: ${order.placed_at || 'Recently'}</span>
+              </div>
+              <h4 style="font-size: 1.25rem; font-weight: 800; color: var(--primary-deep); font-family: monospace; margin: 0.25rem 0 0;">${order.id}</h4>
+            </div>
+
+            <div style="text-align: right;">
+              <span style="font-size: 0.725rem; color: var(--text-muted); font-weight: 600;">Status:</span>
+              <div style="font-weight: 800; font-size: 0.95rem; color: ${isDelivered ? '#15803d' : isInTransit ? '#b45309' : '#2563eb'};">
+                ${isDelivered ? '✓ Delivered to Buyer' : isInTransit ? '🚚 In Cold-Chain Transit' : '⏳ Harvesting & Packing'}
+              </div>
+            </div>
+          </div>
+
+          <!-- PROMINENT REMAINING TIME CALLOUT (In days or minutes) -->
+          <div style="background: ${isDelivered ? '#f0fdf4' : '#fefce8'}; border: 1.5px solid ${isDelivered ? '#bbf7d0' : '#fde047'}; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.85rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div style="width: 44px; height: 44px; border-radius: 50%; background: ${isDelivered ? '#15803d' : '#ca8a04'}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 2px 8px rgba(0,0,0,0.12); flex-shrink: 0;">
+                ${isDelivered ? '✓' : '⏱️'}
+              </div>
+              <div>
+                <div style="font-size: 0.725rem; color: ${isDelivered ? '#166534' : '#854d0e'}; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
+                  ${isDelivered ? 'Fulfillment Reached Buyer' : 'Remaining Time Before Reaching Buyer'}
+                </div>
+                <div style="font-size: 1.35rem; font-weight: 800; color: ${isDelivered ? '#15803d' : '#a16207'}; line-height: 1.2; margin-top: 0.1rem;">
+                  ${remainingDisplay}
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align: right;">
+              <span style="font-size: 0.725rem; color: var(--text-muted); font-weight: 600;">Expected Arrival at Buyer:</span>
+              <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); font-family: monospace;">
+                ${order.eta || 'Today, 11:15 AM'}
+              </div>
+            </div>
+          </div>
+
+          <!-- 4-Step Cold-Chain Stepper -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 1.25rem 0 1.5rem; text-align: center;">
+            <div>
+              <div style="width: 32px; height: 32px; border-radius: 9999px; background: #15803d; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; margin: 0 auto 0.35rem;">1</div>
+              <span style="font-size: 0.75rem; font-weight: 700; color: #15803d;">Confirmed</span>
+            </div>
+            <div>
+              <div style="width: 32px; height: 32px; border-radius: 9999px; background: ${step >= 2 ? '#15803d' : 'var(--bg-subtle)'}; color: ${step >= 2 ? '#ffffff' : 'var(--text-light)'}; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; margin: 0 auto 0.35rem;">2</div>
+              <span style="font-size: 0.75rem; font-weight: 700; color: ${step >= 2 ? '#15803d' : 'var(--text-muted)'};">Harvested</span>
+            </div>
+            <div>
+              <div style="width: 32px; height: 32px; border-radius: 9999px; background: ${step >= 3 ? '#15803d' : 'var(--bg-subtle)'}; color: ${step >= 3 ? '#ffffff' : 'var(--text-light)'}; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; margin: 0 auto 0.35rem;">3</div>
+              <span style="font-size: 0.75rem; font-weight: 700; color: ${step >= 3 ? '#15803d' : 'var(--text-muted)'};">In Transit</span>
+            </div>
+            <div>
+              <div style="width: 32px; height: 32px; border-radius: 9999px; background: ${step >= 4 ? '#15803d' : 'var(--bg-subtle)'}; color: ${step >= 4 ? '#ffffff' : 'var(--text-light)'}; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; margin: 0 auto 0.35rem;">4</div>
+              <span style="font-size: 0.75rem; font-weight: 700; color: ${step >= 4 ? '#15803d' : 'var(--text-muted)'};">Reached Buyer</span>
+            </div>
+          </div>
+
+          <!-- Buyer Customer & Transit Information -->
+          <div style="background: var(--bg-page); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem 1.15rem; margin-bottom: 1rem; font-size: 0.85rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;">
+            <div>
+              <div style="font-size: 0.725rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Buyer Customer</div>
+              <div style="font-weight: 800; color: var(--text-main); margin-top: 0.15rem;">${order.customer_name}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.1rem;">📞 ${order.customer_phone}</div>
+            </div>
+            <div>
+              <div style="font-size: 0.725rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Buyer Shipping Address</div>
+              <div style="font-weight: 700; color: var(--text-main); margin-top: 0.15rem;">📍 ${order.delivery_address}</div>
+            </div>
+            <div>
+              <div style="font-size: 0.725rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Logistics Routing</div>
+              <div style="font-weight: 700; color: var(--text-main); margin-top: 0.15rem;">🚚 ${order.delivery_method || 'AgriConnect Cold-Chain Van'}</div>
+              <div style="font-size: 0.75rem; color: #166534; font-weight: 700; margin-top: 0.1rem;">❄️ ${order.temp_c || '4.2°C Temperature Verified'}</div>
+            </div>
+          </div>
+
+          <!-- Items Ordered & Farmgate Payout -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 0.85rem;">
+            <div>
+              <div style="font-size: 0.825rem; color: var(--text-main); font-weight: 600;">
+                ${(order.items || []).map(i => `<strong>${i.quantity} ${i.unit}</strong> × ${i.name}`).join(' • ')}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                Direct Farmgate Payout: Guaranteed 100% to farmer with zero middleman deductions.
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="text-align: right;">
+                <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Direct Farm Payout</div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary-deep);">₱${(order.total_amount || 0).toLocaleString()}</div>
+              </div>
+
+              <div style="display: flex; gap: 0.4rem;">
+                ${!isDelivered ? `
+                  <button onclick="updateFarmerOrderStatus('${order.id}', 'delivered')" class="btn-primary" style="font-size: 0.775rem; padding: 0.45rem 0.85rem; font-weight: 700;">
+                    ✓ Mark Delivered to Buyer
+                  </button>
+                ` : `
+                  <button onclick="updateFarmerOrderStatus('${order.id}', 'in_transit')" class="btn-secondary" style="font-size: 0.75rem; padding: 0.4rem 0.65rem;" title="Re-open transit status">
+                    ↺ In Transit
+                  </button>
+                `}
+                <button onclick="openFarmerOrderDetailsModal('${order.id}')" class="btn-secondary" style="font-size: 0.775rem; padding: 0.45rem 0.75rem;">
+                  🖨️ Slip / Invoice
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    return;
+  }
+
+  // -----------------------------------------------------------
+  // BUYER / GUEST VIEW: Track Your Farm Orders
+  // -----------------------------------------------------------
   const orders = window.AgriState.orders || [];
 
   if (orders.length === 0) {
@@ -1207,6 +1395,31 @@ function handleTrackSearch() {
     showToast('Please enter an Order ID to search.');
     return;
   }
+
+  const user = window.AgriState.user;
+  const isFarmer = Boolean(user && user.role === 'farmer');
+
+  if (isFarmer) {
+    const orders = getFarmerOrders();
+    const order = orders.find(o => o.id.toUpperCase().includes(query) || (o.customer_name && o.customer_name.toUpperCase().includes(query)));
+    if (order) {
+      showToast(`Found: ${order.id} (${order.customer_name}) • ${order.remaining_time || order.status}`);
+      const el = document.getElementById(`order-${order.id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.style.borderColor = '#15803d';
+        el.style.boxShadow = '0 0 0 4px rgba(21, 128, 61, 0.35)';
+        setTimeout(() => {
+          el.style.borderColor = 'var(--border-subtle)';
+          el.style.boxShadow = 'var(--shadow-sm)';
+        }, 3500);
+      }
+    } else {
+      showToast(`No buyer order found matching "${query}".`);
+    }
+    return;
+  }
+
   const order = window.AgriState.orders.find(o => o.id.toUpperCase() === query);
   if (order) {
     showToast(`Order found: ${order.id} is currently ${order.status}`);
@@ -4286,6 +4499,14 @@ function updateAuthUI() {
     }
   });
 
+  // Update "Track Orders" navbar link to "Track Buyers' Orders" if logged in as farmer
+  const trackNavLinks = document.querySelectorAll('a[href="track-orders.html"], a[href="track-orders.html#"]');
+  trackNavLinks.forEach(link => {
+    if (link.classList.contains('nav-link')) {
+      link.textContent = isFarmer ? "Track Buyers' Orders" : "Track Orders";
+    }
+  });
+
   if (!container) return;
 
   if (user && user.full_name) {
@@ -4334,8 +4555,11 @@ const DEFAULT_FARMER_ORDERS = [
       { name: "Highland Cabbage", quantity: 15, unit: "kg", price: 70 }
     ],
     total_amount: 2000,
-    status: "Pending Harvest",
-    status_code: "pending",
+    status: "In Transit",
+    status_code: "in_transit",
+    remaining_time: "45 minutes",
+    eta: "Today, 11:15 AM",
+    temp_c: "3.8°C Temperature Verified",
     placed_at: "Today, 06:30 AM",
     delivery_method: "AgriConnect Direct Refrigerated Van"
   },
@@ -4350,8 +4574,29 @@ const DEFAULT_FARMER_ORDERS = [
     total_amount: 2375,
     status: "Pending Harvest",
     status_code: "pending",
+    remaining_time: "3 hours 20 minutes",
+    eta: "Today, 02:30 PM",
+    temp_c: "4.1°C Cold Store Verified",
     placed_at: "Today, 08:15 AM",
     delivery_method: "Direct Farmgate Bulk Pickup"
+  },
+  {
+    id: "ORD-8512",
+    customer_name: "Sari-Sari Community Mart",
+    customer_phone: "0915-992-1088",
+    delivery_address: "Marikina City, Metro Manila",
+    items: [
+      { name: "Benguet Strawberries", quantity: 12, unit: "punnets", price: 180 },
+      { name: "Highland Cabbage", quantity: 30, unit: "kg", price: 70 }
+    ],
+    total_amount: 4260,
+    status: "Scheduled Dispatch",
+    status_code: "pending",
+    remaining_time: "1 day",
+    eta: "Tomorrow, 09:30 AM",
+    temp_c: "3.5°C Chilled Prep",
+    placed_at: "Today, 09:40 AM",
+    delivery_method: "AgriConnect Next-Day Express"
   },
   {
     id: "ORD-8320",
@@ -4364,6 +4609,9 @@ const DEFAULT_FARMER_ORDERS = [
     total_amount: 1400,
     status: "Delivered",
     status_code: "delivered",
+    remaining_time: "0 mins (Delivered)",
+    eta: "Delivered Yesterday, 02:40 PM",
+    temp_c: "Safe Cold-Chain Verified",
     placed_at: "Yesterday, 02:40 PM",
     delivery_method: "AgriConnect Express"
   },
@@ -4379,6 +4627,9 @@ const DEFAULT_FARMER_ORDERS = [
     total_amount: 7550,
     status: "Delivered",
     status_code: "delivered",
+    remaining_time: "0 mins (Delivered)",
+    eta: "Delivered Sep 3, 2026",
+    temp_c: "Safe Cold-Chain Verified",
     placed_at: "Sep 3, 2026",
     delivery_method: "Bulk Cold Logistics"
   },
@@ -4393,6 +4644,9 @@ const DEFAULT_FARMER_ORDERS = [
     total_amount: 760,
     status: "Delivered",
     status_code: "delivered",
+    remaining_time: "0 mins (Delivered)",
+    eta: "Delivered Sep 2, 2026",
+    temp_c: "Safe Cold-Chain Verified",
     placed_at: "Sep 2, 2026",
     delivery_method: "Standard Farm Dispatch"
   }
@@ -4400,15 +4654,49 @@ const DEFAULT_FARMER_ORDERS = [
 
 function getFarmerOrders() {
   const saved = localStorage.getItem('agri_farmer_orders');
+  let orders = DEFAULT_FARMER_ORDERS;
   if (saved) {
     try {
-      return JSON.parse(saved);
+      orders = JSON.parse(saved);
     } catch (e) {
       console.warn('Failed parsing farmer orders', e);
     }
   }
-  localStorage.setItem('agri_farmer_orders', JSON.stringify(DEFAULT_FARMER_ORDERS));
-  return DEFAULT_FARMER_ORDERS;
+
+  // Ensure default remaining_time and eta exist on all orders
+  let modified = false;
+  orders = orders.map(o => {
+    if (!o.remaining_time || !o.eta) {
+      modified = true;
+      if (o.status_code === 'delivered') {
+        o.remaining_time = '0 mins (Delivered)';
+        o.eta = o.eta || 'Delivered to Buyer';
+        o.temp_c = o.temp_c || 'Safe Cold-Chain Verified';
+      } else if (o.id === 'ORD-8491') {
+        o.remaining_time = '45 minutes';
+        o.eta = 'Today, 11:15 AM';
+        o.temp_c = '3.8°C Temperature Verified';
+      } else if (o.id === 'ORD-8495') {
+        o.remaining_time = '3 hours 20 minutes';
+        o.eta = 'Today, 02:30 PM';
+        o.temp_c = '4.1°C Cold Store Verified';
+      } else if (o.id === 'ORD-8512') {
+        o.remaining_time = '1 day';
+        o.eta = 'Tomorrow, 09:30 AM';
+        o.temp_c = '3.5°C Chilled Prep';
+      } else {
+        o.remaining_time = '1 day';
+        o.eta = 'Tomorrow, 10:00 AM';
+        o.temp_c = '4.0°C Temperature Verified';
+      }
+    }
+    return o;
+  });
+
+  if (modified || !saved) {
+    localStorage.setItem('agri_farmer_orders', JSON.stringify(orders));
+  }
+  return orders;
 }
 
 function saveFarmerOrders(orders) {
@@ -4524,11 +4812,23 @@ function updateFarmerOrderStatus(orderId, newStatusCode) {
   if (!order) return;
 
   order.status_code = newStatusCode;
-  order.status = newStatusCode === 'delivered' ? 'Delivered' : 'Pending Harvest';
+  if (newStatusCode === 'delivered') {
+    order.status = 'Delivered to Buyer';
+    order.remaining_time = '0 mins (Delivered)';
+  } else if (newStatusCode === 'in_transit') {
+    order.status = 'In Transit';
+    order.remaining_time = (order.remaining_time && !order.remaining_time.includes('0 mins')) ? order.remaining_time : '45 minutes';
+  } else {
+    order.status = 'Pending Harvest';
+    order.remaining_time = (order.remaining_time && !order.remaining_time.includes('0 mins')) ? order.remaining_time : '1 day';
+  }
   saveFarmerOrders(orders);
   renderFarmerOrders();
   if (typeof renderFarmerOrdersDrawer === 'function') {
     renderFarmerOrdersDrawer(currentFarmerDrawerFilter);
+  }
+  if (typeof renderOrderTrackingList === 'function' && document.getElementById('ordersListContainer')) {
+    renderOrderTrackingList();
   }
   renderCartPreview();
   updateCartBadge(true);
