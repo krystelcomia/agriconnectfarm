@@ -2680,17 +2680,29 @@ function initProfilePage() {
     compliance: 'Grade A+'
   };
 
+  const isFarmer = user.role === 'farmer';
+
   // Populate Header info
   const nameEl = document.getElementById('profileName') || document.getElementById('profileModalName');
   const farmEl = document.getElementById('profileFarm') || document.getElementById('profileModalFarm');
   const avatarEl = document.getElementById('profileAvatar') || document.getElementById('profileModalAvatar');
 
-  if (nameEl) nameEl.textContent = user.full_name || 'Mang Ramon Dela Cruz';
-  if (farmEl) farmEl.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.cooperative || 'Benguet Farmers Multi-Purpose Cooperative (BFMPC)'}`;
+  if (nameEl) nameEl.textContent = user.full_name || (isFarmer ? 'Mang Ramon Dela Cruz' : 'Juan Dela Cruz');
+  if (farmEl) {
+    farmEl.textContent = isFarmer
+      ? `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.cooperative || 'Benguet Farmers Multi-Purpose Cooperative (BFMPC)'}`
+      : `${user.province || 'Metro Manila'} Delivery Hub • Registered AgriConnect Direct Farmgate Buyer`;
+  }
   if (avatarEl && user.avatar) avatarEl.src = user.avatar;
 
+  // Header badges & role indicator on profile page
+  const idBadge = document.getElementById('profileModalIdBadge');
+  if (idBadge) {
+    idBadge.textContent = isFarmer ? 'ID: PH-AGRI-8842' : 'ID: BUYER-NCR-4820';
+  }
+
   // Populate View details
-  const fields = [
+  const fields = isFarmer ? [
     ['profileInfoFullName', user.full_name || 'Mang Ramon Dela Cruz'],
     ['profileInfoPhone', user.phone || '+63 917 842 1092'],
     ['profileInfoEmail', user.email || 'ramon.delacruz@agriconnect.ph'],
@@ -2707,6 +2719,23 @@ function initProfilePage() {
     ['profileInfoRating', user.rating || '★ 4.9 / 5.0'],
     ['profileInfoFulfillment', user.fulfillment || '100% On-Time'],
     ['profileInfoCompliance', user.compliance || 'Grade A+']
+  ] : [
+    ['profileInfoFullName', user.full_name || 'Juan Dela Cruz'],
+    ['profileInfoPhone', user.phone || '0917-889-2104'],
+    ['profileInfoEmail', user.email || 'juan.delacruz@agriconnect.ph'],
+    ['profileInfoAltPhone', user.alt_phone || '0920-551-8930'],
+    ['profileInfoCoop', 'AgriConnect Consumer Direct Sourcing Program'],
+    ['profileInfoExperience', 'Consumer Account • 2+ Years Farmgate Buyer'],
+    ['profileInfoTier', 'Verified Direct Farmgate Buyer'],
+    ['profileInfoAddress', user.address || 'Unit 802, Pioneer Woodlands, EDSA cor. Pioneer St., Mandaluyong City, Metro Manila'],
+    ['profileInfoCoords', '14.5732° N, 121.0480° E (Delivery Coordinates)'],
+    ['profileInfoArea', 'Residential Delivery Zone (Cold-Chain Accessible)'],
+    ['profileInfoElevation', '30 meters above sea level (MASL)'],
+    ['profileInfoHub', 'Metro Manila Direct Logistics Depot, Mandaluyong'],
+    ['profileInfoSpecialization', 'Highland Crisp Vegetables, Dinorado Organic Rice, Fresh Fruits'],
+    ['profileInfoRating', '★ 5.0 / 5.0 (Prompt Order Handover)'],
+    ['profileInfoFulfillment', '4 Orders Completed'],
+    ['profileInfoCompliance', 'Verified Buyer (Level 2)']
   ];
 
   fields.forEach(([id, val]) => {
@@ -5112,6 +5141,10 @@ function getBuyerOrders() {
     }
   }
 
+  if (!orders || orders.length === 0) {
+    orders = DEFAULT_BUYER_ORDERS;
+  }
+
   // Also include any new session orders from AgriState.orders if not yet merged
   if (window.AgriState && Array.isArray(window.AgriState.orders)) {
     window.AgriState.orders.forEach(stateOrder => {
@@ -5147,28 +5180,59 @@ let currentBuyerOrderFilter = 'all';
 let currentDashboardRole = 'buyer';
 
 function initDashboard() {
-  currentDashboardRole = 'farmer';
-  const portalHeaderTitle = document.getElementById('portalHeaderTitle');
-  const portalRoleBadge = document.getElementById('portalRoleBadge');
-  const portalSubIndicator = document.getElementById('portalSubIndicator');
-  const farmerView = document.getElementById('farmerDashboardView');
-  const buyerView = document.getElementById('buyerDashboardView');
-  if (farmerView) farmerView.style.display = 'block';
-  if (buyerView) buyerView.style.display = 'none';
-  if (portalHeaderTitle) portalHeaderTitle.textContent = 'Farmer Producer Dashboard';
-  if (portalRoleBadge) {
-    portalRoleBadge.textContent = 'Producer Experience';
-    portalRoleBadge.style.background = '#dcfce7';
-    portalRoleBadge.style.color = '#15803d';
-  }
-  if (portalSubIndicator) portalSubIndicator.textContent = 'Harvest Listings, Sales Revenue & Orders Fulfillment';
-
-  document.title = 'Farmer Producer Dashboard | AgriConnect Philippine Farm-to-Table Platform';
-  initFarmerDashboard();
+  const user = window.AgriState.user;
+  const isFarmer = Boolean(user && user.role === 'farmer');
+  currentDashboardRole = isFarmer ? 'farmer' : 'buyer';
+  switchDashboardRole(currentDashboardRole);
 }
 
 function switchDashboardRole(role) {
-  initDashboard();
+  currentDashboardRole = role;
+  const portalHeaderTitle = document.getElementById('portalHeaderTitle');
+  const portalRoleBadge = document.getElementById('portalRoleBadge');
+  const portalSubIndicator = document.getElementById('portalSubIndicator');
+  const portalQuickStatus = document.getElementById('portalQuickStatus');
+  const portalQuickStatusText = document.getElementById('portalQuickStatusText');
+  const farmerView = document.getElementById('farmerDashboardView');
+  const buyerView = document.getElementById('buyerDashboardView');
+
+  if (role === 'farmer') {
+    if (farmerView) farmerView.style.display = 'block';
+    if (buyerView) buyerView.style.display = 'none';
+    if (portalHeaderTitle) portalHeaderTitle.textContent = 'Farmer Producer Dashboard';
+    if (portalRoleBadge) {
+      portalRoleBadge.textContent = 'Producer Experience';
+      portalRoleBadge.style.background = '#dcfce7';
+      portalRoleBadge.style.color = '#15803d';
+    }
+    if (portalSubIndicator) portalSubIndicator.textContent = 'Harvest Listings, Sales Revenue & Orders Fulfillment';
+    if (portalQuickStatusText) portalQuickStatusText.textContent = 'Active Producer';
+    if (portalQuickStatus) {
+      portalQuickStatus.style.background = '#dcfce7';
+      portalQuickStatus.style.color = '#15803d';
+      portalQuickStatus.style.borderColor = '#bbf7d0';
+    }
+    document.title = 'Farmer Producer Dashboard | AgriConnect Philippine Farm-to-Table Platform';
+    initFarmerDashboard();
+  } else {
+    if (farmerView) farmerView.style.display = 'none';
+    if (buyerView) buyerView.style.display = 'block';
+    if (portalHeaderTitle) portalHeaderTitle.textContent = 'Buyer Dashboard';
+    if (portalRoleBadge) {
+      portalRoleBadge.textContent = 'Buyer Experience';
+      portalRoleBadge.style.background = 'var(--primary-light)';
+      portalRoleBadge.style.color = 'var(--primary)';
+    }
+    if (portalSubIndicator) portalSubIndicator.textContent = 'Direct Farmgate Purchases, Cold-Chain Transit & Orders Fulfillment';
+    if (portalQuickStatusText) portalQuickStatusText.textContent = 'Active Buyer';
+    if (portalQuickStatus) {
+      portalQuickStatus.style.background = '#dcfce7';
+      portalQuickStatus.style.color = '#15803d';
+      portalQuickStatus.style.borderColor = '#bbf7d0';
+    }
+    document.title = 'Buyer Dashboard | AgriConnect Philippine Farm-to-Table Platform';
+    renderBuyerDashboard();
+  }
 }
 
 function renderBuyerDashboard() {
@@ -5179,14 +5243,14 @@ function renderBuyerDashboard() {
 
   if (user && user.full_name) {
     if (greetingEl) greetingEl.textContent = `Kumusta, ${user.full_name}!`;
-    if (locationEl) locationEl.textContent = `${user.province || 'Metro Manila'} Direct Delivery Hub • Supporter of Benguet & Nueva Ecija Smallholders`;
+    if (locationEl) locationEl.textContent = `${user.province || 'Metro Manila'} Delivery Hub • Direct Sourcing from Benguet & Nueva Ecija`;
     if (avatarBadge) {
       const initials = user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
       avatarBadge.textContent = initials || 'JD';
     }
   } else {
     if (greetingEl) greetingEl.textContent = 'Kumusta, Juan Dela Cruz!';
-    if (locationEl) locationEl.textContent = 'Metro Manila Direct Delivery Hub • Supporter of Benguet & Nueva Ecija Smallholders';
+    if (locationEl) locationEl.textContent = 'Metro Manila Delivery Hub • Direct Sourcing from Benguet & Nueva Ecija';
     if (avatarBadge) avatarBadge.textContent = 'JD';
   }
 
