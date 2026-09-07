@@ -1730,64 +1730,82 @@ function openProductModal(productId) {
   const p = window.AgriState.products.find(item => item.id === productId);
   if (!p) return;
 
-  const modal = document.getElementById('productModal');
-  const modalBody = document.getElementById('productModalBody');
-  if (!modal || !modalBody) return;
+  let modal = document.getElementById('productModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'productModal';
+    modal.className = 'modal-overlay';
+    modal.onclick = function(e) { if (e.target === modal) closeProductModal(); };
+    modal.innerHTML = '<div class="modal-content" id="productModalContent"></div>';
+    document.body.appendChild(modal);
+  }
+
+  const modalBody = document.getElementById('productModalContent') || document.getElementById('productModalBody') || modal.querySelector('.modal-content');
+  if (!modalBody) return;
+
+  const isOwn = isUserOwnProduct(p);
 
   modalBody.innerHTML = `
-    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
-      <div style="display: flex; flex-direction: column; gap: 1rem;">
-        <div style="border-radius: var(--radius-md); overflow: hidden; background: #f1f5f9; position: relative;">
-          <img src="${p.image_url}" alt="${p.name}" style="width: 100%; height: 280px; object-fit: cover;">
-          <span class="category-badge" style="top: 12px; left: 12px;">${p.category_name}</span>
+    <div style="position: relative; padding: 1.5rem;">
+      <button type="button" onclick="closeProductModal()" style="position: absolute; top: 1rem; right: 1rem; width: 34px; height: 34px; border-radius: 50%; background: #f1f5f9; border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700; color: var(--text-muted); cursor: pointer; z-index: 20; transition: all 0.15s ease;" title="Close Details" aria-label="Close dialog">&times;</button>
+
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div style="border-radius: var(--radius-md); overflow: hidden; background: #f1f5f9; position: relative; max-height: 280px;">
+          <img src="${p.image_url}" alt="${p.name}" style="width: 100%; height: 260px; object-fit: cover;">
+          <span class="category-badge" style="top: 12px; left: 12px; position: absolute; background: rgba(15, 23, 42, 0.85); color: #ffffff; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">${p.category_name}</span>
+          <span style="position: absolute; top: 12px; right: 48px; background: #22c55e; color: #ffffff; font-size: 0.7rem; font-weight: 800; padding: 0.25rem 0.6rem; border-radius: 9999px; text-transform: uppercase;">Direct Farmgate</span>
         </div>
 
         <div>
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">
-              Direct Farm Harvest
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+            <span style="font-size: 0.775rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.04em;">
+              Direct Producer Harvest
             </span>
-            <div style="font-size: 0.825rem; font-weight: 600; color: #b45309; display: flex; align-items: center; gap: 0.25rem;">
-              ${ICONS.star} ${p.rating} (${p.reviews_count} reviews)
+            <div style="font-size: 0.825rem; font-weight: 700; color: #b45309; display: flex; align-items: center; gap: 0.25rem;">
+              ★ ${p.rating || '5.0'} (${p.reviews_count || 1} reviews)
             </div>
           </div>
 
-          <h2 style="font-size: 1.45rem; font-weight: 800; margin-top: 0.25rem; color: var(--text-main); line-height: 1.25;">
+          <h2 style="font-size: 1.45rem; font-weight: 800; margin: 0 0 0.5rem; color: var(--text-main); line-height: 1.25;">
             ${p.name}
           </h2>
 
-          <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 0.75rem; margin: 0.85rem 0; display: flex; align-items: center; justify-content: space-between;">
+          <div style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
             <div>
-              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">${p.farmer_name}</div>
-              <div style="font-size: 0.775rem; color: var(--text-muted);">${p.city}, ${p.province}</div>
+              <div style="font-size: 0.875rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 0.35rem;">
+                🌱 ${p.farmer_name}
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.1rem;">${p.city || 'La Trinidad'}, ${p.province || 'Benguet'}</div>
             </div>
-            <a href="farmers.html#${p.farmer_id || ''}" style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-decoration: none;">View Farm Profile →</a>
+            <a href="farmers.html" style="font-size: 0.775rem; color: var(--primary); font-weight: 700; text-decoration: none;">View Farm Profile &rarr;</a>
           </div>
 
-          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">
-            ${p.description}
+          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 1.25rem;">
+            ${p.description || 'Fresh seasonal harvest direct from our farm fields.'}
           </p>
 
-          <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem;">
-            <span class="price-tag" style="font-size: 1.75rem;">
-              ₱${p.price.toLocaleString()}
-            </span>
-            <span class="unit-tag" style="font-size: 0.9rem;">
-              per ${p.unit}
-            </span>
-            <span style="margin-left: auto; font-size: 0.8rem; font-weight: 600; color: var(--primary);">
-              ${p.quantity} ${p.unit} available
-            </span>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.25rem; border-top: 1px solid var(--border-subtle); padding-top: 0.85rem;">
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600;">Direct Farmgate Price</span>
+              <div style="display: flex; align-items: baseline; gap: 0.35rem;">
+                <span style="font-size: 1.65rem; font-weight: 800; color: #15803d;">₱${p.price.toLocaleString()}</span>
+                <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">/ ${p.unit}</span>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; font-weight: 600;">Available Stock</span>
+              <span style="font-size: 0.95rem; font-weight: 800; color: var(--text-main);">${p.quantity} ${p.unit} in stock</span>
+            </div>
           </div>
 
-          ${isUserOwnProduct(p) ? `
+          ${isOwn ? `
             <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: var(--radius-sm); padding: 0.85rem 1rem; width: 100%; display: flex; flex-direction: column; gap: 0.5rem;">
               <div style="font-size: 0.825rem; color: #166534; font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 Your Harvest Listing (Farmer Producer)
               </div>
               <p style="font-size: 0.775rem; color: #15803d; margin: 0; line-height: 1.4;">
-                As the registered producer of this crop, you cannot purchase your own listings on the public marketplace. You can oversee and edit inventory from your dashboard.
+                As the registered producer of this product, you cannot purchase your own listings on the public marketplace. You can manage inventory from your dashboard.
               </p>
               <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
                 <a href="dashboard.html" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; text-decoration: none;">
@@ -1797,14 +1815,14 @@ function openProductModal(productId) {
             </div>
           ` : `
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <div style="display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden;">
-                <button onclick="adjustModalQty(-1)" style="padding: 0.5rem 0.85rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer;">-</button>
-                <input id="modalQtyInput" type="number" value="1" min="1" max="${p.quantity}" style="width: 45px; text-align: center; border: none; font-weight: 700; font-size: 0.9rem;" readonly>
-                <button onclick="adjustModalQty(1, ${p.quantity})" style="padding: 0.5rem 0.85rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer;">+</button>
+              <div style="display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden; background: #ffffff;">
+                <button type="button" onclick="adjustModalQty(-1)" style="padding: 0.55rem 0.9rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer; font-size: 1rem;">-</button>
+                <input id="modalQtyInput" type="number" value="1" min="1" max="${p.quantity}" style="width: 50px; text-align: center; border: none; font-weight: 700; font-size: 0.95rem;" readonly>
+                <button type="button" onclick="adjustModalQty(1, ${p.quantity})" style="padding: 0.55rem 0.9rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer; font-size: 1rem;">+</button>
               </div>
 
-              <button onclick="addToCartFromModal('${p.id}')" class="btn-primary" style="flex: 1; padding: 0.65rem 1.25rem;">
-                Add to Basket
+              <button type="button" onclick="addToCartFromModal('${p.id}')" class="btn-primary" style="flex: 1; padding: 0.75rem 1.25rem; font-size: 0.9rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;">
+                + Add to Basket
               </button>
             </div>
           `}
@@ -1833,8 +1851,11 @@ function adjustModalQty(delta, max = 99) {
 function addToCartFromModal(productId) {
   const input = document.getElementById('modalQtyInput');
   const qty = input ? parseInt(input.value) || 1 : 1;
+  const user = window.AgriState.user;
   addToCart(productId, qty);
-  closeProductModal();
+  if (user) {
+    closeProductModal();
+  }
 }
 
 // -------------------------------------------------------------
