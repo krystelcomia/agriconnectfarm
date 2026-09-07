@@ -1819,34 +1819,751 @@ function closeSellHarvestModal() {
 }
 
 // -------------------------------------------------------------
-// 8B. FARMER PROFILE MODAL ("MY PROFILE")
+// 8B. FARMER PROFILE MODAL ("MY PROFILE") - VIEW, EDIT, REQUIREMENTS & EWALLETS
 // -------------------------------------------------------------
+
+// Active target wallet ID for specific QR upload
+let activeTargetWalletQrId = null;
+let stagedNewWalletQr = null;
+
+// Default requirements checklist (pristine unfilled layout with set of distinct requirements)
+const DEFAULT_FARMER_REQUIREMENTS = [
+  {
+    id: 'rsbsa',
+    title: 'DA-RSBSA Registration Certificate',
+    category: 'Department of Agriculture Accreditation',
+    description: 'Official DA-issued RSBSA reference number certifying registered farmer status in the national registry.',
+    formats: 'PDF, JPG, PNG • Max 10MB',
+    status: 'pending',
+    file_name: null,
+    uploaded_at: null
+  },
+  {
+    id: 'valid_id',
+    title: 'Government-Issued Valid Identification',
+    category: 'Identity Verification',
+    description: "Primary government ID (PhilSys National ID, UMID, PRC, or Driver's License) with clear photo and signature.",
+    formats: 'PDF, JPG, PNG • Max 10MB',
+    status: 'pending',
+    file_name: null,
+    uploaded_at: null
+  },
+  {
+    id: 'barangay_cert',
+    title: 'Barangay Farm & Land Occupancy Certification',
+    category: 'Land Tenancy & Farm Proof',
+    description: 'Certification from Barangay Captain or Agrarian Reform validating cultivation parcel and tenancy rights.',
+    formats: 'PDF, JPG, PNG • Max 10MB',
+    status: 'pending',
+    file_name: null,
+    uploaded_at: null
+  },
+  {
+    id: 'gap_cert',
+    title: 'Philippine Good Agricultural Practices (PhilGAP) Clearance',
+    category: 'Food Safety & Harvest Standards',
+    description: 'Bureau of Plant Industry (BPI) food safety compliance and pesticide residue testing protocol.',
+    formats: 'PDF, JPG, PNG • Max 10MB',
+    status: 'pending',
+    file_name: null,
+    uploaded_at: null
+  },
+  {
+    id: 'water_test',
+    title: 'Agricultural Soil & Irrigation Water Potability Clearance',
+    category: 'Laboratory Environmental Testing',
+    description: 'Authorized laboratory analysis certification verifying heavy metal safety and irrigation water potability.',
+    formats: 'PDF, JPG, PNG • Max 10MB',
+    status: 'pending',
+    file_name: null,
+    uploaded_at: null
+  }
+];
+
+function getStoredFarmerRequirements() {
+  const stored = localStorage.getItem('agri_farmer_requirements');
+  if (stored) {
+    try { return JSON.parse(stored); } catch (e) {}
+  }
+  return DEFAULT_FARMER_REQUIREMENTS;
+}
+
+function saveFarmerRequirements(reqs) {
+  localStorage.setItem('agri_farmer_requirements', JSON.stringify(reqs));
+}
+
+// Generate realistic SVG QR code for direct payments
+function generateRealisticQrSvg(label, number) {
+  const cleanNum = (number || '09178421092').replace(/[^0-9]/g, '');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+    <rect width="200" height="200" fill="#ffffff"/>
+    <g fill="#0f172a">
+      <!-- Top-left Finder -->
+      <rect x="15" y="15" width="45" height="45" fill="#0f172a" rx="4"/>
+      <rect x="21" y="21" width="33" height="33" fill="#ffffff" rx="2"/>
+      <rect x="27" y="27" width="21" height="21" fill="#0f172a" rx="2"/>
+      <!-- Top-right Finder -->
+      <rect x="140" y="15" width="45" height="45" fill="#0f172a" rx="4"/>
+      <rect x="146" y="21" width="33" height="33" fill="#ffffff" rx="2"/>
+      <rect x="152" y="27" width="21" height="21" fill="#0f172a" rx="2"/>
+      <!-- Bottom-left Finder -->
+      <rect x="15" y="140" width="45" height="45" fill="#0f172a" rx="4"/>
+      <rect x="21" y="146" width="33" height="33" fill="#ffffff" rx="2"/>
+      <rect x="27" y="152" width="21" height="21" fill="#0f172a" rx="2"/>
+      <!-- Data modules -->
+      <rect x="70" y="20" width="10" height="10"/>
+      <rect x="90" y="20" width="10" height="10"/>
+      <rect x="110" y="20" width="10" height="10"/>
+      <rect x="70" y="40" width="20" height="10"/>
+      <rect x="100" y="40" width="10" height="10"/>
+      <rect x="120" y="40" width="10" height="10"/>
+      <rect x="70" y="70" width="10" height="20"/>
+      <rect x="90" y="80" width="20" height="10"/>
+      <rect x="120" y="70" width="10" height="10"/>
+      <rect x="140" y="70" width="20" height="10"/>
+      <rect x="170" y="70" width="10" height="20"/>
+      <rect x="20" y="70" width="10" height="10"/>
+      <rect x="40" y="70" width="20" height="10"/>
+      <rect x="20" y="90" width="20" height="10"/>
+      <rect x="50" y="90" width="10" height="20"/>
+      <rect x="70" y="100" width="20" height="10"/>
+      <rect x="100" y="100" width="10" height="20"/>
+      <rect x="120" y="90" width="20" height="10"/>
+      <rect x="150" y="90" width="10" height="20"/>
+      <rect x="170" y="100" width="10" height="10"/>
+      <rect x="20" y="120" width="20" height="10"/>
+      <rect x="70" y="120" width="10" height="10"/>
+      <rect x="90" y="120" width="20" height="10"/>
+      <rect x="120" y="120" width="10" height="20"/>
+      <rect x="140" y="120" width="20" height="10"/>
+      <rect x="70" y="140" width="20" height="10"/>
+      <rect x="100" y="140" width="10" height="10"/>
+      <rect x="120" y="150" width="20" height="10"/>
+      <rect x="150" y="140" width="10" height="20"/>
+      <rect x="170" y="140" width="10" height="10"/>
+      <rect x="70" y="160" width="10" height="20"/>
+      <rect x="90" y="160" width="20" height="10"/>
+      <rect x="120" y="170" width="10" height="10"/>
+      <rect x="140" y="170" width="20" height="10"/>
+      <rect x="170" y="160" width="10" height="20"/>
+    </g>
+    <circle cx="100" cy="100" r="16" fill="#15803d"/>
+    <text x="100" y="105" fill="#ffffff" font-size="12" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle">₱</text>
+  </svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+// Default E-Wallets
+const DEFAULT_FARMER_EWALLETS = [
+  {
+    id: 'ew-gcash-1',
+    provider: 'gcash',
+    bank_name: 'GCash Wallet',
+    badge_bg: '#0284c7',
+    badge_letter: 'G',
+    account_name: 'Ramon Dela Cruz',
+    account_number: '0917-842-1092',
+    is_primary: true,
+    qr_code: generateRealisticQrSvg('GCash', '0917-842-1092')
+  },
+  {
+    id: 'ew-landbank-1',
+    provider: 'landbank',
+    bank_name: 'Land Bank of the Philippines',
+    badge_bg: '#15803d',
+    badge_letter: 'L',
+    account_name: 'Ramon Dela Cruz',
+    account_number: '1842-9901-4821',
+    is_primary: false,
+    qr_code: null
+  }
+];
+
+function getStoredFarmerEWallets() {
+  const stored = localStorage.getItem('agri_farmer_ewallets');
+  if (stored) {
+    try { return JSON.parse(stored); } catch (e) {}
+  }
+  return DEFAULT_FARMER_EWALLETS;
+}
+
+function saveFarmerEWallets(wallets) {
+  localStorage.setItem('agri_farmer_ewallets', JSON.stringify(wallets));
+}
+
 function openFarmerProfileModal() {
-  const user = window.AgriState.user;
+  const user = window.AgriState.user || {};
   const modal = document.getElementById('farmerProfileModal');
   if (!modal) return;
 
-  if (user) {
-    const nameEl = document.getElementById('profileModalName');
-    const infoNameEl = document.getElementById('profileInfoFullName');
-    const farmEl = document.getElementById('profileModalFarm');
-    const phoneEl = document.getElementById('profileInfoPhone');
-    const emailEl = document.getElementById('profileInfoEmail');
-    const avatarEl = document.getElementById('profileModalAvatar');
+  // Populate Header info
+  const nameEl = document.getElementById('profileModalName');
+  const farmEl = document.getElementById('profileModalFarm');
+  const avatarEl = document.getElementById('profileModalAvatar');
 
-    if (nameEl && user.full_name) nameEl.textContent = user.full_name;
-    if (infoNameEl && user.full_name) infoNameEl.textContent = user.full_name;
-    if (farmEl) farmEl.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • Benguet Farmers Multi-Purpose Cooperative (BFMPC)`;
-    if (phoneEl && user.phone) phoneEl.textContent = user.phone;
-    if (emailEl && user.email) emailEl.textContent = user.email;
-    if (avatarEl && user.avatar) avatarEl.src = user.avatar;
-  }
+  if (nameEl) nameEl.textContent = user.full_name || 'Mang Ramon Dela Cruz';
+  if (farmEl) farmEl.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.cooperative || 'Benguet Farmers Multi-Purpose Cooperative (BFMPC)'}`;
+  if (avatarEl && user.avatar) avatarEl.src = user.avatar;
+
+  // Populate View details
+  const infoNameEl = document.getElementById('profileInfoFullName');
+  const phoneEl = document.getElementById('profileInfoPhone');
+  const emailEl = document.getElementById('profileInfoEmail');
+  const altPhoneEl = document.getElementById('profileInfoAltPhone');
+  const coopEl = document.getElementById('profileInfoCoop');
+  const expEl = document.getElementById('profileInfoExperience');
+  const tierEl = document.getElementById('profileInfoTier');
+  const addressEl = document.getElementById('profileInfoAddress');
+  const coordsEl = document.getElementById('profileInfoCoords');
+  const areaEl = document.getElementById('profileInfoArea');
+  const elevEl = document.getElementById('profileInfoElevation');
+  const hubEl = document.getElementById('profileInfoHub');
+  const cropsEl = document.getElementById('profileInfoSpecialization');
+  const ratingEl = document.getElementById('profileInfoRating');
+  const fulfillmentEl = document.getElementById('profileInfoFulfillment');
+  const complianceEl = document.getElementById('profileInfoCompliance');
+
+  if (infoNameEl) infoNameEl.textContent = user.full_name || 'Mang Ramon Dela Cruz';
+  if (phoneEl) phoneEl.textContent = user.phone || '+63 917 842 1092';
+  if (emailEl) emailEl.textContent = user.email || 'ramon.delacruz@agriconnect.ph';
+  if (altPhoneEl) altPhoneEl.textContent = user.alt_phone || '+63 928 551 8934';
+  if (coopEl) coopEl.textContent = user.cooperative || 'Benguet Farmers Multi-Purpose Coop (BFMPC)';
+  if (expEl) expEl.textContent = user.experience || '18 Years (Highland Agriculture)';
+  if (tierEl) tierEl.textContent = user.role_tier || 'Tier-1 Direct Farmgate Supplier';
+  if (addressEl) addressEl.textContent = user.address || 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601';
+  if (coordsEl) coordsEl.textContent = user.coords || '16.4582° N, 120.5891° E';
+  if (areaEl) areaEl.textContent = user.area || '2.8 Hectares (Terraced Mountain Agro-Ecosystem)';
+  if (elevEl) elevEl.textContent = user.elevation || '1,450 meters above sea level (MASL)';
+  if (hubEl) hubEl.textContent = user.hub || 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad';
+  if (cropsEl) cropsEl.textContent = user.crops || 'Baguio Beans, Cabbage, Strawberries, Carrots';
+  if (ratingEl) ratingEl.textContent = user.rating || '★ 4.9 / 5.0';
+  if (fulfillmentEl) fulfillmentEl.textContent = user.fulfillment || '100% On-Time';
+  if (complianceEl) complianceEl.textContent = user.compliance || 'Grade A+';
+
+  // Render dynamic components
+  renderFarmerRequirements();
+  renderFarmerEWallets();
 
   modal.classList.add('open');
 }
 
 function closeFarmerProfileModal() {
   const modal = document.getElementById('farmerProfileModal');
+  if (modal) modal.classList.remove('open');
+  toggleEditFarmerProfile(false);
+}
+
+function toggleEditFarmerProfile(forceOpen) {
+  const editContainer = document.getElementById('farmerEditProfileContainer');
+  if (!editContainer) return;
+
+  const shouldOpen = forceOpen !== undefined ? forceOpen : editContainer.style.display === 'none';
+  if (shouldOpen) {
+    const user = window.AgriState.user || {};
+    const fnInput = document.getElementById('editProfileFullName');
+    const phoneInput = document.getElementById('editProfilePhone');
+    const emailInput = document.getElementById('editProfileEmail');
+    const altPhoneInput = document.getElementById('editProfileAltPhone');
+    const farmInput = document.getElementById('editProfileFarmName');
+    const coopInput = document.getElementById('editProfileCoop');
+    const addrInput = document.getElementById('editProfileAddress');
+    const coordsInput = document.getElementById('editProfileCoords');
+    const elevInput = document.getElementById('editProfileElevation');
+    const expInput = document.getElementById('editProfileExperience');
+    const hubInput = document.getElementById('editProfileHub');
+    const specInput = document.getElementById('editProfileSpecialization');
+
+    if (fnInput) fnInput.value = user.full_name || 'Mang Ramon Dela Cruz';
+    if (phoneInput) phoneInput.value = user.phone || '+63 917 842 1092';
+    if (emailInput) emailInput.value = user.email || 'ramon.delacruz@agriconnect.ph';
+    if (altPhoneInput) altPhoneInput.value = user.alt_phone || '+63 928 551 8934';
+    if (farmInput) farmInput.value = user.farm_name || 'Dela Cruz Family Farm';
+    if (coopInput) coopInput.value = user.cooperative || 'Benguet Farmers Multi-Purpose Coop (BFMPC)';
+    if (addrInput) addrInput.value = user.address || 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601';
+    if (coordsInput) coordsInput.value = user.coords || '16.4582° N, 120.5891° E';
+    if (elevInput) elevInput.value = user.elevation || '1,450 meters above sea level (MASL)';
+    if (expInput) expInput.value = user.experience || '18 Years (Highland Agriculture)';
+    if (hubInput) hubInput.value = user.hub || 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad';
+    if (specInput) specInput.value = user.crops || 'Baguio Beans, Cabbage, Strawberries, Carrots';
+
+    editContainer.style.display = 'block';
+    editContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    editContainer.style.display = 'none';
+  }
+}
+
+function saveFarmerProfile(e) {
+  if (e) e.preventDefault();
+
+  if (!window.AgriState.user) {
+    window.AgriState.user = { role: 'farmer' };
+  }
+
+  const user = window.AgriState.user;
+  const fn = document.getElementById('editProfileFullName')?.value.trim();
+  const phone = document.getElementById('editProfilePhone')?.value.trim();
+  const email = document.getElementById('editProfileEmail')?.value.trim();
+  const altPhone = document.getElementById('editProfileAltPhone')?.value.trim();
+  const farm = document.getElementById('editProfileFarmName')?.value.trim();
+  const coop = document.getElementById('editProfileCoop')?.value.trim();
+  const addr = document.getElementById('editProfileAddress')?.value.trim();
+  const coords = document.getElementById('editProfileCoords')?.value.trim();
+  const elev = document.getElementById('editProfileElevation')?.value.trim();
+  const exp = document.getElementById('editProfileExperience')?.value.trim();
+  const hub = document.getElementById('editProfileHub')?.value.trim();
+  const spec = document.getElementById('editProfileSpecialization')?.value.trim();
+
+  if (fn) user.full_name = fn;
+  if (phone) user.phone = phone;
+  if (email) user.email = email;
+  if (altPhone) user.alt_phone = altPhone;
+  if (farm) user.farm_name = farm;
+  if (coop) user.cooperative = coop;
+  if (addr) user.address = addr;
+  if (coords) user.coords = coords;
+  if (elev) user.elevation = elev;
+  if (exp) user.experience = exp;
+  if (hub) user.hub = hub;
+  if (spec) user.crops = spec;
+
+  localStorage.setItem('agri_user', JSON.stringify(user));
+
+  // Sync with Dashboard elements
+  const welcomeFarmerName = document.getElementById('welcomeFarmerName');
+  if (welcomeFarmerName) welcomeFarmerName.textContent = user.full_name;
+  const welcomeFarmerFarm = document.getElementById('welcomeFarmerFarm');
+  if (welcomeFarmerFarm) welcomeFarmerFarm.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • Benguet`;
+
+  const farmerGreeting = document.getElementById('farmerGreeting');
+  if (farmerGreeting) farmerGreeting.textContent = `Kumusta, ${user.full_name}!`;
+  const farmerFarmDetails = document.getElementById('farmerFarmDetails');
+  if (farmerFarmDetails) farmerFarmDetails.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.address ? user.address.split(',').slice(0, 3).join(',') : 'Sitio Pungayan, La Trinidad, Benguet'}`;
+
+  // Update modal views
+  openFarmerProfileModal();
+  toggleEditFarmerProfile(false);
+  updateAuthUI();
+
+  showToast('Profile and farm information updated successfully!');
+}
+
+function handleProfileAvatarUpload(e) {
+  if (!e.target.files || !e.target.files[0]) return;
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(evt) {
+    const dataUrl = evt.target.result;
+    if (!window.AgriState.user) window.AgriState.user = { role: 'farmer' };
+    window.AgriState.user.avatar = dataUrl;
+    localStorage.setItem('agri_user', JSON.stringify(window.AgriState.user));
+
+    const modalAvatar = document.getElementById('profileModalAvatar');
+    if (modalAvatar) modalAvatar.src = dataUrl;
+
+    const dashAvatar = document.getElementById('farmerAvatar');
+    if (dashAvatar) dashAvatar.src = dataUrl;
+
+    updateAuthUI();
+    showToast('Profile photo updated successfully!');
+  };
+
+  reader.readAsDataURL(file);
+}
+
+// -------------------------------------------------------------
+// REQUIREMENTS MANAGEMENT (Pristine checklist & dynamic upload)
+// -------------------------------------------------------------
+function renderFarmerRequirements() {
+  const container = document.getElementById('farmerRequirementsList');
+  if (!container) return;
+
+  const reqs = getStoredFarmerRequirements();
+  container.innerHTML = reqs.map(req => {
+    const isPending = req.status === 'pending';
+    const isSubmitted = req.status === 'submitted';
+    const isApproved = req.status === 'approved';
+
+    let statusBadge = '';
+    if (isPending) {
+      statusBadge = `<span style="background: #f1f5f9; color: #475569; font-size: 0.725rem; font-weight: 700; padding: 0.2rem 0.65rem; border-radius: 9999px; border: 1px solid #cbd5e1; text-transform: uppercase;">Pending Upload</span>`;
+    } else if (isSubmitted) {
+      statusBadge = `<span style="background: #eff6ff; color: #1d4ed8; font-size: 0.725rem; font-weight: 700; padding: 0.2rem 0.65rem; border-radius: 9999px; border: 1px solid #bfdbfe; text-transform: uppercase;">● Pending Verification</span>`;
+    } else if (isApproved) {
+      statusBadge = `<span style="background: #dcfce7; color: #15803d; font-size: 0.725rem; font-weight: 700; padding: 0.2rem 0.65rem; border-radius: 9999px; text-transform: uppercase;">✓ Approved</span>`;
+    } else {
+      statusBadge = `<span style="background: #fee2e2; color: #b91c1c; font-size: 0.725rem; font-weight: 700; padding: 0.2rem 0.65rem; border-radius: 9999px; text-transform: uppercase;">✕ Disapproved</span>`;
+    }
+
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1rem; border-radius: var(--radius-sm); background: #ffffff; border: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 0.75rem; transition: border-color 0.2s;">
+        <div style="display: flex; align-items: flex-start; gap: 0.75rem; max-width: 520px;">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: ${isSubmitted ? '#dbeafe' : '#f0fdf4'}; color: ${isSubmitted ? '#1d4ed8' : '#15803d'}; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; margin-top: 0.1rem;">
+            ${isSubmitted ? '⏳' : '📋'}
+          </div>
+          <div>
+            <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.15rem;">
+              ${req.category}
+            </div>
+            <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem;">
+              ${req.title}
+            </div>
+            <div style="font-size: 0.775rem; color: var(--text-secondary); line-height: 1.4;">
+              ${req.description}
+            </div>
+            ${req.file_name ? `
+              <div style="font-size: 0.75rem; color: #15803d; font-weight: 700; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
+                📄 Attached: ${req.file_name} (${req.uploaded_at || 'Just now'})
+              </div>
+            ` : `
+              <div style="font-size: 0.725rem; color: var(--text-muted); margin-top: 0.25rem;">
+                Accepted Formats: ${req.formats}
+              </div>
+            `}
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          ${statusBadge}
+          <button type="button" onclick="openRequirementsUploadModal('${req.id}')" class="btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.75rem; background: #ffffff;">
+            ${req.file_name ? 'Re-upload' : 'Upload'}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openRequirementsUploadModal(reqId) {
+  const modal = document.getElementById('requirementUploadModal');
+  if (!modal) return;
+
+  const select = document.getElementById('reqTypeSelect');
+  if (select && reqId) {
+    select.value = reqId;
+  }
+
+  const fileInput = document.getElementById('reqDocFileInput');
+  if (fileInput) fileInput.value = '';
+
+  const display = document.getElementById('reqFileNameDisplay');
+  if (display) {
+    display.textContent = 'Click to browse or drop file here';
+    display.style.color = '#15803d';
+  }
+
+  modal.classList.add('open');
+}
+
+function closeRequirementsUploadModal() {
+  const modal = document.getElementById('requirementUploadModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function handleReqFileSelection(e) {
+  const display = document.getElementById('reqFileNameDisplay');
+  if (!display) return;
+
+  if (e.target.files && e.target.files[0]) {
+    const file = e.target.files[0];
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+    display.textContent = `Selected: ${file.name} (${sizeMb} MB)`;
+    display.style.color = '#15803d';
+  } else {
+    display.textContent = 'Click to browse or drop file here';
+  }
+}
+
+function submitRequirementUpload(e) {
+  if (e) e.preventDefault();
+
+  const select = document.getElementById('reqTypeSelect');
+  const fileInput = document.getElementById('reqDocFileInput');
+  const notesInput = document.getElementById('reqDocNotes');
+
+  const reqId = select ? select.value : 'rsbsa';
+  const file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+  const fileName = file ? file.name : `${reqId.toUpperCase()}_Document_Scan.pdf`;
+
+  const reqs = getStoredFarmerRequirements();
+  const targetReq = reqs.find(r => r.id === reqId);
+  if (targetReq) {
+    targetReq.status = 'submitted';
+    targetReq.file_name = fileName;
+    targetReq.uploaded_at = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  saveFarmerRequirements(reqs);
+  renderFarmerRequirements();
+  closeRequirementsUploadModal();
+
+  if (notesInput) notesInput.value = '';
+  showToast('Accreditation requirement uploaded and submitted for DA verification!');
+}
+
+// -------------------------------------------------------------
+// E-WALLETS & QR CODE MANAGEMENT (Direct scan-to-pay payments)
+// -------------------------------------------------------------
+function renderFarmerEWallets() {
+  const grid = document.getElementById('farmerEWalletsGrid');
+  if (!grid) return;
+
+  const wallets = getStoredFarmerEWallets();
+  grid.innerHTML = wallets.map(w => {
+    const hasQr = Boolean(w.qr_code);
+    const isCustom = !w.id.startsWith('ew-gcash') && !w.id.startsWith('ew-landbank');
+    const badgeBg = w.badge_bg || '#15803d';
+    const badgeLetter = (w.bank_name || 'E')[0];
+
+    return `
+      <div style="background: #ffffff; border-radius: var(--radius-sm); padding: 1.15rem; border: 1px solid var(--border-subtle); display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; box-shadow: var(--shadow-sm);">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <div style="width: 36px; height: 36px; border-radius: 8px; background: ${badgeBg}; color: white; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; flex-shrink: 0;">
+                ${badgeLetter}
+              </div>
+              <div>
+                <strong style="font-size: 0.95rem; color: var(--text-main); display: block; line-height: 1.2;">
+                  ${w.bank_name}
+                </strong>
+                <span style="font-size: 0.725rem; color: ${w.is_primary ? '#16a34a' : 'var(--text-muted)'}; font-weight: 700;">
+                  ${w.is_primary ? '● Primary Disbursement' : 'Direct Payment Channel'}
+                </span>
+              </div>
+            </div>
+            ${w.is_primary ? `<span style="font-size: 0.7rem; background: #dcfce7; color: #166534; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px;">Primary</span>` : (isCustom ? `<button type="button" onclick="deleteFarmerEWallet('${w.id}')" title="Remove Wallet" style="background: none; border: none; color: #ef4444; font-size: 0.9rem; cursor: pointer; padding: 0.2rem;">🗑</button>` : '')}
+          </div>
+
+          <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-subtle); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); margin-bottom: 0.75rem;">
+            <div>Account Name: <strong style="color: var(--text-main);">${w.account_name}</strong></div>
+            <div>Account / Mobile: <strong style="color: var(--text-main);">${w.account_number}</strong></div>
+          </div>
+
+          <!-- Direct Payment QR Code Area -->
+          <div style="border: 1px dashed ${hasQr ? '#86efac' : '#cbd5e1'}; background: ${hasQr ? '#f0fdf4' : '#f8fafc'}; border-radius: var(--radius-sm); padding: 0.65rem 0.75rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              ${hasQr ? `
+                <img src="${w.qr_code}" alt="Payment QR" style="width: 44px; height: 44px; object-fit: contain; border-radius: 4px; border: 1px solid #bbf7d0; background: #ffffff; cursor: pointer; padding: 2px;" onclick="viewFullQrCode('${w.id}')" title="Click to view large QR">
+                <div>
+                  <span style="font-size: 0.75rem; font-weight: 700; color: #15803d; display: block;">QR Code Active</span>
+                  <span style="font-size: 0.7rem; color: var(--text-muted);">Direct payments enabled</span>
+                </div>
+              ` : `
+                <div style="width: 44px; height: 44px; border-radius: 4px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                  📱
+                </div>
+                <div>
+                  <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block;">No QR Code</span>
+                  <span style="font-size: 0.7rem; color: var(--text-muted);">Upload to enable scan-to-pay</span>
+                </div>
+              `}
+            </div>
+
+            <div style="display: flex; gap: 0.35rem;">
+              ${hasQr ? `
+                <button type="button" onclick="viewFullQrCode('${w.id}')" class="btn-secondary" style="font-size: 0.7rem; padding: 0.25rem 0.55rem; background: #ffffff;">
+                  View QR
+                </button>
+              ` : ''}
+              <button type="button" onclick="openQrUploadForWallet('${w.id}')" class="btn-secondary" style="font-size: 0.7rem; padding: 0.25rem 0.55rem; background: #ffffff;">
+                ${hasQr ? 'Replace' : 'Upload QR'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openAddEWalletModal() {
+  const modal = document.getElementById('addEWalletModal');
+  if (!modal) return;
+
+  stagedNewWalletQr = null;
+  const form = document.getElementById('addEWalletForm');
+  if (form) form.reset();
+
+  const previewCont = document.getElementById('newWalletQrPreviewContainer');
+  const placeholder = document.getElementById('newWalletQrPlaceholder');
+  if (previewCont) previewCont.style.display = 'none';
+  if (placeholder) placeholder.style.display = 'block';
+
+  modal.classList.add('open');
+}
+
+function closeAddEWalletModal() {
+  const modal = document.getElementById('addEWalletModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function handleQrUploadPreview(e) {
+  if (!e.target.files || !e.target.files[0]) return;
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(evt) {
+    stagedNewWalletQr = evt.target.result;
+    const previewImg = document.getElementById('newWalletQrPreviewImg');
+    const previewCont = document.getElementById('newWalletQrPreviewContainer');
+    const placeholder = document.getElementById('newWalletQrPlaceholder');
+
+    if (previewImg) previewImg.src = stagedNewWalletQr;
+    if (previewCont) previewCont.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function saveNewEWallet(e) {
+  if (e) e.preventDefault();
+
+  const providerSelect = document.getElementById('newWalletProvider');
+  const nameInput = document.getElementById('newWalletAccountName');
+  const numInput = document.getElementById('newWalletAccountNumber');
+
+  const provider = providerSelect ? providerSelect.value : 'other';
+  const accountName = nameInput ? nameInput.value.trim() : 'Ramon Dela Cruz';
+  const accountNumber = numInput ? numInput.value.trim() : '';
+
+  let bankName = 'Other E-Wallet';
+  let badgeBg = '#15803d';
+  let badgeLetter = 'E';
+
+  switch (provider) {
+    case 'gcash':
+      bankName = 'GCash Wallet';
+      badgeBg = '#0284c7';
+      badgeLetter = 'G';
+      break;
+    case 'maya':
+      bankName = 'Maya (PayMaya)';
+      badgeBg = '#16a34a';
+      badgeLetter = 'M';
+      break;
+    case 'seabank':
+      bankName = 'SeaBank Philippines';
+      badgeBg = '#ea580c';
+      badgeLetter = 'S';
+      break;
+    case 'gotyme':
+      bankName = 'GoTyme Bank';
+      badgeBg = '#0891b2';
+      badgeLetter = 'G';
+      break;
+    case 'landbank':
+      bankName = 'Land Bank of the Philippines';
+      badgeBg = '#15803d';
+      badgeLetter = 'L';
+      break;
+    case 'bpi':
+      bankName = 'Bank of the Philippine Islands (BPI)';
+      badgeBg = '#b91c1c';
+      badgeLetter = 'B';
+      break;
+    case 'bdo':
+      bankName = 'BDO Unibank';
+      badgeBg = '#1e3a8a';
+      badgeLetter = 'B';
+      break;
+    case 'unionbank':
+      bankName = 'UnionBank of the Philippines';
+      badgeBg = '#d97706';
+      badgeLetter = 'U';
+      break;
+    default:
+      bankName = 'Electronic Wallet';
+      badgeBg = '#059669';
+      badgeLetter = 'W';
+  }
+
+  const qrCodeData = stagedNewWalletQr || generateRealisticQrSvg(bankName, accountNumber);
+
+  const newWallet = {
+    id: `ew-${Date.now()}`,
+    provider: provider,
+    bank_name: bankName,
+    badge_bg: badgeBg,
+    badge_letter: badgeLetter,
+    account_name: accountName,
+    account_number: accountNumber,
+    is_primary: false,
+    qr_code: qrCodeData
+  };
+
+  const wallets = getStoredFarmerEWallets();
+  wallets.push(newWallet);
+  saveFarmerEWallets(wallets);
+
+  renderFarmerEWallets();
+  closeAddEWalletModal();
+
+  showToast(`Added ${bankName} with direct payment QR support!`);
+}
+
+function deleteFarmerEWallet(walletId) {
+  let wallets = getStoredFarmerEWallets();
+  wallets = wallets.filter(w => w.id !== walletId);
+  saveFarmerEWallets(wallets);
+  renderFarmerEWallets();
+  showToast('Payment channel removed.');
+}
+
+function openQrUploadForWallet(walletId) {
+  activeTargetWalletQrId = walletId;
+  const input = document.getElementById('specificWalletQrFileInput');
+  if (input) {
+    input.value = '';
+    input.click();
+  }
+}
+
+function handleSpecificWalletQrUpload(e) {
+  if (!activeTargetWalletQrId || !e.target.files || !e.target.files[0]) return;
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(evt) {
+    const dataUrl = evt.target.result;
+    const wallets = getStoredFarmerEWallets();
+    const wallet = wallets.find(w => w.id === activeTargetWalletQrId);
+    if (wallet) {
+      wallet.qr_code = dataUrl;
+      saveFarmerEWallets(wallets);
+      renderFarmerEWallets();
+      showToast(`Updated direct payment QR code for ${wallet.bank_name}!`);
+    }
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function viewFullQrCode(walletId) {
+  const wallets = getStoredFarmerEWallets();
+  const wallet = wallets.find(w => w.id === walletId) || wallets[0];
+  if (!wallet) return;
+
+  const modal = document.getElementById('qrCodeViewModal');
+  if (!modal) return;
+
+  const badge = document.getElementById('fullQrProviderBadge');
+  const title = document.getElementById('fullQrWalletTitle');
+  const account = document.getElementById('fullQrWalletAccount');
+  const img = document.getElementById('fullQrCodeImg');
+
+  if (badge) badge.textContent = `${wallet.bank_name} Direct QR`;
+  if (title) title.textContent = `Scan to Pay ${wallet.account_name}`;
+  if (account) account.textContent = `${wallet.bank_name}: ${wallet.account_number}`;
+  if (img) img.src = wallet.qr_code || generateRealisticQrSvg(wallet.bank_name, wallet.account_number);
+
+  modal.classList.add('open');
+}
+
+function closeFullQrModal() {
+  const modal = document.getElementById('qrCodeViewModal');
   if (modal) modal.classList.remove('open');
 }
 
