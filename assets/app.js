@@ -207,6 +207,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (document.getElementById('farmerProfilePageContainer') || document.getElementById('profileName')) {
     initProfilePage();
   }
+  if (document.getElementById('sellHarvestPageContainer') || document.getElementById('sellHarvestPageForm')) {
+    initSellHarvestPage();
+  }
 });
 
 // Load live data or fallback
@@ -1812,8 +1815,7 @@ function openSellHarvestModal() {
     showToast('You are currently signed in as a Buyer. Only verified Farmer accounts can list produce for sale.');
     return;
   }
-  const modal = document.getElementById('sellHarvestModal');
-  if (modal) modal.classList.add('open');
+  window.location.href = 'sell-harvest.html';
 }
 
 function closeSellHarvestModal() {
@@ -2635,49 +2637,423 @@ function runAIPricingAssistant() {
   `;
 }
 
-function applySuggestedPrice(price) {
-  const priceInput = document.getElementById('sellPrice');
-  if (priceInput) priceInput.value = price;
+// -------------------------------------------------------------
+// 7B. DEDICATED SELL HARVEST PAGE & PRODUCER STUDIO
+// -------------------------------------------------------------
+
+let currentAiRecommendedPrice = 85;
+
+function getProducePhotoUrl(cropName, categoryId) {
+  const name = (cropName || '').toLowerCase();
+  if (name.includes('strawberr') || name.includes('fresa')) {
+    return 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=800';
+  }
+  if (name.includes('bean') || name.includes('habichuelas') || name.includes('baguio')) {
+    return 'https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=800';
+  }
+  if (name.includes('cabbage') || name.includes('repolyo')) {
+    return 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800';
+  }
+  if (name.includes('carrot')) {
+    return 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800';
+  }
+  if (name.includes('lettuce') || name.includes('romaine') || name.includes('salad')) {
+    return 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800';
+  }
+  if (name.includes('rice') || name.includes('bigas') || name.includes('palay') || name.includes('dinorado') || name.includes('grain')) {
+    return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800';
+  }
+  if (name.includes('egg') || name.includes('itlog')) {
+    return 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=800';
+  }
+  if (name.includes('mango') || name.includes('mangga')) {
+    return 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=800';
+  }
+  if (name.includes('tomato') || name.includes('kamatis')) {
+    return 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800';
+  }
+  if (name.includes('fish') || name.includes('bangus') || name.includes('tilapia') || name.includes('seafood')) {
+    return 'https://images.unsplash.com/photo-1534043464124-3be32fe000c9?w=800';
+  }
+  if (name.includes('coco') || name.includes('niyog')) {
+    return 'https://images.unsplash.com/photo-1525385133512-2f3bdd039054?w=800';
+  }
+  if (name.includes('herb') || name.includes('spice') || name.includes('ginger') || name.includes('garlic')) {
+    return 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?w=800';
+  }
+
+  // Category fallbacks
+  switch (categoryId) {
+    case 'cat-fruit':
+      return 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=800';
+    case 'cat-rice':
+      return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800';
+    case 'cat-root':
+      return 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800';
+    case 'cat-poultry':
+      return 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=800';
+    case 'cat-fish':
+      return 'https://images.unsplash.com/photo-1534043464124-3be32fe000c9?w=800';
+    case 'cat-coco':
+      return 'https://images.unsplash.com/photo-1525385133512-2f3bdd039054?w=800';
+    case 'cat-herb':
+      return 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?w=800';
+    default:
+      return 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800';
+  }
 }
 
-function submitNewListing(e) {
-  e.preventDefault();
-  const form = e.target;
-  const formData = new FormData(form);
+function initSellHarvestPage() {
+  const form = document.getElementById('sellHarvestPageForm');
+  if (!form) return;
+
+  const user = window.AgriState.user;
+
+  // Set default target harvest / dispatch date to tomorrow
+  const dateInput = document.getElementById('pageHarvestDate');
+  if (dateInput && !dateInput.value) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateInput.value = tomorrow.toISOString().split('T')[0];
+  }
+
+  // Populate logged-in farmer details
+  if (user) {
+    const previewFarmer = document.getElementById('previewFarmerName');
+    if (previewFarmer) {
+      previewFarmer.textContent = user.farm_name || user.full_name || 'Dela Cruz Family Farm';
+    }
+  }
+
+  // Initial calculation and card synchronization
+  handleListingFormInput();
+  triggerAiPriceRecommendation(false);
+  renderSellHarvestActiveListings();
+}
+
+function handleListingFormInput() {
+  const cropInput = document.getElementById('pageCropName') || document.getElementById('sellCropName');
+  const catSelect = document.getElementById('pageCropCategory') || document.getElementById('sellCategory');
+  const unitSelect = document.getElementById('pageCropUnit') || document.getElementById('sellUnit');
+  const priceInput = document.getElementById('pageCropPrice') || document.getElementById('sellPrice');
+  const qtyInput = document.getElementById('pageCropQuantity') || document.getElementById('sellQuantity');
+  const descInput = document.getElementById('pageCropDescription') || document.getElementById('sellDescription');
+
+  const cropName = cropInput ? cropInput.value.trim() : '';
+  const categoryVal = catSelect ? catSelect.value : 'cat-veg';
+  const categoryText = catSelect && catSelect.options[catSelect.selectedIndex] ? catSelect.options[catSelect.selectedIndex].text : 'Vegetables';
+  const unit = unitSelect ? unitSelect.value : 'kg';
+  const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+  const quantity = qtyInput ? parseFloat(qtyInput.value) || 0 : 0;
+  const desc = descInput ? descInput.value.trim() : '';
+
+  // Gross payout calculation
+  const grossValueDisplay = document.getElementById('batchGrossValueDisplay');
+  if (grossValueDisplay) {
+    const totalGross = price * quantity;
+    grossValueDisplay.textContent = `₱${totalGross.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (100% to producer)`;
+  }
+
+  // Synchronize Live Buyer Card Preview
+  const previewTitle = document.getElementById('previewCropTitle');
+  const previewCategory = document.getElementById('previewCategoryBadge');
+  const previewPrice = document.getElementById('previewPriceTag');
+  const previewUnit = document.getElementById('previewUnitTag');
+  const previewQty = document.getElementById('previewQuantityTag');
+  const previewDesc = document.getElementById('previewCropDesc');
+  const previewImg = document.getElementById('previewProductImg');
+
+  if (previewTitle) previewTitle.textContent = cropName || 'Highland Produce Listing';
+  if (previewCategory) previewCategory.textContent = categoryText;
+  if (previewPrice) previewPrice.textContent = `₱${price > 0 ? price.toLocaleString() : '85'}`;
+  if (previewUnit) previewUnit.textContent = `/ ${unit}`;
+  if (previewQty) previewQty.textContent = `${quantity > 0 ? quantity.toLocaleString() : '150'} ${unit.includes('kg') ? 'kg' : unit}`;
+  if (previewDesc) previewDesc.textContent = desc || 'Freshly harvested mountain produce grown with natural organic compost in Benguet.';
+  if (previewImg) previewImg.src = getProducePhotoUrl(cropName, categoryVal);
+
+  // Auto-adapt AI recommendations dynamically
+  triggerAiPriceRecommendation(false);
+}
+
+function quickFillCrop(name, categoryVal, unit, price, qty, desc) {
+  const cropInput = document.getElementById('pageCropName') || document.getElementById('sellCropName');
+  const catSelect = document.getElementById('pageCropCategory') || document.getElementById('sellCategory');
+  const unitSelect = document.getElementById('pageCropUnit') || document.getElementById('sellUnit');
+  const priceInput = document.getElementById('pageCropPrice') || document.getElementById('sellPrice');
+  const qtyInput = document.getElementById('pageCropQuantity') || document.getElementById('sellQuantity');
+  const descInput = document.getElementById('pageCropDescription') || document.getElementById('sellDescription');
+
+  if (cropInput) cropInput.value = name;
+  if (catSelect) catSelect.value = categoryVal;
+  if (unitSelect) unitSelect.value = unit;
+  if (priceInput) priceInput.value = price;
+  if (qtyInput) qtyInput.value = qty;
+  if (descInput) descInput.value = desc;
+
+  handleListingFormInput();
+  triggerAiPriceRecommendation(true);
+}
+
+function triggerAiPriceRecommendation(isManual) {
+  const cropInput = document.getElementById('pageCropName') || document.getElementById('sellCropName');
+  const catSelect = document.getElementById('pageCropCategory') || document.getElementById('sellCategory');
+
+  const crop = cropInput ? cropInput.value.trim().toLowerCase() : '';
+  const categoryVal = catSelect ? catSelect.value : '';
+
+  let advice = {
+    cropLabel: 'Highland Vegetables',
+    min: 75,
+    max: 110,
+    recommended: 85,
+    unit: 'kg',
+    retailAvg: '₱140 – ₱175 / kg',
+    advantage: '+35% vs Middleman',
+    tip: 'Benguet highland supply is steady. Pricing within the suggested range ensures rapid wholesale reservation.'
+  };
+
+  if (crop.includes('strawberr') || crop.includes('fresa')) {
+    advice = {
+      cropLabel: 'Benguet Strawberries',
+      min: 190,
+      max: 250,
+      recommended: 220,
+      unit: 'kg',
+      retailAvg: '₱340 – ₱430 / kg',
+      advantage: '+48% Direct Value',
+      tip: 'High demand from Metro Manila bakeries and consumers. Cold-chain pickup recommended within 4 hours of harvest.'
+    };
+  } else if (crop.includes('bean') || crop.includes('baguio') || crop.includes('habichuelas')) {
+    advice = {
+      cropLabel: 'Baguio String Beans',
+      min: 70,
+      max: 100,
+      recommended: 85,
+      unit: 'kg',
+      retailAvg: '₱135 – ₱165 / kg',
+      advantage: '+38% vs Middleman',
+      tip: 'Daily restaurant orders in Balintawak and Divisoria are active. Crisp mountain harvest commands top rates.'
+    };
+  } else if (crop.includes('cabbage') || crop.includes('repolyo')) {
+    advice = {
+      cropLabel: 'Mountain Green Cabbage',
+      min: 45,
+      max: 70,
+      recommended: 60,
+      unit: 'kg',
+      retailAvg: '₱85 – ₱120 / kg',
+      advantage: '+35% vs Middleman',
+      tip: 'Tight-head mountain cabbage has high shipping tolerance. Wholesale buyers frequently order 200kg+ batches.'
+    };
+  } else if (crop.includes('carrot')) {
+    advice = {
+      cropLabel: 'Benguet Highland Carrots',
+      min: 65,
+      max: 95,
+      recommended: 75,
+      unit: 'kg',
+      retailAvg: '₱120 – ₱155 / kg',
+      advantage: '+36% vs Middleman',
+      tip: 'Pre-washed grade-A carrots are preferred by institutional buyers and supermarkets.'
+    };
+  } else if (crop.includes('rice') || crop.includes('bigas') || crop.includes('dinorado') || crop.includes('palay')) {
+    advice = {
+      cropLabel: 'Milled Dinorado Rice',
+      min: 2350,
+      max: 2650,
+      recommended: 2450,
+      unit: 'sack (50kg)',
+      retailAvg: '₱2,850 – ₱3,300 / sack',
+      advantage: '+28% Net Margin',
+      tip: 'Direct retail to suburban families without commercial trader markdown captures premium returns.'
+    };
+  } else if (crop.includes('egg') || crop.includes('itlog')) {
+    advice = {
+      cropLabel: 'Free-Range Native Eggs',
+      min: 230,
+      max: 275,
+      recommended: 260,
+      unit: 'tray (30s)',
+      retailAvg: '₱310 – ₱360 / tray',
+      advantage: '+30% Producer Return',
+      tip: 'Consistent high household demand. Safe pulp egg-trays minimize transit breakage.'
+    };
+  } else if (crop.includes('mango') || crop.includes('mangga')) {
+    advice = {
+      cropLabel: 'Sweet Carabao Mangoes',
+      min: 150,
+      max: 210,
+      recommended: 175,
+      unit: 'kg',
+      retailAvg: '₱240 – ₱300 / kg',
+      advantage: '+40% vs Middleman',
+      tip: 'Export quality grade-A mangoes achieve instant sell-out from online buyers.'
+    };
+  } else if (crop.includes('lettuce') || crop.includes('romaine')) {
+    advice = {
+      cropLabel: 'Hydro / Highland Romaine',
+      min: 80,
+      max: 130,
+      recommended: 95,
+      unit: 'kg',
+      retailAvg: '₱175 – ₱240 / kg',
+      advantage: '+42% vs Middleman',
+      tip: 'Metro Manila salad bars and cafes require consistent daily batches. Keep refrigerated.'
+    };
+  } else if (categoryVal === 'cat-fruit') {
+    advice = {
+      cropLabel: 'Fresh Philippine Fruits',
+      min: 110,
+      max: 180,
+      recommended: 140,
+      unit: 'kg',
+      retailAvg: '₱190 – ₱260 / kg',
+      advantage: '+36% vs Middleman',
+      tip: 'Direct farmgate fruit sales protect ripeness and provide full price transparency.'
+    };
+  }
+
+  currentAiRecommendedPrice = advice.recommended;
+
+  // Update UI Elements
+  const labelEl = document.getElementById('aiAdvisorCropLabel');
+  const rangeEl = document.getElementById('aiSuggestedRange');
+  const retailEl = document.getElementById('aiRetailAvg');
+  const noteEl = document.getElementById('aiAdvisorNote');
+  const applyBtn = document.getElementById('applyAiPriceBtn');
+
+  if (labelEl) labelEl.textContent = advice.cropLabel;
+  if (rangeEl) rangeEl.textContent = `₱${advice.min} – ₱${advice.max} / ${advice.unit}`;
+  if (retailEl) retailEl.textContent = advice.retailAvg;
+  if (noteEl) noteEl.textContent = `Tip: ${advice.tip}`;
+  if (applyBtn) {
+    applyBtn.textContent = `Apply Suggested Price (₱${advice.recommended})`;
+  }
+
+  // Also support legacy AI advice card in dashboard if present
+  const legacyAdviceEl = document.getElementById('aiPriceAdvice');
+  if (legacyAdviceEl) {
+    legacyAdviceEl.style.display = 'block';
+    legacyAdviceEl.innerHTML = `
+      <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: var(--radius-sm); padding: 0.75rem; font-size: 0.8rem; color: #92400e;">
+        <strong>Market Price Recommendation:</strong><br>
+        Estimated Range: <strong>₱${advice.min} – ₱${advice.max} per ${advice.unit}</strong><br>
+        <em>Note: ${advice.tip}</em>
+        <div style="margin-top: 0.35rem;">
+          <button type="button" onclick="applySuggestedPrice(${advice.recommended})" style="background: #d97706; color: white; border: none; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.725rem; font-weight: 700; cursor: pointer;">
+            Set ₱${advice.recommended}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  if (isManual) {
+    showToast(`AI Market Advisor refreshed rates for ${advice.cropLabel}!`);
+  }
+}
+
+function applyAiRecommendedPrice() {
+  const priceInput = document.getElementById('pageCropPrice') || document.getElementById('sellPrice');
+  if (priceInput) {
+    priceInput.value = currentAiRecommendedPrice;
+    handleListingFormInput();
+    showToast(`Applied AI suggested farmgate price: ₱${currentAiRecommendedPrice}`);
+  }
+}
+
+function applySuggestedPrice(price) {
+  const priceInput = document.getElementById('pageCropPrice') || document.getElementById('sellPrice');
+  if (priceInput) {
+    priceInput.value = price;
+    handleListingFormInput();
+    showToast(`Applied recommended farmgate price: ₱${price}`);
+  }
+}
+
+function handlePageHarvestSubmit(e) {
+  if (e) e.preventDefault();
+
+  const cropInput = document.getElementById('pageCropName') || document.getElementById('sellCropName');
+  const catSelect = document.getElementById('pageCropCategory') || document.getElementById('sellCategory');
+  const varietyInput = document.getElementById('pageCropVariety');
+  const statusSelect = document.getElementById('pageHarvestStatus');
+  const unitSelect = document.getElementById('pageCropUnit') || document.getElementById('sellUnit');
+  const priceInput = document.getElementById('pageCropPrice') || document.getElementById('sellPrice');
+  const qtyInput = document.getElementById('pageCropQuantity') || document.getElementById('sellQuantity');
+  const dateInput = document.getElementById('pageHarvestDate');
+  const hubInput = document.getElementById('pageHubLocation');
+  const descInput = document.getElementById('pageCropDescription') || document.getElementById('sellDescription');
+
+  const cropName = cropInput ? cropInput.value.trim() : '';
+  if (!cropName) {
+    showToast('Please enter the crop / produce name.');
+    if (cropInput) cropInput.focus();
+    return;
+  }
+
+  const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+  if (price <= 0) {
+    showToast('Please specify a valid farmgate price.');
+    if (priceInput) priceInput.focus();
+    return;
+  }
+
+  const quantity = qtyInput ? parseFloat(qtyInput.value) || 0 : 0;
+  if (quantity <= 0) {
+    showToast('Please enter the available harvest quantity.');
+    if (qtyInput) qtyInput.focus();
+    return;
+  }
+
+  const categoryVal = catSelect ? catSelect.value : 'cat-veg';
+  const categoryText = catSelect && catSelect.options[catSelect.selectedIndex] ? catSelect.options[catSelect.selectedIndex].text : 'Vegetables';
+  const unit = unitSelect ? unitSelect.value : 'kg';
+  const variety = varietyInput ? varietyInput.value.trim() : '';
+  const harvestStatus = statusSelect ? statusSelect.value : 'fresh';
+  const harvestDate = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+  const hubLocation = hubInput ? hubInput.value.trim() : 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad';
+  const desc = descInput && descInput.value.trim() ? descInput.value.trim() : 'Fresh seasonal harvest direct from our farm fields.';
+
   const user = window.AgriState.user;
 
   const newProd = {
     id: 'prod-' + Date.now(),
-    name: formData.get('cropName'),
-    category_name: formData.get('category'),
-    price: Number(formData.get('price')),
-    unit: formData.get('unit'),
-    quantity: Number(formData.get('quantity')),
+    name: cropName,
+    category_name: categoryText,
+    category_id: categoryVal,
+    price: price,
+    unit: unit,
+    quantity: quantity,
+    variety: variety,
+    harvest_status: harvestStatus,
+    harvest_date: harvestDate,
+    hub_location: hubLocation,
     is_available: true,
-    image_url: formData.get('imageUrl') || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800',
-    farmer_name: (user && (user.farm_name || user.full_name)) || formData.get('farmName') || 'Local Farm',
+    image_url: getProducePhotoUrl(cropName, categoryVal),
+    farmer_name: (user && (user.farm_name || user.full_name)) || 'Dela Cruz Family Farm',
     farmer_id: (user && user.id) || 'farmer-ramon',
-    city: formData.get('city') || (user && user.province) || 'Benguet',
-    province: formData.get('province') || (user && user.province) || 'Benguet',
-    description: formData.get('description') || 'Fresh seasonal harvest direct from our farm fields.',
+    city: (user && user.city) || 'La Trinidad',
+    province: (user && user.province) || 'Benguet',
+    description: desc,
     rating: '5.0',
-    reviews_count: 1
+    reviews_count: 1,
+    created_at: new Date().toISOString()
   };
 
+  // Add to active state in memory
   window.AgriState.products.unshift(newProd);
 
-  // Persist custom listing
+  // Persist to local storage custom listings
   try {
     const customListings = JSON.parse(localStorage.getItem('agri_custom_products') || '[]');
     customListings.unshift(newProd);
     localStorage.setItem('agri_custom_products', JSON.stringify(customListings));
   } catch (err) {
-    console.warn('Could not save custom product', err);
+    console.warn('Could not persist custom produce listing:', err);
   }
 
-  closeSellHarvestModal();
-  form.reset();
-
+  // Refresh grids if present
   if (document.getElementById('productsGrid')) {
     renderCategories();
     renderProducts();
@@ -2685,7 +3061,87 @@ function submitNewListing(e) {
   if (document.getElementById('farmerProductsGrid')) {
     renderFarmerOwnProducts();
   }
-  showToast(`Listing "${newProd.name}" published successfully!`);
+
+  // Update Sell Harvest Active Catalog List
+  renderSellHarvestActiveListings();
+
+  // Show Success Modal
+  const successModal = document.getElementById('harvestPublishSuccessModal');
+  const successTitle = document.getElementById('successCropTitle');
+  const successDetails = document.getElementById('successCropDetails');
+
+  if (successModal) {
+    if (successTitle) successTitle.textContent = `${newProd.name} Listed!`;
+    if (successDetails) {
+      successDetails.innerHTML = `
+        Your batch of <strong>${newProd.quantity} ${newProd.unit}</strong> at <strong>₱${newProd.price.toLocaleString()}/${newProd.unit}</strong> is now officially published in the AgriConnect direct-to-consumer catalog.
+      `;
+    }
+    successModal.classList.add('open');
+  } else {
+    showToast(`Harvest listing "${newProd.name}" published successfully!`);
+  }
+
+  // Close legacy modal if open
+  closeSellHarvestModal();
+}
+
+function submitHarvestListing(e) {
+  handlePageHarvestSubmit(e);
+}
+
+function handleSellHarvestSubmit(e) {
+  handlePageHarvestSubmit(e);
+}
+
+function submitNewListing(e) {
+  handlePageHarvestSubmit(e);
+}
+
+function closePublishSuccessModal() {
+  const modal = document.getElementById('harvestPublishSuccessModal');
+  if (modal) modal.classList.remove('open');
+
+  const form = document.getElementById('sellHarvestPageForm');
+  if (form) {
+    form.reset();
+    handleListingFormInput();
+  }
+}
+
+function resetListingForm() {
+  setTimeout(() => {
+    handleListingFormInput();
+    triggerAiPriceRecommendation(false);
+  }, 50);
+}
+
+function renderSellHarvestActiveListings() {
+  const container = document.getElementById('activeFarmerListingsContainer');
+  if (!container) return;
+
+  const user = window.AgriState.user;
+  let ownProducts = window.AgriState.products.filter(p => isUserOwnProduct(p));
+  if (ownProducts.length === 0 && user && user.role === 'farmer') {
+    ownProducts = window.AgriState.products.filter(p => p.farmer_id === 'farmer-ramon');
+  }
+  if (ownProducts.length === 0) {
+    ownProducts = window.AgriState.products.slice(0, 3);
+  }
+
+  container.innerHTML = ownProducts.slice(0, 4).map(p => `
+    <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-page); transition: transform 0.15s ease;">
+      <img src="${p.image_url}" alt="${p.name}" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0;">
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">${p.quantity} ${p.unit} remaining</div>
+      </div>
+      <div style="text-align: right; flex-shrink: 0;">
+        <div style="font-size: 0.9rem; font-weight: 800; color: #15803d;">₱${p.price.toLocaleString()}</div>
+        <div style="font-size: 0.675rem; color: var(--text-muted);">/${p.unit}</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 // -------------------------------------------------------------
