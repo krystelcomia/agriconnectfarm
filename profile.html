@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile & Farm Accreditation | AgriConnect Philippines</title>
+  <meta name="description" content="View and manage verified farmer profile, land tenancy records, DA-RSBSA accreditation checklist, cold-chain specifications, and electronic payout channels on AgriConnect.">
+  <link rel="stylesheet" href="assets/app.css">
+  <script src="assets/app.js" defer></script>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <meta property="og:image" content="assets/logo.png">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand-logo" aria-label="AgriConnect Home">
+        <img src="assets/logo.png" alt="AgriConnect Logo" class="brand-logo-img">
+        <span>AgriConnect</span>
+      </a>
+
+      <nav class="header-nav" id="headerNav" aria-label="Main Navigation">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="marketplace.html" class="nav-link">Marketplace</a>
+        <a href="farmers.html" class="nav-link">Farmers</a>
+        <a href="maps.html" class="nav-link">Maps</a>
+        <a href="how-it-works.html" class="nav-link">How It Works</a>
+        <a href="track-orders.html" class="nav-link">Track Orders</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="dashboard.html" class="btn-primary header-dashboard-btn" style="font-size: 0.825rem; padding: 0.45rem 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;" aria-label="Open Dashboard">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="7" height="9" x="3" y="3" rx="1"/>
+            <rect width="7" height="5" x="14" y="3" rx="1"/>
+            <rect width="7" height="9" x="14" y="12" rx="1"/>
+            <rect width="7" height="5" x="3" y="16" rx="1"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <button onclick="toggleCart(true)" class="btn-secondary" style="position: relative; padding: 0.45rem 0.75rem;" aria-label="View Cart">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m7.5 4.27 9 5.15"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          </svg>
+          <span id="cartBadge" class="cart-badge">0</span>
+        </button>
+
+        <div id="userAuthContainer"></div>
+
+        <button class="mobile-menu-btn" onclick="toggleMobileNav()" aria-label="Toggle navigation">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Profile Page Container -->
+  <main id="farmerProfilePageContainer" style="max-width: 1240px; margin: 2rem auto 5rem; padding: 0 1.25rem;">
+
+    <!-- Top Breadcrumbs and Action Navigation Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1.25rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+          <a href="index.html" style="color: var(--text-muted); text-decoration: none;">Home</a>
+          <span>/</span>
+          <a href="dashboard.html" style="color: var(--text-muted); text-decoration: none;">Producer Dashboard</a>
+          <span>/</span>
+          <span style="color: var(--primary); font-weight: 700;">My Profile</span>
+        </div>
+        <h1 style="font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; color: var(--text-main); margin: 0; letter-spacing: -0.02em;">
+          Producer Profile & Farm Verification
+        </h1>
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Complete farm identity, Department of Agriculture accreditation, geo-tagging, and direct payment channels.
+        </p>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+        <a href="dashboard.html" class="btn-secondary" style="font-size: 0.825rem; padding: 0.55rem 1.1rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.45rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Back to Dashboard
+        </a>
+        <button onclick="toggleEditFarmerProfile()" class="btn-secondary" style="font-size: 0.825rem; padding: 0.55rem 1.1rem; display: inline-flex; align-items: center; gap: 0.45rem; background: #ffffff;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit Profile
+        </button>
+        <button onclick="openSellHarvestModal()" class="btn-primary" style="font-size: 0.825rem; padding: 0.55rem 1.25rem; display: inline-flex; align-items: center; gap: 0.45rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Sell Harvest
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero Profile Banner Card with Background Photo -->
+    <div class="farmer-dashboard-banner" style="margin-bottom: 2rem;">
+      <img src="assets/dashboard-banner.jpg" alt="Benguet Mountain Agricultural Terraces" class="dashboard-banner-bg">
+      <div class="dashboard-banner-overlay"></div>
+      <div class="dashboard-banner-content">
+        <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+          <!-- Profile Avatar with Camera Upload Badge -->
+          <div style="position: relative; width: 92px; height: 92px; flex-shrink: 0;">
+            <img id="profileAvatar" src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=400" alt="Farmer Profile Photo" style="width: 92px; height: 92px; border-radius: 9999px; object-fit: cover; border: 3.5px solid #86efac; box-shadow: 0 6px 16px rgba(0,0,0,0.3);">
+            <label for="profileAvatarFileInput" title="Change Profile Picture" style="position: absolute; bottom: 0; right: 0; background: #ffffff; color: #15803d; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: 1.5px solid #86efac; font-size: 0.9rem; transition: transform 0.15s ease;">
+              📷
+            </label>
+            <input type="file" id="profileAvatarFileInput" accept="image/*" style="display: none;" onchange="handleProfileAvatarUpload(event)">
+          </div>
+
+          <div style="flex: 1; min-width: 280px;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+              <span style="background: #22c55e; color: #ffffff; padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.725rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);">
+                Verified Producer
+              </span>
+              <span id="profileModalIdBadge" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.725rem; font-weight: 700; color: #dcfce7; border: 1px solid rgba(255,255,255,0.25);">
+                ID: PH-AGRI-8842
+              </span>
+              <span style="color: #86efac; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Accredited Farmgate Partner
+              </span>
+              <span style="background: rgba(255,255,255,0.15); color: #ffffff; padding: 0.18rem 0.65rem; border-radius: 9999px; font-size: 0.725rem; font-weight: 700;">
+                0% Middleman Deduction
+              </span>
+            </div>
+
+            <h2 id="profileName" style="font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; color: #ffffff; margin: 0; line-height: 1.2; text-shadow: 0 2px 10px rgba(0,0,0,0.35);">
+              Mang Ramon Dela Cruz
+            </h2>
+            <p id="profileFarm" style="font-size: 0.95rem; opacity: 0.95; color: #f0fdf4; margin: 0.35rem 0 0 0; text-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+              Dela Cruz Family Farm • Benguet Farmers Multi-Purpose Cooperative (BFMPC)
+            </p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button onclick="toggleEditFarmerProfile()" class="btn-primary" style="background: #ffffff; color: var(--primary-deep); border-color: #ffffff; font-weight: 800; padding: 0.65rem 1.25rem; box-shadow: 0 4px 12px rgba(0,0,0,0.18); display: inline-flex; align-items: center; gap: 0.45rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit Profile Details
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Performance & Quality Highlights Ribbon -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.15rem; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+          ★
+        </div>
+        <div>
+          <span style="font-size: 0.725rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block;">Customer Trust Rating</span>
+          <strong id="profileInfoRating" style="font-size: 1.15rem; color: #b45309; font-weight: 800;">★ 4.9 / 5.0</strong>
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">(148 verified buyers)</span>
+        </div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.15rem; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+          ✓
+        </div>
+        <div>
+          <span style="font-size: 0.725rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block;">Fulfillment Success</span>
+          <strong id="profileInfoFulfillment" style="font-size: 1.15rem; color: var(--primary); font-weight: 800;">100% On-Time</strong>
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">(14/14 batches completed)</span>
+        </div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.15rem; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: #eff6ff; color: #1d4ed8; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+          ❄️
+        </div>
+        <div>
+          <span style="font-size: 0.725rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block;">Cold-Chain Compliance</span>
+          <strong id="profileInfoCompliance" style="font-size: 1.15rem; color: #1d4ed8; font-weight: 800;">Grade A+</strong>
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">(&lt;4 hrs harvest-to-cooler)</span>
+        </div>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.15rem; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: #f3e8ff; color: #7e22ce; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+          🏷️
+        </div>
+        <div>
+          <span style="font-size: 0.725rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block;">Producer Role & Tier</span>
+          <strong id="profileInfoTier" style="font-size: 1.05rem; color: #7e22ce; font-weight: 800;">Tier-1 Direct Farmgate</strong>
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Accredited Supplier</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inline Editable Form Container (Toggled via Edit Profile button) -->
+    <div id="farmerEditProfileContainer" style="display: none; background: #ffffff; border: 2px solid #86efac; border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: 0 10px 25px -5px rgba(22, 101, 52, 0.12); margin-bottom: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <span style="width: 32px; height: 32px; border-radius: 8px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 800;">✎</span>
+          <div>
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin: 0;">Edit Profile & Farm Specifications</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0.15rem 0 0 0;">Update your grower details, farm address, GPS coordinates, and crop specialties.</p>
+          </div>
+        </div>
+        <button type="button" onclick="toggleEditFarmerProfile(false)" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+
+      <form id="farmerProfileEditForm" onsubmit="saveFarmerProfile(event)">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Full Name *</label>
+            <input type="text" id="editProfileFullName" required placeholder="Mang Ramon Dela Cruz" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Contact Number *</label>
+            <input type="text" id="editProfilePhone" required placeholder="+63 917 842 1092" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Email Address *</label>
+            <input type="email" id="editProfileEmail" required placeholder="ramon.delacruz@agriconnect.ph" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Alternate / Emergency Contact</label>
+            <input type="text" id="editProfileAltPhone" placeholder="+63 928 551 8934" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Farm / Enterprise Name *</label>
+            <input type="text" id="editProfileFarmName" required placeholder="Dela Cruz Family Farm" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Cooperative Membership</label>
+            <input type="text" id="editProfileCoop" placeholder="Benguet Farmers Multi-Purpose Coop (BFMPC)" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Registered Farm Location / Parcel Address *</label>
+            <input type="text" id="editProfileAddress" required placeholder="Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, CAR 2601" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">GPS Coordinates</label>
+            <input type="text" id="editProfileCoords" placeholder="16.4582° N, 120.5891° E" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Farm Elevation</label>
+            <input type="text" id="editProfileElevation" placeholder="1,450 meters above sea level (MASL)" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Farming Experience</label>
+            <input type="text" id="editProfileExperience" placeholder="18 Years (Highland Agriculture)" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Cold-Chain Consolidation Point</label>
+            <input type="text" id="editProfileHub" placeholder="Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase;">Primary Harvest Specialization</label>
+            <input type="text" id="editProfileSpecialization" placeholder="Baguio Beans, Cabbage, Strawberries, Carrots" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+          <button type="button" onclick="toggleEditFarmerProfile(false)" class="btn-secondary" style="font-size: 0.875rem; padding: 0.6rem 1.25rem;">
+            Cancel
+          </button>
+          <button type="submit" class="btn-primary" style="font-size: 0.875rem; padding: 0.6rem 1.5rem;">
+            Save Profile Changes
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Main 2-Column Grid: Left (Personal & Farm Details) + Right (Accreditation & Financials) -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 2rem; align-items: start;">
+
+      <!-- LEFT COLUMN: Identity, Operations & Geolocation -->
+      <div style="display: flex; flex-direction: column; gap: 1.75rem;">
+
+        <!-- Card 1: Farmer's Information & Direct Contact -->
+        <section style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <div style="width: 34px; height: 34px; border-radius: 8px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div>
+                <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">Farmer's Personal & Contact Information</h2>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Verified producer credentials registered on AgriConnect</div>
+              </div>
+            </div>
+            <button onclick="toggleEditFarmerProfile(true)" style="background: none; border: none; color: var(--primary); font-size: 0.825rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.5rem; border-radius: var(--radius-sm);">
+              Edit Info
+            </button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1.25rem; font-size: 0.875rem;">
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Full Name</span>
+              <strong id="profileInfoFullName" style="color: var(--text-main); font-size: 0.95rem;">Mang Ramon Dela Cruz</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Primary Contact Number</span>
+              <strong id="profileInfoPhone" style="color: var(--text-main); font-size: 0.95rem;">+63 917 842 1092</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Email Address</span>
+              <strong id="profileInfoEmail" style="color: var(--text-main); font-size: 0.95rem;">ramon.delacruz@agriconnect.ph</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Alternate / Emergency Contact</span>
+              <strong id="profileInfoAltPhone" style="color: var(--text-main); font-size: 0.95rem;">+63 928 551 8934</strong>
+            </div>
+            <div style="grid-column: 1 / -1;">
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Cooperative / Farmer Association</span>
+              <strong id="profileInfoCoop" style="color: var(--text-main); font-size: 0.95rem;">Benguet Farmers Multi-Purpose Coop (BFMPC)</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Farming Experience</span>
+              <strong id="profileInfoExperience" style="color: var(--text-main); font-size: 0.95rem;">18 Years (Highland Agriculture)</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Operating Status</span>
+              <span style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #16a34a;"></span>
+                Active Farmgate Supplier
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 2: Exact Farm Location & Geo-Tag -->
+        <section style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #dbeafe; color: #1d4ed8; display: flex; align-items: center; justify-content: center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">Exact Farm Location & Geo-Tag</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Coordinates and cold-chain consolidation hub for pickups</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; font-size: 0.875rem;">
+            <div style="grid-column: 1 / -1;">
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Registered Farm Address</span>
+              <strong id="profileInfoAddress" style="color: var(--text-main); font-size: 0.95rem; line-height: 1.45; display: block; margin-top: 0.2rem;">
+                Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601
+              </strong>
+            </div>
+
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.25rem;">GPS Coordinates</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <code id="profileInfoCoords" style="background: var(--bg-subtle); padding: 0.25rem 0.55rem; border-radius: 4px; font-weight: 700; color: #0f766e; font-size: 0.85rem; border: 1px solid var(--border-subtle);">
+                  16.4582° N, 120.5891° E
+                </code>
+                <button type="button" onclick="copyGpsCoordinates()" class="btn-secondary" style="font-size: 0.725rem; padding: 0.25rem 0.55rem;" title="Copy GPS Coordinates">
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Farm Area & Topography</span>
+              <strong id="profileInfoArea" style="color: var(--text-main); font-size: 0.9rem; display: block; margin-top: 0.2rem;">
+                2.8 Hectares (Terraced Mountain Agro-Ecosystem)
+              </strong>
+            </div>
+
+            <div>
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Farm Elevation</span>
+              <strong id="profileInfoElevation" style="color: var(--text-main); font-size: 0.9rem; display: block; margin-top: 0.2rem;">
+                1,450 meters above sea level (MASL)
+              </strong>
+            </div>
+
+            <div style="grid-column: 1 / -1;">
+              <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase;">Cold-Chain Consolidation Hub</span>
+              <strong id="profileInfoHub" style="color: var(--primary-deep); font-size: 0.9rem; display: block; margin-top: 0.2rem;">
+                Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad (Refrigerated Transport Drop-off)
+              </strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 3: Harvest Specializations & Direct Logistics -->
+        <section style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+            </div>
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">Harvest Specializations & Quality Protocols</h2>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Primary crops cultivated and farm-to-table assurance</div>
+            </div>
+          </div>
+
+          <div>
+            <span style="color: var(--text-muted); display: block; font-size: 0.725rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">Primary Harvest Specializations</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem;">
+              <span style="background: #dcfce7; color: #15803d; font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 9999px;">Baguio Beans</span>
+              <span style="background: #dcfce7; color: #15803d; font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 9999px;">Highland Cabbage</span>
+              <span style="background: #dcfce7; color: #15803d; font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 9999px;">Benguet Strawberries</span>
+              <span style="background: #dcfce7; color: #15803d; font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 9999px;">Crisp Carrots</span>
+              <span style="background: #dcfce7; color: #15803d; font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 9999px;">Mountain Potatoes</span>
+            </div>
+
+            <div style="background: var(--bg-page); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; font-size: 0.825rem; color: var(--text-secondary); line-height: 1.5;">
+              <strong style="color: var(--primary-deep); display: block; margin-bottom: 0.35rem;">✓ Direct Farmgate Guarantee:</strong>
+              No middleman markup. 100% of the produce price set by the farmer is delivered straight to the farmer's electronic wallet. All crops undergo verified pre-cooling and clean packaging.
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Requirements Accreditation & E-Wallets -->
+      <div style="display: flex; flex-direction: column; gap: 1.75rem;">
+
+        <!-- Card 4: Requirements & Accreditation Checklist -->
+        <section style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <div style="width: 34px; height: 34px; border-radius: 8px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div>
+                <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">Requirements & Accreditation</h2>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Department of Agriculture & AgriConnect Verification</div>
+              </div>
+            </div>
+
+            <!-- Master Upload Requirements Button -->
+            <button type="button" onclick="openRequirementsUploadModal()" class="btn-primary" style="font-size: 0.825rem; padding: 0.5rem 1.1rem; display: inline-flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 8px rgba(22, 101, 52, 0.2);">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Requirements
+            </button>
+          </div>
+
+          <p style="font-size: 0.825rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem;">
+            Below is the distinct accreditation checklist required to maintain active farmgate supplier status. You can upload or replace documents anytime for quality assurance review.
+          </p>
+
+          <!-- Distinct Requirements Items List -->
+          <div id="farmerRequirementsList" style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <!-- Rendered dynamically by renderFarmerRequirements() -->
+          </div>
+        </section>
+
+        <!-- Card 5: E-Wallets & Direct Payout Channels (Direct Payments with QR Code) -->
+        <section style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <div style="width: 34px; height: 34px; border-radius: 8px; background: #f0fdf4; color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.05rem;">
+                ₱
+              </div>
+              <div>
+                <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">E-Wallets & Direct Payout Channels</h2>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Instant scan-to-pay QR codes for buyer checkout</div>
+              </div>
+            </div>
+
+            <!-- Add E-Wallet Button -->
+            <button type="button" onclick="openAddEWalletModal()" class="btn-primary" style="font-size: 0.825rem; padding: 0.5rem 1.1rem; display: inline-flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 8px rgba(22, 101, 52, 0.2);">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add E-Wallet
+            </button>
+          </div>
+
+          <p style="font-size: 0.825rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem;">
+            Manage your GCash, Maya, SeaBank, or rural bank accounts. When buyers place orders, they can directly scan your personal payment QR code for instant zero-fee settlement.
+          </p>
+
+          <!-- E-Wallets Grid -->
+          <div id="farmerEWalletsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <!-- Rendered dynamically by renderFarmerEWallets() -->
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Auxiliary Modal 1: Upload Requirements Modal -->
+  <div id="requirementUploadModal" class="modal-overlay" onclick="if(event.target === this) closeRequirementsUploadModal()">
+    <div class="modal-content" style="max-width: 540px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="width: 28px; height: 28px; border-radius: 6px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">📤</span>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">Upload Accreditation Requirement</h3>
+        </div>
+        <button onclick="closeRequirementsUploadModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+
+      <form id="requirementUploadForm" onsubmit="submitRequirementUpload(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+            Select Requirement to Upload
+          </label>
+          <select id="reqTypeSelect" required style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit; background: #ffffff;">
+            <option value="rsbsa">DA-RSBSA Registration Certificate (Registry System for Basic Sectors in Agriculture)</option>
+            <option value="valid_id">Government-Issued Valid Identification (PhilSys / UMID / Driver's License)</option>
+            <option value="barangay_cert">Barangay Farm & Land Occupancy Certification</option>
+            <option value="gap_cert">Philippine Good Agricultural Practices (PhilGAP) Clearance</option>
+            <option value="water_test">Agricultural Soil & Irrigation Water Potability Clearance</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+            Choose Document File (PDF, JPG, PNG)
+          </label>
+          <div style="border: 2px dashed #86efac; border-radius: var(--radius-sm); padding: 1.75rem 1rem; text-align: center; background: #f0fdf4; cursor: pointer;" onclick="document.getElementById('reqDocFileInput').click()">
+            <div style="font-size: 2.25rem; margin-bottom: 0.35rem;">📄</div>
+            <p id="reqFileNameDisplay" style="font-size: 0.85rem; color: #15803d; font-weight: 700; margin: 0;">
+              Click to browse or drop file here
+            </p>
+            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
+              Supported formats: PDF, JPG, PNG (Max 10MB)
+            </span>
+          </div>
+          <input type="file" id="reqDocFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" onchange="handleReqFileSelection(event)">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+            Document Notes / Reference Number (Optional)
+          </label>
+          <input type="text" id="reqDocNotes" placeholder="e.g. Reference #CAR-BEN-2025 or Issuing Office" style="width: 100%; padding: 0.6rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit;">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
+          <button type="button" onclick="closeRequirementsUploadModal()" class="btn-secondary" style="font-size: 0.85rem; padding: 0.55rem 1.15rem;">
+            Cancel
+          </button>
+          <button type="submit" class="btn-primary" style="font-size: 0.85rem; padding: 0.55rem 1.25rem;">
+            Submit Requirement
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Auxiliary Modal 2: Add E-Wallet Modal with QR Code Upload -->
+  <div id="addEWalletModal" class="modal-overlay" onclick="if(event.target === this) closeAddEWalletModal()">
+    <div class="modal-content" style="max-width: 520px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="width: 28px; height: 28px; border-radius: 6px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800;">₱</span>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">Add E-Wallet / Payment Method</h3>
+        </div>
+        <button onclick="closeAddEWalletModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+
+      <form id="addEWalletForm" onsubmit="saveNewEWallet(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+            E-Wallet Provider / Bank
+          </label>
+          <select id="newWalletProvider" required style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit; background: #ffffff;">
+            <option value="gcash">GCash</option>
+            <option value="maya">Maya (PayMaya)</option>
+            <option value="seabank">SeaBank Philippines</option>
+            <option value="gotyme">GoTyme Bank</option>
+            <option value="landbank">Land Bank of the Philippines</option>
+            <option value="bpi">Bank of the Philippine Islands (BPI)</option>
+            <option value="bdo">BDO Unibank</option>
+            <option value="unionbank">UnionBank of the Philippines</option>
+            <option value="other">Other E-Wallet / Bank</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+            Registered Account Name
+          </label>
+          <input type="text" id="newWalletAccountName" required placeholder="e.g. Ramon Dela Cruz" style="width: 100%; padding: 0.6rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+            Account / Mobile Number
+          </label>
+          <input type="text" id="newWalletAccountNumber" required placeholder="e.g. 0917-842-1092" style="width: 100%; padding: 0.6rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit;">
+        </div>
+
+        <!-- Upload QR Code for Direct Payments -->
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
+            Upload Payment QR Code (For Direct Payments)
+          </label>
+          <div style="border: 2px dashed #93c5fd; border-radius: var(--radius-sm); padding: 1.25rem 1rem; text-align: center; background: #eff6ff; cursor: pointer;" onclick="document.getElementById('newWalletQrFileInput').click()">
+            <div id="newWalletQrPreviewContainer" style="display: none; margin-bottom: 0.5rem;">
+              <img id="newWalletQrPreviewImg" src="" alt="Payment QR Code Preview" style="width: 110px; height: 110px; object-fit: contain; border-radius: 8px; border: 1px solid #bfdbfe; background: #ffffff; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            </div>
+            <div id="newWalletQrPlaceholder">
+              <div style="font-size: 1.75rem; margin-bottom: 0.25rem;">📱</div>
+              <p id="newWalletQrText" style="font-size: 0.85rem; color: #1d4ed8; font-weight: 700; margin: 0;">
+                Click to upload your GCash/Maya/InstaPay QR Code image
+              </p>
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                Buyers can scan this QR code directly during checkout
+              </span>
+            </div>
+          </div>
+          <input type="file" id="newWalletQrFileInput" accept="image/*" style="display: none;" onchange="handleQrUploadPreview(event)">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
+          <button type="button" onclick="closeAddEWalletModal()" class="btn-secondary" style="font-size: 0.85rem; padding: 0.55rem 1.15rem;">
+            Cancel
+          </button>
+          <button type="submit" class="btn-primary" style="font-size: 0.85rem; padding: 0.55rem 1.25rem;">
+            Save E-Wallet
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Auxiliary Modal 3: View Full QR Code Modal for Direct Payments -->
+  <div id="qrCodeViewModal" class="modal-overlay" onclick="if(event.target === this) closeFullQrModal()">
+    <div class="modal-content" style="max-width: 420px; text-align: center; padding: 1.75rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.65rem;">
+        <span id="fullQrProviderBadge" style="font-size: 0.775rem; font-weight: 800; background: #dcfce7; color: #15803d; padding: 0.2rem 0.65rem; border-radius: 9999px;">
+          Direct Farmgate Payment
+        </span>
+        <button onclick="closeFullQrModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+
+      <h3 id="fullQrWalletTitle" style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">
+        Scan to Pay Ramon Dela Cruz
+      </h3>
+      <p id="fullQrWalletAccount" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        GCash: 0917-842-1092
+      </p>
+
+      <div style="background: #ffffff; border: 2px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 1.25rem;">
+        <img id="fullQrCodeImg" src="" alt="Scannable Direct Payment QR Code" style="width: 220px; height: 220px; object-fit: contain; display: block; margin: 0 auto;">
+      </div>
+
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 0.75rem; font-size: 0.8rem; color: #15803d; margin-bottom: 1.25rem;">
+        ✓ Direct Producer Payment: 100% of payment goes to the farmer without middleman fee.
+      </div>
+
+      <button onclick="closeFullQrModal()" class="btn-primary" style="width: 100%; font-size: 0.875rem; padding: 0.65rem;">
+        Close QR Viewer
+      </button>
+    </div>
+  </div>
+
+  <!-- Auxiliary Hidden QR Upload Input for Updating Specific Wallet QR -->
+  <input type="file" id="specificWalletQrFileInput" accept="image/*" style="display: none;" onchange="handleSpecificWalletQrUpload(event)">
+
+  <!-- Sell Harvest Produce Listing Modal -->
+  <div id="sellHarvestModal" class="modal-overlay" onclick="if(event.target === this) closeSellHarvestModal()">
+    <div class="modal-content" style="max-width: 580px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="width: 28px; height: 28px; border-radius: 6px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">🌱</span>
+          <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin: 0;">Sell Harvest & List Produce</h3>
+        </div>
+        <button onclick="closeSellHarvestModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+
+      <form id="sellHarvestForm" onsubmit="submitHarvestListing(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem;">Produce / Crop Name *</label>
+          <input type="text" id="sellCropName" required placeholder="e.g. Benguet Strawberries, Baguio Beans, Dinorado Rice" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem;">Category *</label>
+            <select id="sellCategory" required style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit; background: #ffffff;">
+              <option value="cat-veg">Vegetables</option>
+              <option value="cat-fruit">Fruits</option>
+              <option value="cat-rice">Rice & Grains</option>
+              <option value="cat-root">Root Crops</option>
+              <option value="cat-poultry">Poultry & Eggs</option>
+              <option value="cat-coco">Coconut Products</option>
+              <option value="cat-fish">Fish & Seafood</option>
+              <option value="cat-herb">Herbs & Spices</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem;">Direct Farmgate Price (₱) *</label>
+            <input type="number" id="sellPrice" required min="1" step="0.5" placeholder="120" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem;">Unit *</label>
+            <select id="sellUnit" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit; background: #ffffff;">
+              <option value="kg">kg (Kilogram)</option>
+              <option value="sack (50kg)">sack (50kg)</option>
+              <option value="tray (30s)">tray (30 eggs)</option>
+              <option value="bunch">bunch</option>
+              <option value="bundle">bundle</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem;">Available Quantity *</label>
+            <input type="number" id="sellQuantity" required min="1" placeholder="150" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit;">
+          </div>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem;">Description & Harvest Date</label>
+          <textarea id="sellDescription" rows="2" placeholder="e.g. Picked fresh this morning. Grown naturally without synthetic pesticides in high elevation soil." style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.875rem; font-family: inherit;"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
+          <button type="button" onclick="closeSellHarvestModal()" class="btn-secondary" style="padding: 0.65rem 1.2rem; font-size: 0.875rem;">
+            Cancel
+          </button>
+          <button type="submit" class="btn-primary" style="padding: 0.65rem 1.4rem; font-size: 0.875rem;">
+            Publish Harvest to Live Marketplace
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Slide-out Shopping Cart Drawer -->
+  <div id="cartDrawer" class="cart-drawer">
+    <div class="cart-drawer-header">
+      <h3>Your Farm Basket</h3>
+      <button onclick="toggleCart(false)" class="btn-close" aria-label="Close cart">&times;</button>
+    </div>
+    <div id="cartItemsContainer" class="cart-items-container"></div>
+    <div class="cart-drawer-footer">
+      <div class="cart-total-row">
+        <span>Total:</span>
+        <span id="cartTotalDisplay">₱0.00</span>
+      </div>
+      <button onclick="proceedToCheckout()" class="btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.95rem;">
+        Proceed to Checkout
+      </button>
+    </div>
+  </div>
+
+  <!-- Site Footer -->
+  <footer style="background: #ffffff; border-top: 1px solid var(--border-subtle); padding: 3rem 1.25rem 2rem; margin-top: 4rem;">
+    <div style="max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-subtle);">
+      <div>
+        <div class="brand-logo" style="margin-bottom: 0.75rem;">
+          <img src="assets/logo.png" alt="AgriConnect Logo" class="brand-logo-img">
+          <span>AgriConnect</span>
+        </div>
+        <p style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.6;">
+          Direct agricultural connection empowering Filipino farmers and conscious consumers through honest pricing and cold-chain transparency.
+        </p>
+      </div>
+
+      <div>
+        <h5 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-main); margin-bottom: 0.75rem;">Platform</h5>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.825rem;">
+          <li><a href="index.html" style="color: var(--text-secondary); text-decoration: none;">Home Overview</a></li>
+          <li><a href="marketplace.html" style="color: var(--text-secondary); text-decoration: none;">Produce Marketplace</a></li>
+          <li><a href="farmers.html" style="color: var(--text-secondary); text-decoration: none;">Farmer Directory</a></li>
+          <li><a href="maps.html" style="color: var(--text-secondary); text-decoration: none;">Farm Map & Directions</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h5 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-main); margin-bottom: 0.75rem;">Producer Tools</h5>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.825rem;">
+          <li><a href="dashboard.html" style="color: var(--text-secondary); text-decoration: none;">Producer Dashboard</a></li>
+          <li><a href="profile.html" style="color: var(--primary); font-weight: 700; text-decoration: none;">My Profile & Farm Specs</a></li>
+          <li><a href="how-it-works.html" style="color: var(--text-secondary); text-decoration: none;">How It Works</a></li>
+          <li><a href="track-orders.html" style="color: var(--text-secondary); text-decoration: none;">Live Order Tracking</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h5 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-main); margin-bottom: 0.75rem;">Farmer Registration</h5>
+        <p style="font-size: 0.825rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.75rem;">
+          Are you a local agricultural producer? List your upcoming harvest on AgriConnect with zero listing fees.
+        </p>
+        <button onclick="openSellHarvestModal()" class="btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.85rem; width: 100%;">
+          Register Harvest Listing
+        </button>
+      </div>
+    </div>
+
+    <div style="max-width: 1240px; margin: 1.5rem auto 0; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); flex-wrap: wrap; gap: 0.5rem;">
+      <div>&copy; 2026 AgriConnect Philippines. All rights reserved. Direct Farm-to-Table Infrastructure.</div>
+      <div>Designed for Philippine Smallholder Agricultural Sustainability</div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+</body>
+</html>

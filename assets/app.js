@@ -204,6 +204,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (document.getElementById('buyerDashboardView') || document.getElementById('farmerOrdersList')) {
     initDashboard();
   }
+  if (document.getElementById('farmerProfilePageContainer') || document.getElementById('profileName')) {
+    initProfilePage();
+  }
 });
 
 // Load live data or fallback
@@ -1991,60 +1994,75 @@ function saveFarmerEWallets(wallets) {
   localStorage.setItem('agri_farmer_ewallets', JSON.stringify(wallets));
 }
 
-function openFarmerProfileModal() {
-  const user = window.AgriState.user || {};
-  const modal = document.getElementById('farmerProfileModal');
-  if (!modal) return;
+function initProfilePage() {
+  const user = window.AgriState.user || {
+    role: 'farmer',
+    full_name: 'Mang Ramon Dela Cruz',
+    farm_name: 'Dela Cruz Family Farm',
+    cooperative: 'Benguet Farmers Multi-Purpose Cooperative (BFMPC)',
+    phone: '+63 917 842 1092',
+    email: 'ramon.delacruz@agriconnect.ph',
+    alt_phone: '+63 928 551 8934',
+    experience: '18 Years (Highland Agriculture)',
+    role_tier: 'Tier-1 Direct Farmgate Supplier',
+    address: 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601',
+    coords: '16.4582° N, 120.5891° E',
+    area: '2.8 Hectares (Terraced Mountain Agro-Ecosystem)',
+    elevation: '1,450 meters above sea level (MASL)',
+    hub: 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad',
+    crops: 'Baguio Beans, Cabbage, Strawberries, Carrots',
+    rating: '★ 4.9 / 5.0',
+    fulfillment: '100% On-Time',
+    compliance: 'Grade A+'
+  };
 
   // Populate Header info
-  const nameEl = document.getElementById('profileModalName');
-  const farmEl = document.getElementById('profileModalFarm');
-  const avatarEl = document.getElementById('profileModalAvatar');
+  const nameEl = document.getElementById('profileName') || document.getElementById('profileModalName');
+  const farmEl = document.getElementById('profileFarm') || document.getElementById('profileModalFarm');
+  const avatarEl = document.getElementById('profileAvatar') || document.getElementById('profileModalAvatar');
 
   if (nameEl) nameEl.textContent = user.full_name || 'Mang Ramon Dela Cruz';
   if (farmEl) farmEl.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.cooperative || 'Benguet Farmers Multi-Purpose Cooperative (BFMPC)'}`;
   if (avatarEl && user.avatar) avatarEl.src = user.avatar;
 
   // Populate View details
-  const infoNameEl = document.getElementById('profileInfoFullName');
-  const phoneEl = document.getElementById('profileInfoPhone');
-  const emailEl = document.getElementById('profileInfoEmail');
-  const altPhoneEl = document.getElementById('profileInfoAltPhone');
-  const coopEl = document.getElementById('profileInfoCoop');
-  const expEl = document.getElementById('profileInfoExperience');
-  const tierEl = document.getElementById('profileInfoTier');
-  const addressEl = document.getElementById('profileInfoAddress');
-  const coordsEl = document.getElementById('profileInfoCoords');
-  const areaEl = document.getElementById('profileInfoArea');
-  const elevEl = document.getElementById('profileInfoElevation');
-  const hubEl = document.getElementById('profileInfoHub');
-  const cropsEl = document.getElementById('profileInfoSpecialization');
-  const ratingEl = document.getElementById('profileInfoRating');
-  const fulfillmentEl = document.getElementById('profileInfoFulfillment');
-  const complianceEl = document.getElementById('profileInfoCompliance');
+  const fields = [
+    ['profileInfoFullName', user.full_name || 'Mang Ramon Dela Cruz'],
+    ['profileInfoPhone', user.phone || '+63 917 842 1092'],
+    ['profileInfoEmail', user.email || 'ramon.delacruz@agriconnect.ph'],
+    ['profileInfoAltPhone', user.alt_phone || '+63 928 551 8934'],
+    ['profileInfoCoop', user.cooperative || 'Benguet Farmers Multi-Purpose Coop (BFMPC)'],
+    ['profileInfoExperience', user.experience || '18 Years (Highland Agriculture)'],
+    ['profileInfoTier', user.role_tier || 'Tier-1 Direct Farmgate Supplier'],
+    ['profileInfoAddress', user.address || 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601'],
+    ['profileInfoCoords', user.coords || '16.4582° N, 120.5891° E'],
+    ['profileInfoArea', user.area || '2.8 Hectares (Terraced Mountain Agro-Ecosystem)'],
+    ['profileInfoElevation', user.elevation || '1,450 meters above sea level (MASL)'],
+    ['profileInfoHub', user.hub || 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad'],
+    ['profileInfoSpecialization', user.crops || 'Baguio Beans, Cabbage, Strawberries, Carrots'],
+    ['profileInfoRating', user.rating || '★ 4.9 / 5.0'],
+    ['profileInfoFulfillment', user.fulfillment || '100% On-Time'],
+    ['profileInfoCompliance', user.compliance || 'Grade A+']
+  ];
 
-  if (infoNameEl) infoNameEl.textContent = user.full_name || 'Mang Ramon Dela Cruz';
-  if (phoneEl) phoneEl.textContent = user.phone || '+63 917 842 1092';
-  if (emailEl) emailEl.textContent = user.email || 'ramon.delacruz@agriconnect.ph';
-  if (altPhoneEl) altPhoneEl.textContent = user.alt_phone || '+63 928 551 8934';
-  if (coopEl) coopEl.textContent = user.cooperative || 'Benguet Farmers Multi-Purpose Coop (BFMPC)';
-  if (expEl) expEl.textContent = user.experience || '18 Years (Highland Agriculture)';
-  if (tierEl) tierEl.textContent = user.role_tier || 'Tier-1 Direct Farmgate Supplier';
-  if (addressEl) addressEl.textContent = user.address || 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601';
-  if (coordsEl) coordsEl.textContent = user.coords || '16.4582° N, 120.5891° E';
-  if (areaEl) areaEl.textContent = user.area || '2.8 Hectares (Terraced Mountain Agro-Ecosystem)';
-  if (elevEl) elevEl.textContent = user.elevation || '1,450 meters above sea level (MASL)';
-  if (hubEl) hubEl.textContent = user.hub || 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad';
-  if (cropsEl) cropsEl.textContent = user.crops || 'Baguio Beans, Cabbage, Strawberries, Carrots';
-  if (ratingEl) ratingEl.textContent = user.rating || '★ 4.9 / 5.0';
-  if (fulfillmentEl) fulfillmentEl.textContent = user.fulfillment || '100% On-Time';
-  if (complianceEl) complianceEl.textContent = user.compliance || 'Grade A+';
+  fields.forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  });
 
   // Render dynamic components
   renderFarmerRequirements();
   renderFarmerEWallets();
+}
 
-  modal.classList.add('open');
+function openFarmerProfileModal() {
+  const modal = document.getElementById('farmerProfileModal');
+  if (modal) {
+    initProfilePage();
+    modal.classList.add('open');
+  } else {
+    window.location.href = 'profile.html';
+  }
 }
 
 function closeFarmerProfileModal() {
@@ -2129,7 +2147,7 @@ function saveFarmerProfile(e) {
 
   localStorage.setItem('agri_user', JSON.stringify(user));
 
-  // Sync with Dashboard elements
+  // Sync with Dashboard elements if present
   const welcomeFarmerName = document.getElementById('welcomeFarmerName');
   if (welcomeFarmerName) welcomeFarmerName.textContent = user.full_name;
   const welcomeFarmerFarm = document.getElementById('welcomeFarmerFarm');
@@ -2140,8 +2158,8 @@ function saveFarmerProfile(e) {
   const farmerFarmDetails = document.getElementById('farmerFarmDetails');
   if (farmerFarmDetails) farmerFarmDetails.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.address ? user.address.split(',').slice(0, 3).join(',') : 'Sitio Pungayan, La Trinidad, Benguet'}`;
 
-  // Update modal views
-  openFarmerProfileModal();
+  // Update views
+  initProfilePage();
   toggleEditFarmerProfile(false);
   updateAuthUI();
 
@@ -2159,8 +2177,8 @@ function handleProfileAvatarUpload(e) {
     window.AgriState.user.avatar = dataUrl;
     localStorage.setItem('agri_user', JSON.stringify(window.AgriState.user));
 
-    const modalAvatar = document.getElementById('profileModalAvatar');
-    if (modalAvatar) modalAvatar.src = dataUrl;
+    const profileAvatar = document.getElementById('profileAvatar') || document.getElementById('profileModalAvatar');
+    if (profileAvatar) profileAvatar.src = dataUrl;
 
     const dashAvatar = document.getElementById('farmerAvatar');
     if (dashAvatar) dashAvatar.src = dataUrl;
@@ -2170,6 +2188,20 @@ function handleProfileAvatarUpload(e) {
   };
 
   reader.readAsDataURL(file);
+}
+
+function copyGpsCoordinates() {
+  const coordsEl = document.getElementById('profileInfoCoords');
+  const text = coordsEl ? coordsEl.textContent.trim() : '16.4582° N, 120.5891° E';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('GPS coordinates copied: ' + text);
+    }).catch(() => {
+      showToast('Coordinates: ' + text);
+    });
+  } else {
+    showToast('Coordinates: ' + text);
+  }
 }
 
 // -------------------------------------------------------------
@@ -3318,16 +3350,23 @@ function updateAuthUI() {
 
   if (user && user.full_name) {
     const initials = user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+    const isProfilePage = window.location.pathname.includes('profile.html');
     container.innerHTML = `
       <div style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; flex-shrink: 0;">
-        <div style="width: 32px; height: 32px; border-radius: 9999px; background: var(--primary); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; box-shadow: var(--shadow-sm);">
-          ${initials}
-        </div>
-        <div style="display: flex; flex-direction: column; line-height: 1.15; text-align: left; white-space: nowrap;">
-          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main); white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis;" title="${user.full_name}">${user.full_name}</span>
-          <span style="font-size: 0.68rem; color: var(--primary); font-weight: 700; text-transform: uppercase; white-space: nowrap;">${user.role === 'farmer' ? 'Farmer' : 'Buyer'}</span>
-        </div>
-        <button onclick="handleLogout()" class="btn-secondary" style="font-size: 0.725rem; padding: 0.25rem 0.55rem; border-color: var(--border-subtle); white-space: nowrap;" title="Log out">
+        <a href="profile.html" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; padding: 0.2rem 0.35rem; border-radius: var(--radius-sm); transition: opacity 0.15s ease;" title="View My Profile">
+          <div style="width: 32px; height: 32px; border-radius: 9999px; background: var(--primary); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; box-shadow: var(--shadow-sm); overflow: hidden;">
+            ${user.avatar ? `<img src="${user.avatar}" alt="${user.full_name}" style="width: 100%; height: 100%; object-fit: cover;">` : initials}
+          </div>
+          <div style="display: flex; flex-direction: column; line-height: 1.15; text-align: left; white-space: nowrap;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main); white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis;" title="${user.full_name}">${user.full_name}</span>
+            <span style="font-size: 0.68rem; color: var(--primary); font-weight: 700; text-transform: uppercase; white-space: nowrap;">${user.role === 'farmer' ? 'Farmer' : 'Buyer'}</span>
+          </div>
+        </a>
+        <a href="profile.html" class="btn-secondary" style="font-size: 0.725rem; padding: 0.28rem 0.65rem; border-color: ${isProfilePage ? 'var(--primary)' : 'var(--border-subtle)'}; background: ${isProfilePage ? 'var(--primary-light)' : '#ffffff'}; color: ${isProfilePage ? 'var(--primary-deep)' : 'var(--text-main)'}; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700;" title="My Profile">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Profile</span>
+        </a>
+        <button onclick="handleLogout()" class="btn-secondary" style="font-size: 0.725rem; padding: 0.28rem 0.55rem; border-color: var(--border-subtle); white-space: nowrap;" title="Log out">
           Sign Out
         </button>
       </div>
