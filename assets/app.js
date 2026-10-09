@@ -977,8 +977,8 @@ function renderFarmersDirectory() {
             <div style="font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.35rem;">
               ${ICONS.phone} ${f.phone || 'Direct line'}
             </div>
-            <a href="maps.html?lat=${f.latitude}&lng=${f.longitude}&name=${encodeURIComponent(f.farm_name)}" class="btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.85rem; margin-top: 0.35rem;">
-              ${ICONS.navigation} Get Driving Directions
+            <a href="maps.html?lat=${f.latitude}&lng=${f.longitude}&name=${encodeURIComponent(f.farm_name)}" class="btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.85rem; margin-top: 0.35rem;" title="View exact farm location & directions">
+              ${ICONS.mapPin} Get Location & Directions
             </a>
           </div>
         </div>
