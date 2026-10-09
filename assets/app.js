@@ -155,6 +155,14 @@ window.AgriState = {
 // Purge any legacy sample orders from storage
 localStorage.setItem('agri_orders', JSON.stringify(window.AgriState.orders));
 
+// Clear any lingering session from the removed demo accounts
+if (window.AgriState.user && ['farmer-ramon', 'buyer-juan'].includes(window.AgriState.user.id)) {
+  window.AgriState.user = null;
+  localStorage.removeItem('agri_user');
+  localStorage.setItem('agri_mode', 'buyer');
+  window.AgriState.currentMode = 'buyer';
+}
+
 // Clean SVG Icons
 const ICONS = {
   mapPin: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
@@ -4064,29 +4072,11 @@ function handleLogin(e) {
 
   // Check saved registered users
   const registeredUsers = JSON.parse(localStorage.getItem('agri_users') || '[]');
-  let matchedUser = registeredUsers.find(u => u.email.toLowerCase() === email);
+  const matchedUser = registeredUsers.find(u => u.email.toLowerCase() === email);
 
-  // Pre-seeded accounts fallback for convenience
   if (!matchedUser) {
-    if (email.includes('farmer') || email.includes('ramon')) {
-      matchedUser = {
-        id: 'farmer-ramon',
-        full_name: 'Mang Ramon Dela Cruz',
-        email: email,
-        role: 'farmer',
-        farm_name: 'Dela Cruz Family Farm',
-        province: 'Benguet',
-        avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'
-      };
-    } else {
-      matchedUser = {
-        id: 'user-' + Date.now(),
-        full_name: email.split('@')[0].replace('.', ' ').replace(/^./, str => str.toUpperCase()),
-        email: email,
-        role: 'buyer',
-        avatar: null
-      };
-    }
+    showToast('No account found with that email. Please create an account first.');
+    return;
   }
 
   // Persist session
@@ -4390,47 +4380,6 @@ function handleRegister(e) {
     const redirectUrl = params.get('redirect') || 'dashboard.html';
     window.location.href = redirectUrl;
   }, 700);
-}
-
-function loginDemoUser(role) {
-  let demoUser;
-  if (role === 'farmer') {
-    demoUser = {
-      id: 'farmer-ramon',
-      full_name: 'Mang Ramon Dela Cruz',
-      email: 'ramon.delacruz@benguetfarm.ph',
-      role: 'farmer',
-      farm_name: 'Dela Cruz Family Farm',
-      province: 'Benguet',
-      avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'
-    };
-    window.AgriState.currentMode = 'farmer';
-    localStorage.setItem('agri_mode', 'farmer');
-  } else {
-    demoUser = {
-      id: 'buyer-juan',
-      full_name: 'Juan Dela Cruz',
-      email: 'juan.delacruz@consumer.ph',
-      role: 'buyer',
-      farm_name: '',
-      province: 'Metro Manila',
-      avatar: null
-    };
-    window.AgriState.currentMode = 'buyer';
-    localStorage.setItem('agri_mode', 'buyer');
-  }
-
-  window.AgriState.user = demoUser;
-  localStorage.setItem('agri_user', JSON.stringify(demoUser));
-
-  updateAuthUI();
-  showToast(`Logged in as ${demoUser.full_name} (${demoUser.role.toUpperCase()})`);
-
-  setTimeout(() => {
-    const params = new URLSearchParams(window.location.search);
-    const redirectUrl = params.get('redirect') || 'dashboard.html';
-    window.location.href = redirectUrl;
-  }, 500);
 }
 
 function handleLogout() {
