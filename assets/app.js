@@ -2648,21 +2648,206 @@ function initProfilePage() {
   const farmEl = document.getElementById('profileFarm') || document.getElementById('profileModalFarm');
   const avatarEl = document.getElementById('profileAvatar') || document.getElementById('profileModalAvatar');
 
-  if (nameEl) nameEl.textContent = user.full_name || (isFarmer ? 'Mang Ramon Dela Cruz' : 'Juan Dela Cruz');
+  if (nameEl) nameEl.textContent = user.full_name || (isFarmer ? 'Mang Ramon Dela Cruz' : 'Krystel Comia');
   if (farmEl) {
     farmEl.textContent = isFarmer
       ? `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.cooperative || 'Benguet Farmers Multi-Purpose Cooperative (BFMPC)'}`
-      : `${user.province || 'Metro Manila'} Delivery Hub • Registered AgriConnect Direct Farmgate Buyer`;
+      : `${user.shipping_city || user.province || 'Luzon'} Delivery Hub • Registered AgriConnect Direct Farmgate Buyer`;
   }
   if (avatarEl && user.avatar) avatarEl.src = user.avatar;
 
   // Header badges & role indicator on profile page
   const idBadge = document.getElementById('profileModalIdBadge');
   if (idBadge) {
-    idBadge.textContent = isFarmer ? 'ID: PH-AGRI-8842' : 'ID: BUYER-NCR-4820';
+    idBadge.textContent = isFarmer
+      ? (user.id && user.id.startsWith('farmer-') ? `ID: ${user.id.toUpperCase()}` : 'ID: PH-AGRI-8842')
+      : (user.id ? `ID: ${user.id.toUpperCase()}` : 'ID: BUYER-NCR-4820');
   }
 
+  // Hero section badges & titles
+  const dashBreadcrumb = document.getElementById('profileBreadcrumbDashboard');
+  if (dashBreadcrumb) {
+    dashBreadcrumb.textContent = isFarmer ? 'Farmer Dashboard' : 'Marketplace';
+    dashBreadcrumb.href = isFarmer ? 'dashboard.html' : 'marketplace.html';
+  }
+
+  const pageHeading = document.getElementById('profilePageHeading');
+  if (pageHeading) {
+    pageHeading.textContent = isFarmer
+      ? 'Highland Farmer & Farmgate Producer Profile'
+      : 'Buyer Account & Product Shipment Profile';
+  }
+
+  const pageSubheading = document.getElementById('profilePageSubheading');
+  if (pageSubheading) {
+    pageSubheading.textContent = isFarmer
+      ? 'Accredited direct-farmgate supplier credentials, harvest logistics, and verified Department of Agriculture compliance.'
+      : 'Manage your destination delivery address, recipient contacts, and cold-chain drop-off preferences for farm-to-door dispatches.';
+  }
+
+  const actionBtn = document.getElementById('profileActionBtn');
+  if (actionBtn) {
+    actionBtn.textContent = isFarmer ? 'Farmer Dashboard' : 'Browse Marketplace';
+    actionBtn.href = isFarmer ? 'dashboard.html' : 'marketplace.html';
+  }
+
+  const roleBadge = document.getElementById('profileRoleBadge');
+  if (roleBadge) {
+    roleBadge.textContent = isFarmer ? 'VERIFIED PRODUCER' : 'VERIFIED BUYER';
+  }
+
+  const partnerBadge = document.getElementById('profilePartnerBadge');
+  if (partnerBadge) {
+    partnerBadge.textContent = isFarmer ? '✓ Accredited Farmgate Partner' : '✓ Direct Farmgate Sourcing';
+  }
+
+  const feeBadge = document.getElementById('profileFeeBadge');
+  if (feeBadge) {
+    feeBadge.textContent = isFarmer ? '0% Middleman Deduction' : '0% Intermediary Markup';
+  }
+
+  const ribbonTierLabel = document.getElementById('profileRibbonTierLabel');
+  if (ribbonTierLabel) {
+    ribbonTierLabel.textContent = isFarmer ? 'PRODUCER ROLE & TIER' : 'BUYER ACCOUNT & TIER';
+  }
+
+  const ribbonTierSub = document.getElementById('profileRibbonTierSub');
+  if (ribbonTierSub) {
+    ribbonTierSub.textContent = isFarmer ? 'Accredited Supplier' : 'Direct Farmgate Sourcing';
+  }
+
+  // Card 1: Personal & Contact Information
+  const card1Title = document.getElementById('profileCard1Title');
+  if (card1Title) card1Title.textContent = isFarmer ? "Farmer's Personal & Contact Information" : "Buyer's Personal & Contact Information";
+
+  const card1Subtitle = document.getElementById('profileCard1Subtitle');
+  if (card1Subtitle) card1Subtitle.textContent = isFarmer ? "Verified producer credentials registered on AgriConnect" : "Verified consumer credentials registered on AgriConnect";
+
+  const coopLabel = document.getElementById('profileInfoCoopLabel');
+  if (coopLabel) coopLabel.textContent = isFarmer ? "Cooperative / Farmer Association" : "Sourcing Program / Affiliation";
+
+  const expLabel = document.getElementById('profileInfoExpLabel');
+  if (expLabel) expLabel.textContent = isFarmer ? "Farming Experience" : "Account Status & Tenure";
+
+  const statusEl = document.getElementById('profileInfoStatus');
+  if (statusEl) {
+    statusEl.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: #16a34a;"></span> ${isFarmer ? 'Active Farmgate Supplier' : 'Active Direct Buyer'}`;
+  }
+
+  // Card 2: Location & Hub
+  const card2Title = document.getElementById('profileCard2Title');
+  if (card2Title) card2Title.textContent = isFarmer ? "Exact Farm Location & Geo-Tag" : "Delivery Logistics & Regional Hub";
+
+  const card2Subtitle = document.getElementById('profileCard2Subtitle');
+  if (card2Subtitle) card2Subtitle.textContent = isFarmer ? "Coordinates and cold-chain consolidation hub for pickups" : "Cold-chain transit zone and courier drop-off terminal";
+
+  const card2AddrLabel = document.getElementById('profileCard2AddrLabel');
+  if (card2AddrLabel) card2AddrLabel.textContent = isFarmer ? "Registered Farm Address" : "Registered Destination Address";
+
+  const card2CoordsLabel = document.getElementById('profileCard2CoordsLabel');
+  if (card2CoordsLabel) card2CoordsLabel.textContent = isFarmer ? "GPS Coordinates" : "Delivery GPS Coordinates";
+
+  const card2AreaLabel = document.getElementById('profileCard2AreaLabel');
+  if (card2AreaLabel) card2AreaLabel.textContent = isFarmer ? "Farm Area & Topography" : "Logistics Delivery Zone";
+
+  const card2ElevLabel = document.getElementById('profileCard2ElevLabel');
+  if (card2ElevLabel) card2ElevLabel.textContent = isFarmer ? "Farm Elevation" : "Regional Transit Elevation";
+
+  const card2HubLabel = document.getElementById('profileCard2HubLabel');
+  if (card2HubLabel) card2HubLabel.textContent = isFarmer ? "Cold-Chain Consolidation Hub" : "Assigned Logistics Consolidation Depot";
+
+  // Card 3: Specializations & Protocols
+  const card3Title = document.getElementById('profileCard3Title');
+  if (card3Title) card3Title.textContent = isFarmer ? "Harvest Specializations & Quality Protocols" : "Produce Sourcing Preferences & Direct Assurance";
+
+  const card3Subtitle = document.getElementById('profileCard3Subtitle');
+  if (card3Subtitle) card3Subtitle.textContent = isFarmer ? "Primary crops cultivated and farm-to-table assurance" : "Preferred harvest varieties and cold-chain handling assurance";
+
+  const card3BadgesLabel = document.getElementById('profileCard3BadgesLabel');
+  if (card3BadgesLabel) card3BadgesLabel.textContent = isFarmer ? "Primary Harvest Specializations" : "Preferred Fresh Harvest Varieties";
+
+  const card3Guarantee = document.getElementById('profileCard3Guarantee');
+  if (card3Guarantee) {
+    card3Guarantee.innerHTML = isFarmer
+      ? `<strong style="color: var(--primary-deep); display: block; margin-bottom: 0.35rem;">✓ Direct Farmgate Guarantee:</strong> No middleman markup. 100% of the product price set by the farmer is delivered straight to the farmer's electronic wallet. All crops undergo verified pre-cooling and clean packaging.`
+      : `<strong style="color: var(--primary-deep); display: block; margin-bottom: 0.35rem;">✓ Farm-to-Door Cold Chain Guarantee:</strong> Guaranteed zero middleman markup. Harvested fresh at dawn by verified highland and lowland farmers, pre-cooled, and dispatched directly to your destination address with complete temperature monitoring.`;
+  }
+
+  // Card 4: Switch Requirements (Farmer) vs Product Shipment Details (Buyer)
+  const reqSection = document.getElementById('profileRequirementsSection');
+  const shipmentSection = document.getElementById('buyerShipmentSection');
+
+  if (isFarmer) {
+    if (reqSection) reqSection.style.display = 'block';
+    if (shipmentSection) shipmentSection.style.display = 'none';
+    renderFarmerRequirements();
+  } else {
+    if (reqSection) reqSection.style.display = 'none';
+    if (shipmentSection) shipmentSection.style.display = 'block';
+
+    // Populate Buyer Product Shipment Details
+    const shipRecipient = document.getElementById('shipmentRecipientName');
+    if (shipRecipient) shipRecipient.textContent = user.full_name || 'Krystel Comia';
+
+    const shipPhone = document.getElementById('shipmentPhone');
+    if (shipPhone) shipPhone.textContent = user.phone || '09271836734';
+
+    const shipAltPhone = document.getElementById('shipmentAltPhone');
+    if (shipAltPhone) shipAltPhone.textContent = user.alt_phone || '0920-551-8930';
+
+    const shipEmail = document.getElementById('shipmentEmail');
+    if (shipEmail) shipEmail.textContent = user.email || 'comiakrystel65@gmail.com';
+
+    const shipAddress = document.getElementById('shipmentAddress');
+    if (shipAddress) {
+      shipAddress.textContent = user.shipping_address || user.address || 'Unit 802, Pioneer Woodlands, EDSA cor. Pioneer St., Barangay Ilaya, Mandaluyong City, Metro Manila, 1550';
+    }
+
+    const shipLandmark = document.getElementById('shipmentLandmark');
+    if (shipLandmark) {
+      shipLandmark.textContent = user.delivery_landmark || 'Near Boni MRT Station. If recipient is unavailable, please leave package with 24/7 lobby concierge or building guard.';
+    }
+
+    const shipSchedule = document.getElementById('shipmentSchedule');
+    if (shipSchedule) {
+      shipSchedule.textContent = user.delivery_schedule || 'Morning Batch (8:00 AM – 12:00 PM) • Cold-Chain Delivery';
+    }
+
+    const shipHub = document.getElementById('shipmentHub');
+    if (shipHub) {
+      shipHub.textContent = user.shipping_logistics || 'Cold-Chain Refrigerated Van Delivery (Direct Farmgate Dispatch)';
+    }
+
+    const shipPayment = document.getElementById('shipmentPaymentPref');
+    if (shipPayment) {
+      shipPayment.textContent = user.payment_preference || 'Cash on Delivery (COD) or Direct GCash / Maya QR Scan';
+    }
+  }
+
+  // Card 5: E-Wallets / Payment Methods
+  const card5Title = document.getElementById('profileCard5Title');
+  if (card5Title) card5Title.textContent = isFarmer ? "E-Wallets & Direct Payout Channels" : "Payment Methods & Checkout Accounts";
+
+  const card5Subtitle = document.getElementById('profileCard5Subtitle');
+  if (card5Subtitle) card5Subtitle.textContent = isFarmer ? "Instant scan-to-pay QR codes for buyer checkout" : "Direct scan-to-pay e-wallets and digital payment accounts";
+
+  const card5Desc = document.getElementById('profileCard5Desc');
+  if (card5Desc) {
+    card5Desc.textContent = isFarmer
+      ? "Connect your e-wallets and bank accounts to receive direct disbursements from buyers with zero platform cuts."
+      : "Saved GCash, Maya, and bank accounts used for fast direct scan-to-pay and checkout verification.";
+  }
+
+  const card5BtnText = document.getElementById('profileCard5BtnText');
+  if (card5BtnText) card5BtnText.textContent = isFarmer ? "Add E-Wallet" : "Add Payment Method";
+
+  renderFarmerEWallets();
+
   // Populate View details
+  const defaultAddress = user.shipping_address || user.address || (isFarmer
+    ? 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601'
+    : 'Unit 802, Pioneer Woodlands, EDSA cor. Pioneer St., Barangay Ilaya, Mandaluyong City, Metro Manila, 1550');
+
   const fields = isFarmer ? [
     ['profileInfoFullName', user.full_name || 'Mang Ramon Dela Cruz'],
     ['profileInfoPhone', user.phone || '+63 917 842 1092'],
@@ -2671,7 +2856,7 @@ function initProfilePage() {
     ['profileInfoCoop', user.cooperative || 'Benguet Farmers Multi-Purpose Coop (BFMPC)'],
     ['profileInfoExperience', user.experience || '18 Years (Highland Agriculture)'],
     ['profileInfoTier', user.role_tier || 'Tier-1 Direct Farmgate Supplier'],
-    ['profileInfoAddress', user.address || 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601'],
+    ['profileInfoAddress', defaultAddress],
     ['profileInfoCoords', user.coords || '16.4582° N, 120.5891° E'],
     ['profileInfoArea', user.area || '2.8 Hectares (Terraced Mountain Agro-Ecosystem)'],
     ['profileInfoElevation', user.elevation || '1,450 meters above sea level (MASL)'],
@@ -2681,32 +2866,28 @@ function initProfilePage() {
     ['profileInfoFulfillment', user.fulfillment || '100% On-Time'],
     ['profileInfoCompliance', user.compliance || 'Grade A+']
   ] : [
-    ['profileInfoFullName', user.full_name || 'Juan Dela Cruz'],
-    ['profileInfoPhone', user.phone || '0917-889-2104'],
-    ['profileInfoEmail', user.email || 'juan.delacruz@agriconnect.ph'],
+    ['profileInfoFullName', user.full_name || 'Krystel Comia'],
+    ['profileInfoPhone', user.phone || '09271836734'],
+    ['profileInfoEmail', user.email || 'comiakrystel65@gmail.com'],
     ['profileInfoAltPhone', user.alt_phone || '0920-551-8930'],
-    ['profileInfoCoop', 'AgriConnect Consumer Direct Sourcing Program'],
-    ['profileInfoExperience', 'Consumer Account • 2+ Years Farmgate Buyer'],
-    ['profileInfoTier', 'Verified Direct Farmgate Buyer'],
-    ['profileInfoAddress', user.address || 'Unit 802, Pioneer Woodlands, EDSA cor. Pioneer St., Mandaluyong City, Metro Manila'],
-    ['profileInfoCoords', '14.5732° N, 121.0480° E (Delivery Coordinates)'],
-    ['profileInfoArea', 'Residential Delivery Zone (Cold-Chain Accessible)'],
-    ['profileInfoElevation', '30 meters above sea level (MASL)'],
-    ['profileInfoHub', 'Metro Manila Direct Logistics Depot, Mandaluyong'],
-    ['profileInfoSpecialization', 'Highland Crisp Vegetables, Dinorado Organic Rice, Fresh Fruits'],
-    ['profileInfoRating', '★ 5.0 / 5.0 (Prompt Order Handover)'],
-    ['profileInfoFulfillment', '4 Orders Completed'],
-    ['profileInfoCompliance', 'Verified Buyer (Level 2)']
+    ['profileInfoCoop', user.cooperative || 'AgriConnect Consumer Direct Sourcing Program'],
+    ['profileInfoExperience', user.experience || 'Consumer Account • 2+ Years Farmgate Buyer'],
+    ['profileInfoTier', user.role_tier || 'Verified Direct Farmgate Buyer'],
+    ['profileInfoAddress', defaultAddress],
+    ['profileInfoCoords', user.coords || '14.5732° N, 121.0480° E (Delivery Coordinates)'],
+    ['profileInfoArea', user.area || 'Residential Delivery Zone (Cold-Chain Accessible)'],
+    ['profileInfoElevation', user.elevation || '30 meters above sea level (MASL)'],
+    ['profileInfoHub', user.hub || 'Metro Manila Direct Logistics Depot, Mandaluyong'],
+    ['profileInfoSpecialization', user.crops || 'Highland Crisp Vegetables, Dinorado Organic Rice, Fresh Fruits'],
+    ['profileInfoRating', user.rating || '★ 5.0 / 5.0 (Prompt Order Handover)'],
+    ['profileInfoFulfillment', user.fulfillment || '4 Orders Completed (14/14 batches completed)'],
+    ['profileInfoCompliance', user.compliance || 'Verified Buyer (Level 2)']
   ];
 
   fields.forEach(([id, val]) => {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
   });
-
-  // Render dynamic components
-  renderFarmerRequirements();
-  renderFarmerEWallets();
 }
 
 function openFarmerProfileModal() {
@@ -2732,31 +2913,71 @@ function toggleEditFarmerProfile(forceOpen) {
   const shouldOpen = forceOpen !== undefined ? forceOpen : editContainer.style.display === 'none';
   if (shouldOpen) {
     const user = window.AgriState.user || {};
+    const isFarmer = user.role === 'farmer';
+
+    // Update modal title and subtitle
+    const editModalTitle = document.getElementById('editProfileModalTitle');
+    const editModalSub = document.getElementById('editProfileModalSubtitle');
+    if (editModalTitle) {
+      editModalTitle.textContent = isFarmer ? 'Edit Profile & Farm Specifications' : 'Edit Profile & Product Shipment Details';
+    }
+    if (editModalSub) {
+      editModalSub.textContent = isFarmer
+        ? 'Update your grower details, farm address, GPS coordinates, and crop specialties.'
+        : 'Update your recipient contact info, delivery address, drop-off instructions, and schedule.';
+    }
+
+    // Toggle role-specific field wrappers
+    const farmerFields = document.getElementById('farmerEditSpecificFields');
+    const buyerFields = document.getElementById('buyerEditSpecificFields');
+    if (farmerFields) farmerFields.style.display = isFarmer ? 'contents' : 'none';
+    if (buyerFields) buyerFields.style.display = isFarmer ? 'none' : 'contents';
+
     const fnInput = document.getElementById('editProfileFullName');
     const phoneInput = document.getElementById('editProfilePhone');
     const emailInput = document.getElementById('editProfileEmail');
     const altPhoneInput = document.getElementById('editProfileAltPhone');
-    const farmInput = document.getElementById('editProfileFarmName');
-    const coopInput = document.getElementById('editProfileCoop');
-    const addrInput = document.getElementById('editProfileAddress');
-    const coordsInput = document.getElementById('editProfileCoords');
-    const elevInput = document.getElementById('editProfileElevation');
-    const expInput = document.getElementById('editProfileExperience');
-    const hubInput = document.getElementById('editProfileHub');
-    const specInput = document.getElementById('editProfileSpecialization');
 
-    if (fnInput) fnInput.value = user.full_name || 'Mang Ramon Dela Cruz';
-    if (phoneInput) phoneInput.value = user.phone || '+63 917 842 1092';
-    if (emailInput) emailInput.value = user.email || 'ramon.delacruz@agriconnect.ph';
-    if (altPhoneInput) altPhoneInput.value = user.alt_phone || '+63 928 551 8934';
-    if (farmInput) farmInput.value = user.farm_name || 'Dela Cruz Family Farm';
-    if (coopInput) coopInput.value = user.cooperative || 'Benguet Farmers Multi-Purpose Coop (BFMPC)';
-    if (addrInput) addrInput.value = user.address || 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601';
-    if (coordsInput) coordsInput.value = user.coords || '16.4582° N, 120.5891° E';
-    if (elevInput) elevInput.value = user.elevation || '1,450 meters above sea level (MASL)';
-    if (expInput) expInput.value = user.experience || '18 Years (Highland Agriculture)';
-    if (hubInput) hubInput.value = user.hub || 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad';
-    if (specInput) specInput.value = user.crops || 'Baguio Beans, Cabbage, Strawberries, Carrots';
+    if (fnInput) fnInput.value = user.full_name || (isFarmer ? 'Mang Ramon Dela Cruz' : 'Krystel Comia');
+    if (phoneInput) phoneInput.value = user.phone || (isFarmer ? '+63 917 842 1092' : '09271836734');
+    if (emailInput) emailInput.value = user.email || (isFarmer ? 'ramon.delacruz@agriconnect.ph' : 'comiakrystel65@gmail.com');
+    if (altPhoneInput) altPhoneInput.value = user.alt_phone || (isFarmer ? '+63 928 551 8934' : '0920-551-8930');
+
+    if (isFarmer) {
+      const farmInput = document.getElementById('editProfileFarmName');
+      const coopInput = document.getElementById('editProfileCoop');
+      const addrInput = document.getElementById('editProfileAddress');
+      const coordsInput = document.getElementById('editProfileCoords');
+      const elevInput = document.getElementById('editProfileElevation');
+      const expInput = document.getElementById('editProfileExperience');
+      const hubInput = document.getElementById('editProfileHub');
+      const specInput = document.getElementById('editProfileSpecialization');
+
+      if (farmInput) farmInput.value = user.farm_name || 'Dela Cruz Family Farm';
+      if (coopInput) coopInput.value = user.cooperative || 'Benguet Farmers Multi-Purpose Coop (BFMPC)';
+      if (addrInput) addrInput.value = user.address || 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601';
+      if (coordsInput) coordsInput.value = user.coords || '16.4582° N, 120.5891° E';
+      if (elevInput) elevInput.value = user.elevation || '1,450 meters above sea level (MASL)';
+      if (expInput) expInput.value = user.experience || '18 Years (Highland Agriculture)';
+      if (hubInput) hubInput.value = user.hub || 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad';
+      if (specInput) specInput.value = user.crops || 'Baguio Beans, Cabbage, Strawberries, Carrots';
+    } else {
+      const buyerAddrInput = document.getElementById('editBuyerShipmentAddress');
+      const buyerCityInput = document.getElementById('editBuyerCity');
+      const buyerProvInput = document.getElementById('editBuyerProvince');
+      const buyerZipInput = document.getElementById('editBuyerPostalCode');
+      const buyerSchedInput = document.getElementById('editBuyerSchedule');
+      const buyerLandmarkInput = document.getElementById('editBuyerLandmark');
+      const buyerPayInput = document.getElementById('editBuyerPaymentPref');
+
+      if (buyerAddrInput) buyerAddrInput.value = user.shipping_address || user.address || 'Unit 802, Pioneer Woodlands, EDSA cor. Pioneer St., Barangay Ilaya';
+      if (buyerCityInput) buyerCityInput.value = user.shipping_city || 'Mandaluyong City';
+      if (buyerProvInput) buyerProvInput.value = user.shipping_province || user.province || 'Metro Manila';
+      if (buyerZipInput) buyerZipInput.value = user.shipping_postal || '1550';
+      if (buyerSchedInput) buyerSchedInput.value = user.delivery_schedule || 'Morning Batch (8:00 AM – 12:00 PM) • Cold-Chain Delivery';
+      if (buyerLandmarkInput) buyerLandmarkInput.value = user.delivery_landmark || 'Near Boni MRT Station. Leave with lobby concierge or building guard if recipient is unavailable.';
+      if (buyerPayInput) buyerPayInput.value = user.payment_preference || 'Cash on Delivery (COD) or Direct GCash / Maya QR Scan';
+    }
 
     editContainer.style.display = 'block';
     editContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -2769,37 +2990,75 @@ function saveFarmerProfile(e) {
   if (e) e.preventDefault();
 
   if (!window.AgriState.user) {
-    window.AgriState.user = { role: 'farmer' };
+    window.AgriState.user = { role: 'buyer', full_name: 'Krystel Comia', email: 'comiakrystel65@gmail.com' };
   }
 
   const user = window.AgriState.user;
+  const isFarmer = user.role === 'farmer';
+
   const fn = document.getElementById('editProfileFullName')?.value.trim();
   const phone = document.getElementById('editProfilePhone')?.value.trim();
   const email = document.getElementById('editProfileEmail')?.value.trim();
   const altPhone = document.getElementById('editProfileAltPhone')?.value.trim();
-  const farm = document.getElementById('editProfileFarmName')?.value.trim();
-  const coop = document.getElementById('editProfileCoop')?.value.trim();
-  const addr = document.getElementById('editProfileAddress')?.value.trim();
-  const coords = document.getElementById('editProfileCoords')?.value.trim();
-  const elev = document.getElementById('editProfileElevation')?.value.trim();
-  const exp = document.getElementById('editProfileExperience')?.value.trim();
-  const hub = document.getElementById('editProfileHub')?.value.trim();
-  const spec = document.getElementById('editProfileSpecialization')?.value.trim();
 
   if (fn) user.full_name = fn;
   if (phone) user.phone = phone;
   if (email) user.email = email;
   if (altPhone) user.alt_phone = altPhone;
-  if (farm) user.farm_name = farm;
-  if (coop) user.cooperative = coop;
-  if (addr) user.address = addr;
-  if (coords) user.coords = coords;
-  if (elev) user.elevation = elev;
-  if (exp) user.experience = exp;
-  if (hub) user.hub = hub;
-  if (spec) user.crops = spec;
+
+  if (isFarmer) {
+    const farm = document.getElementById('editProfileFarmName')?.value.trim();
+    const coop = document.getElementById('editProfileCoop')?.value.trim();
+    const addr = document.getElementById('editProfileAddress')?.value.trim();
+    const coords = document.getElementById('editProfileCoords')?.value.trim();
+    const elev = document.getElementById('editProfileElevation')?.value.trim();
+    const exp = document.getElementById('editProfileExperience')?.value.trim();
+    const hub = document.getElementById('editProfileHub')?.value.trim();
+    const spec = document.getElementById('editProfileSpecialization')?.value.trim();
+
+    if (farm) user.farm_name = farm;
+    if (coop) user.cooperative = coop;
+    if (addr) user.address = addr;
+    if (coords) user.coords = coords;
+    if (elev) user.elevation = elev;
+    if (exp) user.experience = exp;
+    if (hub) user.hub = hub;
+    if (spec) user.crops = spec;
+  } else {
+    const buyerAddr = document.getElementById('editBuyerShipmentAddress')?.value.trim();
+    const buyerCity = document.getElementById('editBuyerCity')?.value.trim();
+    const buyerProv = document.getElementById('editBuyerProvince')?.value.trim();
+    const buyerZip = document.getElementById('editBuyerPostalCode')?.value.trim();
+    const buyerSched = document.getElementById('editBuyerSchedule')?.value;
+    const buyerLandmark = document.getElementById('editBuyerLandmark')?.value.trim();
+    const buyerPay = document.getElementById('editBuyerPaymentPref')?.value;
+
+    if (buyerCity) user.shipping_city = buyerCity;
+    if (buyerProv) {
+      user.shipping_province = buyerProv;
+      user.province = buyerProv;
+    }
+    if (buyerZip) user.shipping_postal = buyerZip;
+    if (buyerSched) user.delivery_schedule = buyerSched;
+    if (buyerLandmark) user.delivery_landmark = buyerLandmark;
+    if (buyerPay) user.payment_preference = buyerPay;
+
+    if (buyerAddr) {
+      const fullAddr = [buyerAddr, buyerCity, buyerProv, buyerZip].filter(Boolean).join(', ');
+      user.shipping_address = fullAddr;
+      user.address = fullAddr;
+    }
+  }
 
   localStorage.setItem('agri_user', JSON.stringify(user));
+
+  // Sync with registered users array in localStorage if applicable
+  const registeredUsers = JSON.parse(localStorage.getItem('agri_users') || '[]');
+  const userIdx = registeredUsers.findIndex(u => (u.id && u.id === user.id) || (u.email && u.email.toLowerCase() === (user.email || '').toLowerCase()));
+  if (userIdx >= 0) {
+    registeredUsers[userIdx] = { ...registeredUsers[userIdx], ...user };
+    localStorage.setItem('agri_users', JSON.stringify(registeredUsers));
+  }
 
   // Sync with Dashboard elements if present
   const welcomeFarmerName = document.getElementById('welcomeFarmerName');
@@ -2817,7 +3076,7 @@ function saveFarmerProfile(e) {
   toggleEditFarmerProfile(false);
   updateAuthUI();
 
-  showToast('Profile and farm information updated successfully!');
+  showToast(isFarmer ? 'Profile and farm information updated successfully!' : 'Product shipment and profile details updated successfully!');
 }
 
 function handleProfileAvatarUpload(e) {
