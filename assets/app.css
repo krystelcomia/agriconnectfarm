@@ -859,6 +859,12 @@ body.is-farmer .sell-harvest-btn.sell-harvest-mobile-btn {
   display: block !important;
 }
 
+/* Farmer Role: Hide Category Filter Chips in Marketplace */
+body.is-farmer #categoryChipsWrapper,
+body.is-farmer #categoryChips {
+  display: none !important;
+}
+
 /* Call To Action Photo Banner (How It Works & Landing Pages) */
 .cta-photo-banner {
   position: relative;

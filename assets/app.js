@@ -682,7 +682,20 @@ function initHomeCharts() {
 // -------------------------------------------------------------
 function renderCategories() {
   const container = document.getElementById('categoryChips');
+  const wrapper = document.getElementById('categoryChipsWrapper') || (container ? container.parentElement : null);
   if (!container) return;
+
+  const user = window.AgriState.user;
+  const isFarmer = Boolean(user && user.role === 'farmer');
+
+  if (isFarmer) {
+    if (wrapper) wrapper.style.setProperty('display', 'none', 'important');
+    container.style.setProperty('display', 'none', 'important');
+    return;
+  } else {
+    if (wrapper) wrapper.style.removeProperty('display');
+    container.style.removeProperty('display');
+  }
 
   let html = `
     <button class="category-chip ${window.AgriState.currentCategory === 'all' ? 'active' : ''}" onclick="setCategory('all')">
@@ -5691,6 +5704,16 @@ function updateAuthUI() {
   const farmerSubGuide = document.getElementById('farmerSubscriptionGuide');
   if (farmerSubGuide) {
     farmerSubGuide.style.setProperty('display', isBuyer ? 'none' : '', isBuyer ? 'important' : '');
+  }
+
+  // Toggle Marketplace Category Filter Chips (hidden for farmer accounts)
+  const categoryChipsWrapper = document.getElementById('categoryChipsWrapper');
+  const categoryChipsEl = document.getElementById('categoryChips');
+  if (categoryChipsWrapper) {
+    categoryChipsWrapper.style.setProperty('display', isFarmer ? 'none' : '', isFarmer ? 'important' : '');
+  }
+  if (categoryChipsEl) {
+    categoryChipsEl.style.setProperty('display', isFarmer ? 'none' : '', isFarmer ? 'important' : '');
   }
 
   if (!container) return;
