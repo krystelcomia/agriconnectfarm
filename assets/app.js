@@ -6324,7 +6324,7 @@ function escapeHtml(str) {
 }
 
 /* ============================================================ */
-/* Top 15-Second Sponsored Subscriber Ad Showcase Logic        */
+/* AI-Generated 15-Second Video Commercial Top Showcase Logic   */
 /* ============================================================ */
 const AD_DURATION_SECONDS = 15;
 let currentAdIndex = 0;
@@ -6333,54 +6333,409 @@ let isAdPaused = false;
 let isManualPause = false;
 let adTickInterval = null;
 let adProgressInterval = null;
+let aiPipelineInterval = null;
+let commercialAudioCtx = null;
+let commercialAudioGain = null;
+let commercialAudioArpTimer = null;
+let isCommercialAudioPlaying = false;
+let currentRenderedSceneIndex = -1;
+let currentRenderedAdId = null;
 
+// Curated 15-second commercial showcase ads (each has 3 5-second cinematic scenes)
 const DEFAULT_SPONSORED_ADS = [
   {
     id: 'ad-benguet-strawberries',
     tierName: 'Monthly Grower Pro',
     tierBadge: '⭐ VIP Grower Sponsor',
+    durationBadge: '🗓️ 1 Month Homepage Feature',
+    durationDays: 30,
     farmName: 'Cordillera Highland Strawberry & Greens',
     location: 'La Trinidad, Benguet',
-    headline: '🍓 Fresh High-Altitude Strawberries & Crisp Wombok Farmgate Direct',
-    description: 'Harvested at 5:00 AM in Benguet and dispatched via refrigerated cold-chain to Metro Manila buyers within 18 hours. Farmgate wholesale discounts for restaurants, fruit vendors, and organic markets.',
-    tags: ['Direct Farmgate', 'Cold-Chain Certified', '1,500m Altitude', 'Zero Middlemen'],
     avatar: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300',
-    actionLink: 'marketplace.html?category=Fruits',
-    actionText: 'View Strawberries & Order'
+    scenes: [
+      {
+        sceneNum: 1,
+        timeSpan: '0s - 5s',
+        sceneTag: 'SCENE 1/3 • HIGHLAND TERROIR (1,500m ALTITUDE)',
+        headline: '🍓 High-Altitude Terroir & Mineral Loam Soil',
+        subtext: 'Nestled 1,500m above sea level in La Trinidad, Benguet. Crisp mountain air and volcanic soil deliver strawberries with deep natural Brix sweetness.',
+        badges: ['Benguet Highlands', '1,500m Altitude', 'Pesticide-Free Terroir'],
+        bgImage: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=1400&q=80',
+        actionText: 'View Benguet Harvest',
+        actionLink: 'marketplace.html?category=Fruits'
+      },
+      {
+        sceneNum: 2,
+        timeSpan: '5s - 10s',
+        sceneTag: 'SCENE 2/3 • 5:00 AM HARVEST (0% MIDDLEMEN)',
+        headline: '🌱 Handpicked Daily at Dawn with Crisp Wombok',
+        subtext: 'Harvested by local family growers at first sunrise. Guaranteed 100% fair farmgate returns with zero intermediary trading markups.',
+        badges: ['Zero Middlemen', 'Sunrise Hand-Picked', 'Direct Farmgate Price'],
+        bgImage: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1400&q=80',
+        actionText: 'Browse Fresh Greens',
+        actionLink: 'marketplace.html?category=Vegetables'
+      },
+      {
+        sceneNum: 3,
+        timeSpan: '10s - 15s',
+        sceneTag: 'SCENE 3/3 • DIRECT COLD-CHAIN DISPATCH',
+        headline: '🚚 Dispatched via Refrigerated Cold-Chain in 18 Hours',
+        subtext: 'Direct depot delivery to Metro Manila restaurants, fruit vendors, and organic markets. Freshness locked from mountain terrace to your table.',
+        badges: ['Refrigerated Cold-Chain', '18-Hour Dispatch', 'Wholesale Bulk Available'],
+        bgImage: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=1400&q=80',
+        actionText: 'Order Strawberries Direct &rarr;',
+        actionLink: 'marketplace.html?category=Fruits'
+      }
+    ]
   },
   {
     id: 'ad-ne-grains',
     tierName: 'Yearly Champion Co-Op',
     tierBadge: '🏆 Annual Champion Sponsor',
+    durationBadge: '🗓️ 1 Year Homepage Feature',
+    durationDays: 365,
     farmName: 'Vergara Rice Mills & Grain Collective',
     location: 'Muñoz, Nueva Ecija',
-    headline: '🌾 Newly Harvested Nueva Ecija Premium Dinorado & Jasmine Rice',
-    description: '100% whole grain aromatic rice straight from the central plains of Luzon. Freshly milled weekly with zero chemical fumigation. Available in 25kg & 50kg wholesale sacks with direct depot dispatch.',
-    tags: ['Rice Granary of PH', 'Direct Mill Pricing', 'Bulk Sacks (25kg/50kg)', 'Fresh Harvest'],
     avatar: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300',
-    actionLink: 'marketplace.html?category=Grains',
-    actionText: 'Browse Grain Sacks'
+    scenes: [
+      {
+        sceneNum: 1,
+        timeSpan: '0s - 5s',
+        sceneTag: 'SCENE 1/3 • RICE GRANARY OF THE PHILIPPINES',
+        headline: '🌾 Central Luzon Golden Alluvial Plains',
+        subtext: 'Cultivated in the fertile agricultural heartland of Muñoz, Nueva Ecija. Naturally irrigated by mountain rivers for plump, nutrient-dense grains.',
+        badges: ['Granary of PH', 'Volcanic Soil', 'Generational Mill'],
+        bgImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1400&q=80',
+        actionText: 'View Grain Harvest',
+        actionLink: 'marketplace.html?category=Grains'
+      },
+      {
+        sceneNum: 2,
+        timeSpan: '5s - 10s',
+        sceneTag: 'SCENE 2/3 • CHEMICAL-FREE MILLING',
+        headline: '🍚 100% Whole Grain Jasmine & Dinorado Aromatic',
+        subtext: 'Freshly de-husked and milled weekly on-site. Zero artificial whitening and zero chemical fumigation, preserving aroma and vitamin B.',
+        badges: ['Chemical-Free', 'Freshly Milled Weekly', 'Whole Grain Aromatic'],
+        bgImage: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=1400&q=80',
+        actionText: 'Explore Grain Sacks',
+        actionLink: 'marketplace.html?category=Grains'
+      },
+      {
+        sceneNum: 3,
+        timeSpan: '10s - 15s',
+        sceneTag: 'SCENE 3/3 • WHOLESALE DIRECT DEPOT SACKS',
+        headline: '📦 25kg & 50kg Bulk Sacks Straight from Mill',
+        subtext: 'Direct depot dispatch to institutional buyers, restaurants, caterers, and pantries at true farmgate mill prices.',
+        badges: ['Direct Mill Price', '25kg & 50kg Sacks', 'Express Metro Cargo'],
+        bgImage: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=1400&q=80',
+        actionText: 'Order Rice Sacks Direct &rarr;',
+        actionLink: 'marketplace.html?category=Grains'
+      }
+    ]
   },
   {
     id: 'ad-guimaras-mangoes',
     tierName: 'Weekly Flash Boost',
     tierBadge: '🌟 Featured Harvest Flash',
+    durationBadge: '🗓️ 1 Week Homepage Feature',
+    durationDays: 7,
     farmName: 'Jordan Sweet Carabao Mango Orchard',
     location: 'Jordan, Guimaras',
-    headline: '🥭 World-Renowned Guimaras Sweet Mangoes in Fresh Export-Grade Crates',
-    description: 'Handpicked at peak sweetness from certified pesticide-free Guimaras orchards. Guaranteed minimum 16° Brix sweetness with fast sea-and-air cargo delivery direct to NCR and Cebu buyers.',
-    tags: ['Certified Sweetest', 'Export Grade', 'Air Cargo Direct', 'Limited Harvest'],
     avatar: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=300',
-    actionLink: 'marketplace.html?category=Fruits',
-    actionText: 'Order Sweet Mangoes'
+    scenes: [
+      {
+        sceneNum: 1,
+        timeSpan: '0s - 5s',
+        sceneTag: 'SCENE 1/3 • WORLD-RENOWNED GUIMARAS TERROIR',
+        headline: '🥭 The World’s Sweetest Certified Carabao Mangoes',
+        subtext: 'Protected by Guimaras strict bio-security quarantine. Grown in limestone-rich coastal soil with guaranteed 16°+ Brix natural sweetness.',
+        badges: ['Guimaras Certified', '16°+ Brix Sweetness', 'Quarantine Protected'],
+        bgImage: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=1400&q=80',
+        actionText: 'Explore Sweet Mangoes',
+        actionLink: 'marketplace.html?category=Fruits'
+      },
+      {
+        sceneNum: 2,
+        timeSpan: '5s - 10s',
+        sceneTag: 'SCENE 2/3 • TREE-RIPENED EXPORT GRADE SELECTION',
+        headline: '☀️ Hand-Inspected at Peak Ripeness (Zero Chemicals)',
+        subtext: 'Every mango is bagged on the branch and picked by hand. Zero artificial calcium carbide ripening for clean, velvety golden nectar.',
+        badges: ['Tree-Ripened', 'Export Grade A', 'No Artificial Ripener'],
+        bgImage: 'https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=1400&q=80',
+        actionText: 'View Mango Crates',
+        actionLink: 'marketplace.html?category=Fruits'
+      },
+      {
+        sceneNum: 3,
+        timeSpan: '10s - 15s',
+        sceneTag: 'SCENE 3/3 • DIRECT SEA & AIR CARGO TO BUYERS',
+        headline: '✈️ Flown Direct from Orchard to NCR & Cebu',
+        subtext: 'Fast consolidated freight directly from Jordan port. Arrives firm, fragrant, and ready for commercial kitchens and gift crates.',
+        badges: ['Direct Air Cargo', 'Consolidated Freight', 'Limited Harvest Batch'],
+        bgImage: 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?w=1400&q=80',
+        actionText: 'Order Mangoes Direct &rarr;',
+        actionLink: 'marketplace.html?category=Fruits'
+      }
+    ]
   }
 ];
+
+// Presets for AI Commercial Auto-Generation (zero manual copywriting needed)
+const FARM_CATALOG_PRESETS = {
+  'farmer-ramon': {
+    farmName: 'Mang Ramon Dela Cruz — Dela Cruz Family Farm',
+    location: 'La Trinidad, Benguet',
+    avatar: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300',
+    actionLink: 'marketplace.html?category=Fruits',
+    actionText: 'Order Strawberries Direct',
+    scenes: [
+      {
+        sceneNum: 1,
+        timeSpan: '0s - 5s',
+        sceneTag: 'SCENE 1/3 • MOUNTAIN TERROIR (1,500m)',
+        headline: '🍓 Benguet High-Altitude Strawberries & Crisp Greens',
+        subtext: 'Cultivated in La Trinidad rich highland volcanic loam. Morning dew and cool altitude produce sweet, pesticide-free harvest.',
+        badges: ['Highland Soil', '1,500m Altitude', 'Zero Middlemen'],
+        bgImage: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=1400&q=80'
+      },
+      {
+        sceneNum: 2,
+        timeSpan: '5s - 10s',
+        sceneTag: 'SCENE 2/3 • 5:00 AM HARVEST',
+        headline: '🥬 Crisp Highland Wombok & Ruby Berries Handpicked',
+        subtext: 'Picked at first sunrise by Mang Ramon family cooperative. Straight from mountain terraces at genuine farmgate wholesale prices.',
+        badges: ['Handpicked at Dawn', '100% Fair Price', 'Zero Chemical Wax'],
+        bgImage: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1400&q=80'
+      },
+      {
+        sceneNum: 3,
+        timeSpan: '10s - 15s',
+        sceneTag: 'SCENE 3/3 • COLD-CHAIN DISPATCH',
+        headline: '🚚 Dispatched Cold-Chain to Metro Manila in 18 Hours',
+        subtext: 'Guaranteed crisp farmgate freshness delivered directly to restaurants, grocers, and families.',
+        badges: ['Refrigerated Transit', 'Direct Delivery', 'Fresh Guarantee'],
+        bgImage: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=1400&q=80'
+      }
+    ]
+  },
+  'farmer-nena': {
+    farmName: 'Aling Nena Bautista — Bautista Rice Fields',
+    location: 'Muñoz, Nueva Ecija',
+    avatar: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300',
+    actionLink: 'marketplace.html?category=Grains',
+    actionText: 'Order Rice Direct',
+    scenes: [
+      {
+        sceneNum: 1,
+        timeSpan: '0s - 5s',
+        sceneTag: 'SCENE 1/3 • CENTRAL LUZON GRANARY',
+        headline: '🌾 Nueva Ecija Golden Paddy Plains',
+        subtext: 'Grown across the sun-drenched plains of Muñoz. Naturally irrigated and harvested at peak golden grain maturity.',
+        badges: ['Nueva Ecija Rice', 'River-Irrigated', 'Zero Fumigation'],
+        bgImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1400&q=80'
+      },
+      {
+        sceneNum: 2,
+        timeSpan: '5s - 10s',
+        sceneTag: 'SCENE 2/3 • CHEMICAL-FREE MILLING',
+        headline: '🍚 Fresh Aromatic Dinorado & Jasmine Whole Grains',
+        subtext: 'Milled freshly on demand by Aling Nena collective. No synthetic polish, retaining natural nutrients and irresistible aroma.',
+        badges: ['Freshly Milled', 'Aromatic Pandan', 'Farmgate Direct'],
+        bgImage: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=1400&q=80'
+      },
+      {
+        sceneNum: 3,
+        timeSpan: '10s - 15s',
+        sceneTag: 'SCENE 3/3 • BULK WHOLESALE SACKS',
+        headline: '📦 25kg & 50kg Sacks Dispatched Direct from Depot',
+        subtext: 'Direct mill prices for restaurants, catering, and community pantries with fast delivery across Luzon.',
+        badges: ['25kg & 50kg Bulk', 'Depot Dispatch', 'Fair Producer Return'],
+        bgImage: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=1400&q=80'
+      }
+    ]
+  },
+  'farmer-jun': {
+    farmName: 'Kuya Jun Villanueva — Villanueva Mango Orchard',
+    location: 'Jordan, Guimaras',
+    avatar: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=300',
+    actionLink: 'marketplace.html?category=Fruits',
+    actionText: 'Order Mangoes Direct',
+    scenes: [
+      {
+        sceneNum: 1,
+        timeSpan: '0s - 5s',
+        sceneTag: 'SCENE 1/3 • CERTIFIED GUIMARAS SOIL',
+        headline: '🥭 World-Famous Guimaras Sweet Carabao Mangoes',
+        subtext: 'Naturally pollinated on the sunlit hills of Jordan, Guimaras. Tested and guaranteed 16°+ Brix natural sweetness.',
+        badges: ['Guimaras Sweetest', '16°+ Brix Nectar', 'Bio-Quarantine Certified'],
+        bgImage: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=1400&q=80'
+      },
+      {
+        sceneNum: 2,
+        timeSpan: '5s - 10s',
+        sceneTag: 'SCENE 2/3 • TREE-RIPENED EXPORT HARVEST',
+        headline: '✨ Hand-Graded Export Quality with Zero Artificial Ripening',
+        subtext: 'Picked tree-ripe without chemical carbide baths. Golden, juicy, fiber-free mango flesh direct from Kuya Jun orchard.',
+        badges: ['Tree-Ripened', 'Export Grade A', 'Hand-Selected'],
+        bgImage: 'https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=1400&q=80'
+      },
+      {
+        sceneNum: 3,
+        timeSpan: '10s - 15s',
+        sceneTag: 'SCENE 3/3 • AIR CARGO TO YOUR DOOR',
+        headline: '✈️ Express Direct Flight to NCR & Cebu Buyers',
+        subtext: 'Direct cargo shipment ensuring crisp freshness upon arrival. Perfect for premium gifting and commercial bakeries.',
+        badges: ['Air Express', 'Guaranteed Sweetness', 'Zero Middlemen'],
+        bgImage: 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?w=1400&q=80'
+      }
+    ]
+  },
+  'farmer-marites': {
+    farmName: 'Ate Marites Sarmiento — Sarmiento Coastal Catch',
+    location: 'Dagupan & Navotas',
+    avatar: 'https://images.unsplash.com/photo-1534483509719-3feaee7c30da?w=300',
+    actionLink: 'marketplace.html?category=Fish',
+    actionText: 'Order Fresh Catch Direct',
+    scenes: [
+      {
+        sceneNum: 1,
+        timeSpan: '0s - 5s',
+        sceneTag: 'SCENE 1/3 • BRACKISH WATER TERROIR',
+        headline: '🐟 Dagupan Boneless Milkfish & Tiger Prawns',
+        subtext: 'Bred in the pristine brackish estuaries of Pangasinan. Known for tender belly fat and zero muddy taste.',
+        badges: ['Dagupan Certified', 'Brackish Water', 'Daily Harvest'],
+        bgImage: 'https://images.unsplash.com/photo-1534483509719-3feaee7c30da?w=1400&q=80'
+      },
+      {
+        sceneNum: 2,
+        timeSpan: '5s - 10s',
+        sceneTag: 'SCENE 2/3 • 3:00 AM HARVEST',
+        headline: '🌊 Hauled at Midnight & Iced Immediately',
+        subtext: 'Packaged in ice slurry right at the water edge to lock in sea freshness. De-boned by master local processors.',
+        badges: ['Sub-Zero Icing', 'De-boned On-Site', '0% Middleman Cut'],
+        bgImage: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=1400&q=80'
+      },
+      {
+        sceneNum: 3,
+        timeSpan: '10s - 15s',
+        sceneTag: 'SCENE 3/3 • INSULATED VAN DISPATCH',
+        headline: '🚛 Delivered to Manila Seafood Hubs in 4 Hours',
+        subtext: 'Fast insulated delivery for palengke vendors, restaurants, and retail shoppers looking for true portside pricing.',
+        badges: ['Insulated Van', 'Portside Pricing', 'Fresh Guarantee'],
+        bgImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1400&q=80'
+      }
+    ]
+  },
+  'farmer-berting': {
+    farmName: 'Tatay Berting Lopez — Lopez Coconut & Root Farm',
+    location: 'Lucban, Quezon',
+    avatar: 'https://images.unsplash.com/photo-1525385133512-2f3bdd039054?w=300',
+    actionLink: 'marketplace.html?category=Vegetables',
+    actionText: 'Order Coconut & Ube Direct',
+    scenes: [
+      {
+        sceneNum: 1,
+        timeSpan: '0s - 5s',
+        sceneTag: 'SCENE 1/3 • MT. BANAHAW VOLCANIC SLOPES',
+        headline: '🥥 Rich Coconut Groves & Mountain Ube Tubers',
+        subtext: 'Organically grown along the fertile foot of Mt. Banahaw. Abundant rainfall and mineral-rich volcanic soil.',
+        badges: ['Banahaw Soil', '100% Organic', 'Generational Farm'],
+        bgImage: 'https://images.unsplash.com/photo-1525385133512-2f3bdd039054?w=1400&q=80'
+      },
+      {
+        sceneNum: 2,
+        timeSpan: '5s - 10s',
+        sceneTag: 'SCENE 2/3 • FRESH COLD-PRESSED & SORTED',
+        headline: '🌿 Fresh Buko, Cold-Pressed Coconut Oil & Vivid Ube',
+        subtext: 'Harvested fresh from tree canopy and harvested tubers sorted with care. Zero chemical additives or bleaching.',
+        badges: ['Cold-Pressed', 'Rich Aromatics', 'True Farmgate Price'],
+        bgImage: 'https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?w=1400&q=80'
+      },
+      {
+        sceneNum: 3,
+        timeSpan: '10s - 15s',
+        sceneTag: 'SCENE 3/3 • DIRECT EXPRESS LOGISTICS',
+        headline: '📦 Dispatched Weekly to Commercial Bakers & Markets',
+        subtext: 'Wholesale deliveries direct to bakeries, kakanin makers, and organic markets at guaranteed fair producer returns.',
+        badges: ['Direct Wholesale', 'Bulk Available', 'Zero Middlemen'],
+        bgImage: 'https://images.unsplash.com/photo-1511497584788-87676104235f?w=1400&q=80'
+      }
+    ]
+  },
+  'farmer-cora': {
+    farmName: 'Nanay Cora Aquino — Aquino Poultry Yard',
+    location: 'Silang, Cavite',
+    avatar: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=300',
+    actionLink: 'marketplace.html?category=Poultry',
+    actionText: 'Order Free-Range Eggs Direct',
+    scenes: [
+      {
+        sceneNum: 1,
+        timeSpan: '0s - 5s',
+        sceneTag: 'SCENE 1/3 • OPEN-PASTURE CANOPY',
+        headline: '🥚 Pasture-Raised Free-Range Eggs & Native Poultry',
+        subtext: 'Roamed freely under Cavite fruit tree orchards with clean natural forage, sunlight, and mountain air.',
+        badges: ['Open Pasture', 'Cage-Free', 'Non-GMO Feed'],
+        bgImage: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=1400&q=80'
+      },
+      {
+        sceneNum: 2,
+        timeSpan: '5s - 10s',
+        sceneTag: 'SCENE 2/3 • COLLECTED TWICE DAILY',
+        headline: '🍳 Deep Golden Yolks Rich in Natural Omega-3',
+        subtext: 'Collected morning and afternoon by Nanay Cora. Unwashed protective cuticle preserved for superior shelf-life.',
+        badges: ['Golden Yolks', 'Rich Omega-3', 'Zero Hormones'],
+        bgImage: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=1400&q=80'
+      },
+      {
+        sceneNum: 3,
+        timeSpan: '10s - 15s',
+        sceneTag: 'SCENE 3/3 • CRATE DELIVERY TO NCR',
+        headline: '🚚 Dispatched in Shock-Proof Egg Crates Direct',
+        subtext: 'Direct delivery to residential co-ops, artisan bakeries, and brunch cafes at honest producer prices.',
+        badges: ['Shock-Proof Crates', 'Direct to Door', 'Fair Farmgate Price'],
+        bgImage: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=1400&q=80'
+      }
+    ]
+  }
+};
+
+/* ============================================================ */
+/* Storage & Active Ad Helpers (with Expiration Check)          */
+/* ============================================================ */
+function getActiveAiGeneration() {
+  const json = localStorage.getItem('agri_ai_ad_generation');
+  if (!json) return null;
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    console.warn('Error parsing AI generation state:', e);
+    return null;
+  }
+}
 
 function getActiveSponsoredAds() {
   const customAdJson = localStorage.getItem('agri_custom_sponsor_ad');
   if (customAdJson) {
     try {
       const customAd = JSON.parse(customAdJson);
+
+      // Check package duration expiration
+      if (customAd.expiresAt && Date.now() > customAd.expiresAt) {
+        console.info('Subscriber ad package has expired after full homepage duration:', customAd.id);
+        localStorage.removeItem('agri_custom_sponsor_ad');
+        localStorage.removeItem('agri_active_subscription');
+        return DEFAULT_SPONSORED_ADS;
+      }
+
+      // Calculate and format real remaining days
+      if (customAd.expiresAt) {
+        const msLeft = customAd.expiresAt - Date.now();
+        const daysLeft = Math.max(1, Math.ceil(msLeft / (24 * 3600 * 1000)));
+        const totalDays = customAd.durationDays || 7;
+        customAd.durationBadge = `🗓️ ${totalDays}-Day Homepage Feature (${daysLeft}d left)`;
+      }
+
       return [customAd, ...DEFAULT_SPONSORED_ADS];
     } catch (e) {
       console.warn('Error parsing custom sponsor ad', e);
@@ -6390,11 +6745,26 @@ function getActiveSponsoredAds() {
   return DEFAULT_SPONSORED_ADS;
 }
 
+/* ============================================================ */
+/* Lifecycle Initializer                                        */
+/* ============================================================ */
 function initSponsoredTopAd() {
   const container = document.getElementById('sponsoredAdContent');
   if (!container) return;
 
-  renderCurrentSponsoredAd();
+  // Check if an AI generation is currently pending (5-10 min pipeline)
+  const aiJob = getActiveAiGeneration();
+  if (aiJob) {
+    if (Date.now() >= aiJob.readyAt) {
+      finalizeAiVideoGeneration(aiJob);
+    } else {
+      renderAiStudioPipeline(aiJob);
+      startAiPipelineTrackingLoop();
+      return;
+    }
+  }
+
+  renderCurrentSponsoredAd(true);
   startAdCountdownLoop();
 
   const card = document.getElementById('sponsoredAdCard');
@@ -6414,6 +6784,282 @@ function initSponsoredTopAd() {
   }
 }
 
+/* ============================================================ */
+/* AI Video Generation Pipeline (5-10 min wait time)            */
+/* ============================================================ */
+function generateAiVideoAdData(farmKey, customName, customLoc, tier, durationDays, price) {
+  let preset = FARM_CATALOG_PRESETS[farmKey];
+
+  if (!preset) {
+    const safeFarmName = customName || 'Verified Philippine Agri Collective';
+    const safeLocation = customLoc || 'Philippines';
+    preset = {
+      farmName: safeFarmName,
+      location: safeLocation,
+      avatar: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300',
+      actionLink: 'marketplace.html',
+      actionText: 'Explore Direct Harvest',
+      scenes: [
+        {
+          sceneNum: 1,
+          timeSpan: '0s - 5s',
+          sceneTag: 'SCENE 1/3 • PROVENANCE & SOIL TERROIR',
+          headline: `🌱 100% Direct Farmgate from ${safeLocation}`,
+          subtext: `Verified agricultural provenance and regenerative cultivation practices. Straight from ${safeFarmName}.`,
+          badges: ['Direct Origin', 'Verified Producer', 'Zero Middlemen'],
+          bgImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1400&q=80'
+        },
+        {
+          sceneNum: 2,
+          timeSpan: '5s - 10s',
+          sceneTag: 'SCENE 2/3 • FRESH MORNING HARVEST',
+          headline: '✨ Harvested at Peak Quality with Fair Returns',
+          subtext: 'Chemical-free handling, carefully sorted and packaged to protect nutrient density and natural freshness.',
+          badges: ['Peak Freshness', 'Fair Farmgate Return', 'Direct Trade Certified'],
+          bgImage: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1400&q=80'
+        },
+        {
+          sceneNum: 3,
+          timeSpan: '10s - 15s',
+          sceneTag: 'SCENE 3/3 • EXPRESS DISPATCH & ORDER',
+          headline: '🚚 Direct Delivery to Wholesale & Retail Buyers',
+          subtext: 'Connect directly with local producers. Guaranteed honest prices and reliable cargo delivery.',
+          badges: ['Fast Delivery', 'Wholesale & Retail', 'Zero Middlemen'],
+          bgImage: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=1400&q=80'
+        }
+      ]
+    };
+  }
+
+  let tierBadge = '⭐ VIP Grower Sponsor';
+  let tierLabel = 'Monthly Grower Pro';
+  if (tier === 'weekly') {
+    tierBadge = '🌟 Featured Harvest Flash';
+    tierLabel = 'Weekly Flash';
+  } else if (tier === 'yearly') {
+    tierBadge = '🏆 Annual Champion Sponsor';
+    tierLabel = 'Yearly Champion Co-Op';
+  }
+
+  const durationLabel = durationDays === 7 ? '1 Week Homepage Feature' : durationDays === 30 ? '1 Month Homepage Feature' : '1 Year Homepage Feature';
+  const expiresAt = Date.now() + (durationDays * 24 * 60 * 60 * 1000);
+
+  return {
+    id: 'ai-gen-commercial-' + Date.now(),
+    tierName: tierLabel,
+    tierBadge: tierBadge,
+    durationBadge: `🗓️ ${durationLabel}`,
+    durationDays: durationDays,
+    expiresAt: expiresAt,
+    farmName: preset.farmName,
+    location: preset.location,
+    avatar: preset.avatar,
+    scenes: preset.scenes,
+    actionText: preset.actionText,
+    actionLink: preset.actionLink
+  };
+}
+
+function startAiVideoGeneration(adData, durationDays, price, farmName, tier) {
+  // Realistic 5-10 minute wait period (7 minutes = 420,000 ms)
+  const totalDurationMs = 7 * 60 * 1000;
+  const now = Date.now();
+
+  const aiJob = {
+    id: 'job-' + now,
+    farmName: farmName,
+    tier: tier,
+    price: price,
+    durationDays: durationDays,
+    startedAt: now,
+    readyAt: now + totalDurationMs,
+    totalDurationMs: totalDurationMs,
+    adData: adData,
+    status: 'processing'
+  };
+
+  localStorage.setItem('agri_ai_ad_generation', JSON.stringify(aiJob));
+
+  // Stop previous commercial video timers while rendering
+  if (adTickInterval) clearInterval(adTickInterval);
+  if (adProgressInterval) clearInterval(adProgressInterval);
+
+  renderAiStudioPipeline(aiJob);
+  startAiPipelineTrackingLoop();
+
+  showToast(`✨ AI Commercial synthesis initiated! AgriMate AI is rendering your 15-second 4K video. Finalization takes 5–10 minutes — tracking live status below.`);
+
+  const adSection = document.getElementById('sponsoredTopAdSection');
+  if (adSection) {
+    adSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function renderAiStudioPipeline(aiJob) {
+  const container = document.getElementById('sponsoredAdContent');
+  if (!container) return;
+
+  const now = Date.now();
+  const msLeft = Math.max(0, aiJob.readyAt - now);
+  const totalMs = aiJob.totalDurationMs || (7 * 60 * 1000);
+  const elapsed = Math.max(0, now - aiJob.startedAt);
+  const pct = Math.min(99, Math.max(8, Math.floor((elapsed / totalMs) * 100)));
+
+  const mins = Math.floor(msLeft / 60000);
+  const secs = Math.floor((msLeft % 60000) / 1000);
+  const timeFormatted = `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+
+  // Update timer display & duration tag in top header
+  const timerDisplay = document.getElementById('adTimerDisplay');
+  if (timerDisplay) {
+    timerDisplay.innerHTML = `
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>AI Queue: ${timeFormatted} left</span>
+    `;
+  }
+
+  const durationTag = document.getElementById('adDurationBadge');
+  if (durationTag) {
+    durationTag.innerHTML = `⚙️ Rendering 15s Commercial • ${aiJob.durationDays} Days Active Upon Finalization`;
+  }
+
+  const steps = [
+    { title: '1. Terroir Analysis', desc: 'Scanning farm altitude, soil type & verified produce catalog', at: 20 },
+    { title: '2. 4K Scene Cuts', desc: 'Synthesizing 3 cinematic 5-second scenes & sunrise sweeps', at: 45 },
+    { title: '3. Kinetic Typography', desc: 'Generating modern lower-third text & zero-middleman badges', at: 70 },
+    { title: '4. Commercial Audio', desc: 'Mastering broadcast-grade audio track & rhythm timing', at: 90 },
+    { title: '5. Homepage Dispatch', desc: 'Finalizing 15-second video file & encoding for homepage showcase', at: 100 }
+  ];
+
+  const stepsHtml = steps.map(s => {
+    let stateClass = '';
+    let stateIcon = '⏳';
+    if (pct >= s.at) {
+      stateClass = 'done';
+      stateIcon = '✓';
+    } else if (pct >= s.at - 25) {
+      stateClass = 'active';
+      stateIcon = '⚡';
+    }
+    return `
+      <div class="ai-step-item ${stateClass}">
+        <span style="font-weight: 800;">${stateIcon}</span>
+        <div>
+          <div style="font-weight: 700;">${escapeHtml(s.title)}</div>
+          <div style="font-size: 0.68rem; opacity: 0.85;">${escapeHtml(s.desc)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="ai-studio-gen-card">
+      <div class="ai-studio-gen-header">
+        <div>
+          <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid #34d399; color: #a7f3d0; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 9999px; text-transform: uppercase;">
+            ✨ AgriMate AI Studio • Automated Synthesis
+          </span>
+          <h3 style="margin: 0.4rem 0 0.15rem; font-size: 1.25rem; font-weight: 800; color: #ffffff;">
+            Rendering 15-Second Modern Video Commercial for ${escapeHtml(aiJob.farmName)}
+          </h3>
+          <p style="margin: 0; font-size: 0.8rem; color: #cbd5e1;">
+            Zero manual creative input needed. The AI engine is assembling a 15-second multi-scene promotional video ad.
+          </p>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 1.35rem; font-weight: 800; color: #fde047; font-variant-numeric: tabular-nums;">
+            ${timeFormatted}
+          </div>
+          <span style="font-size: 0.72rem; color: #94a3b8;">Est. Finalization (5–10 mins)</span>
+        </div>
+      </div>
+
+      <!-- Animated Progress Bar -->
+      <div class="ai-studio-progress-track">
+        <div class="ai-studio-progress-fill" style="width: ${pct}%;"></div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; font-size: 0.75rem; color: #a7f3d0;">
+        <span>Progress: <strong>${pct}%</strong> completed</span>
+        <span>Package: <strong>${escapeHtml(aiJob.tier.toUpperCase())} (${aiJob.durationDays} Days Homepage Visibility)</strong></span>
+      </div>
+
+      <!-- 5-Step Pipeline Grid -->
+      <div class="ai-studio-steps-grid">
+        ${stepsHtml}
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1rem;">
+        <span style="font-size: 0.75rem; color: #e2e8f0;">
+          💡 <em>Once finalized, your ad automatically appears right here at the top of the homepage and stays for ${aiJob.durationDays} days.</em>
+        </span>
+        <button type="button" onclick="expediteAiVideoRender()" class="btn-primary" style="font-size: 0.78rem; padding: 0.45rem 0.95rem; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; font-weight: 800; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);" title="Complete AI synthesis immediately for instant testing">
+          ⚡ Expedite AI Render (Instant Preview)
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function startAiPipelineTrackingLoop() {
+  if (aiPipelineInterval) clearInterval(aiPipelineInterval);
+
+  aiPipelineInterval = setInterval(() => {
+    const aiJob = getActiveAiGeneration();
+    if (!aiJob) {
+      clearInterval(aiPipelineInterval);
+      return;
+    }
+
+    if (Date.now() >= aiJob.readyAt) {
+      clearInterval(aiPipelineInterval);
+      finalizeAiVideoGeneration(aiJob);
+    } else {
+      renderAiStudioPipeline(aiJob);
+    }
+  }, 1000);
+}
+
+function expediteAiVideoRender() {
+  const aiJob = getActiveAiGeneration();
+  if (!aiJob) return;
+
+  aiJob.readyAt = Date.now() - 1000;
+  localStorage.setItem('agri_ai_ad_generation', JSON.stringify(aiJob));
+
+  if (aiPipelineInterval) clearInterval(aiPipelineInterval);
+  finalizeAiVideoGeneration(aiJob);
+}
+
+function finalizeAiVideoGeneration(aiJob) {
+  // Store custom sponsor ad and subscription record
+  localStorage.setItem('agri_custom_sponsor_ad', JSON.stringify(aiJob.adData));
+  localStorage.setItem('agri_active_subscription', JSON.stringify({
+    tier: aiJob.tier,
+    price: aiJob.price,
+    farmName: aiJob.farmName,
+    durationDays: aiJob.durationDays,
+    expiresAt: aiJob.adData.expiresAt,
+    activatedAt: new Date().toISOString()
+  }));
+
+  localStorage.removeItem('agri_ai_ad_generation');
+
+  showToast(`🎉 AI Commercial Finalized! Your 15-second video is now live at the top of the homepage for ${aiJob.durationDays} days!`);
+
+  // Reset ad showcase to show the new custom ad at index 0
+  currentAdIndex = 0;
+  adSecondsRemaining = AD_DURATION_SECONDS;
+  currentRenderedSceneIndex = -1;
+  currentRenderedAdId = null;
+
+  renderCurrentSponsoredAd(true);
+  startAdCountdownLoop();
+}
+
+/* ============================================================ */
+/* 15-Second Video Ad Commercial Playback Engine               */
+/* ============================================================ */
 function startAdCountdownLoop() {
   if (adTickInterval) clearInterval(adTickInterval);
   if (adProgressInterval) clearInterval(adProgressInterval);
@@ -6425,7 +7071,8 @@ function startAdCountdownLoop() {
     if (!isAdPaused) {
       const bar = document.getElementById('adTimerProgressBar');
       if (bar) {
-        const pct = Math.max(0, (adSecondsRemaining / AD_DURATION_SECONDS) * 100);
+        // Progress runs smoothly across the 15 seconds
+        const pct = Math.max(0, ((15 - adSecondsRemaining) / 15) * 100);
         bar.style.width = pct + '%';
       }
     }
@@ -6434,7 +7081,17 @@ function startAdCountdownLoop() {
   adTickInterval = setInterval(() => {
     if (!isAdPaused) {
       adSecondsRemaining--;
+
+      // Determine which scene (0-5s = Scene 1, 5-10s = Scene 2, 10-15s = Scene 3)
+      const elapsed = AD_DURATION_SECONDS - adSecondsRemaining;
+      const targetSceneIdx = Math.min(2, Math.floor(elapsed / 5));
+
+      if (targetSceneIdx !== currentRenderedSceneIndex) {
+        renderCurrentSponsoredAd(false);
+      }
+
       updateTimerDisplay();
+      updateSceneTimelineDots(targetSceneIdx);
 
       if (adSecondsRemaining <= 0) {
         nextSponsoredAd(true);
@@ -6446,14 +7103,38 @@ function startAdCountdownLoop() {
 function updateTimerDisplay() {
   const timerDisplay = document.getElementById('adTimerDisplay');
   if (timerDisplay) {
+    const elapsed = AD_DURATION_SECONDS - adSecondsRemaining;
+    const currentScene = Math.min(3, Math.floor(elapsed / 5) + 1);
     timerDisplay.innerHTML = `
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <span>${Math.max(1, adSecondsRemaining)}s remaining</span>
+      <span>Scene ${currentScene}/3 • ${Math.max(1, adSecondsRemaining)}s remaining</span>
     `;
   }
 }
 
-function renderCurrentSponsoredAd() {
+function updateSceneTimelineDots(activeIdx) {
+  const dots = document.querySelectorAll('.scene-timeline-dots .scene-dot');
+  dots.forEach((dot, idx) => {
+    if (idx === activeIdx) {
+      dot.classList.add('active');
+    } else {
+      dot.classList.remove('active');
+    }
+  });
+}
+
+function seekAdScene(startSecond) {
+  // 0s => Scene 1 (15s remaining)
+  // 5s => Scene 2 (10s remaining)
+  // 10s => Scene 3 (5s remaining)
+  adSecondsRemaining = Math.max(1, AD_DURATION_SECONDS - startSecond);
+  renderCurrentSponsoredAd(false);
+  updateTimerDisplay();
+  const activeIdx = Math.min(2, Math.floor(startSecond / 5));
+  updateSceneTimelineDots(activeIdx);
+}
+
+function renderCurrentSponsoredAd(forceFullRebuild = false) {
   const container = document.getElementById('sponsoredAdContent');
   if (!container) return;
 
@@ -6462,45 +7143,93 @@ function renderCurrentSponsoredAd() {
   if (currentAdIndex < 0) currentAdIndex = ads.length - 1;
 
   const ad = ads[currentAdIndex];
+  const elapsed = AD_DURATION_SECONDS - adSecondsRemaining;
+  const sceneIdx = Math.min(2, Math.floor(elapsed / 5));
+  const scenes = ad.scenes || [];
+  const scene = scenes[sceneIdx] || scenes[0] || {};
 
-  container.style.opacity = '0';
-  container.style.transform = 'translateY(4px)';
+  currentRenderedSceneIndex = sceneIdx;
+  currentRenderedAdId = ad.id;
 
-  setTimeout(() => {
-    const tagsHtml = (ad.tags || []).map(t => `<span class="sponsored-tag-pill">${escapeHtml(t)}</span>`).join('');
+  // Update header badges
+  const durationTag = document.getElementById('adDurationBadge');
+  if (durationTag) {
+    durationTag.innerHTML = escapeHtml(ad.durationBadge || '🗓️ 1 Week Homepage Feature');
+  }
 
-    container.innerHTML = `
-      <img src="${escapeHtml(ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(ad.farmName)}" class="sponsored-ad-avatar">
-      <div>
-        <div class="sponsored-ad-title-row">
-          <span class="sponsored-ad-farm-name">${escapeHtml(ad.farmName)}</span>
-          <span class="sponsored-tier-tag">${escapeHtml(ad.tierBadge || 'Subscriber Spotlight')}</span>
-          <span style="font-size: 0.775rem; color: #a7f3d0;">• ${escapeHtml(ad.location || 'Direct Producer')}</span>
+  updateSceneTimelineDots(sceneIdx);
+
+  const badgesHtml = (scene.badges || ['Direct Farmgate', 'Verified Producer', 'Zero Middlemen'])
+    .map(b => `<span class="video-chip">${escapeHtml(b)}</span>`)
+    .join('');
+
+  container.innerHTML = `
+    <div class="video-commercial-reel" id="videoReelStage">
+      <!-- Ken Burns Cinematic Motion Background -->
+      <img src="${escapeHtml(scene.bgImage || ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(ad.farmName)}" class="video-scene-bg">
+
+      <!-- Dark Gradient & Grain Overlay -->
+      <div class="video-cinematic-overlay"></div>
+
+      <!-- Video Reel Top Row -->
+      <div class="video-reel-top-row">
+        <div class="video-reel-watermark">
+          <span>✨ AgriMate 4K Commercial</span>
+          <span>•</span>
+          <span>${escapeHtml(ad.tierBadge || '⭐ VIP Sponsor')}</span>
         </div>
-        <div class="sponsored-ad-headline">${escapeHtml(ad.headline)}</div>
-        <div class="sponsored-ad-description">${escapeHtml(ad.description)}</div>
-        <div class="sponsored-ad-tags">${tagsHtml}</div>
+        <div class="video-scene-indicator-tag">
+          <span style="color: #34d399;">● REC</span>
+          <span>${escapeHtml(scene.sceneTag || `SCENE ${sceneIdx + 1}/3`)}</span>
+        </div>
       </div>
-      <div class="sponsored-ad-actions">
-        <a href="${escapeHtml(ad.actionLink || 'marketplace.html')}" class="btn-primary" style="font-size: 0.85rem; padding: 0.55rem 1.15rem; background: #ffffff; color: #064e3b; font-weight: 800; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.15); white-space: nowrap; text-decoration: none;">
-          ${escapeHtml(ad.actionText || 'Explore Harvest')} &rarr;
-        </a>
-        <a href="#subscriptionsSection" style="font-size: 0.75rem; color: #fef08a; text-decoration: underline; font-weight: 600; text-align: right;">
-          Subscriber Feature (15s Ad)
-        </a>
-      </div>
-    `;
 
-    container.style.opacity = '1';
-    container.style.transform = 'translateY(0)';
-  }, 120);
+      <!-- Video Reel Bottom Row (Kinetic Typography & Lower-Third) -->
+      <div class="video-reel-bottom-row">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <img src="${escapeHtml(ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(ad.farmName)}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1.5px solid #ffffff;">
+            <span style="font-size: 0.825rem; font-weight: 800; color: #a7f3d0; text-shadow: 0 1px 4px rgba(0,0,0,0.8);">
+              ${escapeHtml(ad.farmName)}
+            </span>
+            <span style="font-size: 0.72rem; color: #e2e8f0; opacity: 0.85;">
+              • ${escapeHtml(ad.location || 'Direct Producer')}
+            </span>
+          </div>
+
+          <div class="video-kinetic-headline">
+            ${escapeHtml(scene.headline || ad.farmName)}
+          </div>
+
+          <div class="video-kinetic-subtext">
+            ${escapeHtml(scene.subtext || 'Promoting direct farmgate agricultural produce with zero middleman exploitation.')}
+          </div>
+
+          <div class="video-kinetic-badges">
+            ${badgesHtml}
+          </div>
+        </div>
+
+        <!-- Video Action Direct Order CTA -->
+        <div class="video-action-box">
+          <a href="${escapeHtml(ad.actionLink || scene.actionLink || 'marketplace.html')}" class="btn-primary" style="font-size: 0.875rem; padding: 0.65rem 1.35rem; background: #ffffff; color: #064e3b; font-weight: 800; border: none; box-shadow: 0 4px 14px rgba(0,0,0,0.3); text-decoration: none; white-space: nowrap;">
+            ${escapeHtml(scene.actionText || ad.actionText || 'Explore Harvest')} &rarr;
+          </a>
+          <a href="#subscriptionsSection" style="font-size: 0.72rem; color: #fef08a; text-decoration: underline; font-weight: 700;">
+            Avail AI Commercial (15s)
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function nextSponsoredAd(isAuto = false) {
   const ads = getActiveSponsoredAds();
   currentAdIndex = (currentAdIndex + 1) % ads.length;
   adSecondsRemaining = AD_DURATION_SECONDS;
-  renderCurrentSponsoredAd();
+  currentRenderedSceneIndex = -1;
+  renderCurrentSponsoredAd(true);
   updateTimerDisplay();
 }
 
@@ -6508,7 +7237,8 @@ function prevSponsoredAd() {
   const ads = getActiveSponsoredAds();
   currentAdIndex = (currentAdIndex - 1 + ads.length) % ads.length;
   adSecondsRemaining = AD_DURATION_SECONDS;
-  renderCurrentSponsoredAd();
+  currentRenderedSceneIndex = -1;
+  renderCurrentSponsoredAd(true);
   updateTimerDisplay();
 }
 
@@ -6525,45 +7255,115 @@ function updatePauseUI() {
     icon.textContent = isAdPaused ? '▶️' : '⏸️';
   }
   if (btn) {
-    btn.title = isAdPaused ? 'Resume 15s Ad Timer' : 'Pause 15s Ad Timer';
+    btn.title = isAdPaused ? 'Resume 15s Commercial' : 'Pause 15s Commercial';
   }
 }
 
 /* ============================================================ */
-/* Subscription Modal & Ad Generator Actions                    */
+/* Commercial Audio Synthesizer (Web Audio API)                */
 /* ============================================================ */
-function openSubscribeModal(tier, price, planName) {
+function toggleAdAudioSound() {
+  const btn = document.getElementById('adSoundBtn');
+  const icon = document.getElementById('adSoundIcon');
+
+  if (isCommercialAudioPlaying) {
+    stopCommercialAudio();
+    if (btn) btn.classList.remove('sound-active');
+    if (icon) icon.textContent = '🔇';
+    isCommercialAudioPlaying = false;
+  } else {
+    startCommercialAudio();
+    if (btn) btn.classList.add('sound-active');
+    if (icon) icon.textContent = '🔊';
+    isCommercialAudioPlaying = true;
+  }
+}
+
+function startCommercialAudio() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+
+    if (!commercialAudioCtx) {
+      commercialAudioCtx = new AudioContext();
+    }
+    if (commercialAudioCtx.state === 'suspended') {
+      commercialAudioCtx.resume();
+    }
+
+    commercialAudioGain = commercialAudioCtx.createGain();
+    commercialAudioGain.gain.setValueAtTime(0.08, commercialAudioCtx.currentTime);
+    commercialAudioGain.connect(commercialAudioCtx.destination);
+
+    // Warm commercial harmonic arpeggio (C maj9: C4, E4, G4, B4, D5)
+    const notes = [261.63, 329.63, 392.00, 493.88, 587.33, 493.88, 392.00];
+    let noteIdx = 0;
+
+    commercialAudioArpTimer = setInterval(() => {
+      if (!isCommercialAudioPlaying || !commercialAudioCtx || commercialAudioCtx.state === 'closed') return;
+      try {
+        const osc = commercialAudioCtx.createOscillator();
+        const noteGain = commercialAudioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(notes[noteIdx % notes.length], commercialAudioCtx.currentTime);
+        noteIdx++;
+
+        noteGain.gain.setValueAtTime(0.06, commercialAudioCtx.currentTime);
+        noteGain.gain.exponentialRampToValueAtTime(0.001, commercialAudioCtx.currentTime + 0.85);
+
+        osc.connect(noteGain);
+        noteGain.connect(commercialAudioGain);
+
+        osc.start();
+        osc.stop(commercialAudioCtx.currentTime + 0.9);
+      } catch (err) {
+        // Safe catch for audio frame drops
+      }
+    }, 450);
+  } catch (e) {
+    console.warn('Commercial audio synthesis not supported or blocked:', e);
+  }
+}
+
+function stopCommercialAudio() {
+  if (commercialAudioArpTimer) {
+    clearInterval(commercialAudioArpTimer);
+    commercialAudioArpTimer = null;
+  }
+  if (commercialAudioGain && commercialAudioCtx) {
+    try {
+      commercialAudioGain.gain.linearRampToValueAtTime(0.001, commercialAudioCtx.currentTime + 0.1);
+    } catch (e) {}
+  }
+}
+
+/* ============================================================ */
+/* Subscription Modal & AI Trigger (Zero Manual Work)           */
+/* ============================================================ */
+function openSubscribeModal(tier, price, planName, durationDays) {
   const modal = document.getElementById('subscribeAdModal');
   if (!modal) return;
 
+  const resolvedDuration = durationDays || (tier === 'weekly' ? 7 : tier === 'monthly' ? 30 : 365);
+
   const tierInput = document.getElementById('subTierInput');
   const priceInput = document.getElementById('subPriceInput');
+  const durationInput = document.getElementById('subDurationDaysInput');
   const badge = document.getElementById('subModalPlanBadge');
   const title = document.getElementById('subModalTitle');
+  const priceDisplay = document.getElementById('subModalPriceDisplay');
+  const durationDisplay = document.getElementById('subModalDurationDisplay');
 
   if (tierInput) tierInput.value = tier;
   if (priceInput) priceInput.value = price;
+  if (durationInput) durationInput.value = resolvedDuration;
   if (badge) badge.textContent = planName;
-  if (title) title.textContent = `Subscribe ${planName} (₱${Number(price).toLocaleString()})`;
-
-  // Attach live preview event listeners
-  const farmInput = document.getElementById('subFarmName');
-  const headlineInput = document.getElementById('subHeadline');
-  const tagsInput = document.getElementById('subTags');
-
-  const updatePreview = () => {
-    const pfName = document.getElementById('previewModalFarmName');
-    const pfHead = document.getElementById('previewModalHeadline');
-    const pfTags = document.getElementById('previewModalTags');
-
-    if (pfName && farmInput) pfName.textContent = farmInput.value.trim() || 'Your Farm / Brand Name';
-    if (pfHead && headlineInput) pfHead.textContent = headlineInput.value.trim() || 'Your Catchy 15-Second Promotional Headline';
-    if (pfTags && tagsInput) pfTags.textContent = tagsInput.value.trim() || 'Direct Farmgate • Cold-Chain Delivery';
-  };
-
-  if (farmInput) farmInput.oninput = updatePreview;
-  if (headlineInput) headlineInput.oninput = updatePreview;
-  if (tagsInput) tagsInput.oninput = updatePreview;
+  if (title) title.textContent = `AI-Generated 15-Second Commercial (${planName})`;
+  if (priceDisplay) priceDisplay.textContent = `₱${Number(price).toLocaleString()}`;
+  if (durationDisplay) {
+    durationDisplay.textContent = resolvedDuration === 7 ? '1 Week (7 Days)' : resolvedDuration === 30 ? '1 Month (30 Days)' : '1 Year (365 Days)';
+  }
 
   modal.classList.add('open');
 }
@@ -6573,66 +7373,33 @@ function closeSubscribeModal() {
   if (modal) modal.classList.remove('open');
 }
 
+function handleSubFarmChange() {
+  const select = document.getElementById('subFarmSelect');
+  const customWrap = document.getElementById('customFarmWrap');
+  if (select && customWrap) {
+    customWrap.style.display = (select.value === 'custom') ? 'block' : 'none';
+  }
+}
+
 function handleSubscribeSubmit(e) {
   e.preventDefault();
 
-  const tier = document.getElementById('subTierInput')?.value || 'monthly';
-  const price = document.getElementById('subPriceInput')?.value || '700';
-  const farmName = document.getElementById('subFarmName')?.value || 'My Verified Farm';
-  const location = document.getElementById('subLocation')?.value || 'Philippines';
-  const headline = document.getElementById('subHeadline')?.value || 'Fresh Direct Farmgate Harvest';
-  const description = document.getElementById('subDescription')?.value || 'Promoting direct fresh agricultural harvest.';
-  const tagsRaw = document.getElementById('subTags')?.value || 'Direct Farmgate, Verified Grower';
-  const actionLink = document.getElementById('subActionLink')?.value || 'marketplace.html';
+  const tier = document.getElementById('subTierInput')?.value || 'weekly';
+  const price = document.getElementById('subPriceInput')?.value || '200';
+  const durationDays = parseInt(document.getElementById('subDurationDaysInput')?.value || '7', 10);
+  const farmSelect = document.getElementById('subFarmSelect')?.value || 'farmer-ramon';
+  const customName = document.getElementById('customFarmName')?.value?.trim();
+  const customLoc = document.getElementById('customFarmLocation')?.value?.trim();
 
-  const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
-
-  let tierBadge = '⭐ VIP Grower Sponsor';
-  if (tier === 'weekly') tierBadge = '🌟 Weekly Flash Sponsor';
-  if (tier === 'yearly') tierBadge = '🏆 Annual Champion Sponsor';
-
-  const newCustomAd = {
-    id: 'custom-sub-ad-' + Date.now(),
-    tierName: tier.toUpperCase(),
-    tierBadge: tierBadge,
-    farmName: farmName,
-    location: location,
-    headline: headline,
-    description: description,
-    tags: tags.length ? tags : ['Direct Farmgate', 'Verified Grower'],
-    avatar: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300',
-    actionLink: actionLink,
-    actionText: 'View Harvest Direct'
-  };
-
-  // Persist subscriber ad
-  localStorage.setItem('agri_custom_sponsor_ad', JSON.stringify(newCustomAd));
-  localStorage.setItem('agri_active_subscription', JSON.stringify({
-    tier: tier,
-    price: price,
-    farmName: farmName,
-    activatedAt: new Date().toISOString()
-  }));
+  // 100% Automated AI Creative Generation - zero manual copywriting required
+  const generatedAd = generateAiVideoAdData(farmSelect, customName, customLoc, tier, durationDays, price);
 
   closeSubscribeModal();
 
-  // Reset ad index to 0 so the subscriber's ad plays immediately
-  currentAdIndex = 0;
-  adSecondsRemaining = AD_DURATION_SECONDS;
-  isAdPaused = false;
-  isManualPause = false;
-  updatePauseUI();
-  renderCurrentSponsoredAd();
-  updateTimerDisplay();
-
-  showToast(`🎉 Subscription activated! Your 15-second ad is now live at the top of the homepage!`);
-
-  // Smooth scroll to top ad banner
-  const adSection = document.getElementById('sponsoredTopAdSection');
-  if (adSection) {
-    adSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
+  // Launch the 5-10 minute AI video synthesis pipeline
+  startAiVideoGeneration(generatedAd, durationDays, price, generatedAd.farmName, tier);
 }
+
 
 
 

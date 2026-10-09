@@ -138,46 +138,70 @@
       </div>
     </div>
 
-    <!-- Sponsored Subscriber Showcase: 15-Second Dynamic Top Ad -->
-    <section id="sponsoredTopAdSection" class="sponsored-ad-section" aria-label="Sponsored Subscriber Showcase">
+    <!-- AI-Generated 15-Second Video Commercial Spotlight Section -->
+    <section id="sponsoredTopAdSection" class="sponsored-ad-section" aria-label="AI-Generated Sponsored Commercial Showcase">
       <div class="sponsored-ad-card" id="sponsoredAdCard">
         <div class="sponsored-ad-bg-glow"></div>
 
-        <!-- 15-Second Countdown Bar -->
-        <div class="sponsored-ad-timer-bar-wrap" title="15-Second Ad Showcase Progress">
+        <!-- 15-Second Video Progress Bar -->
+        <div class="sponsored-ad-timer-bar-wrap" title="15-Second Commercial Video Playback">
           <div id="adTimerProgressBar" class="sponsored-ad-timer-bar"></div>
         </div>
 
-        <!-- Ad Header & Meta -->
+        <!-- Commercial Header & Meta Controls -->
         <div class="sponsored-ad-header">
           <div class="sponsored-badge-wrap">
-            <span class="sponsored-pill">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              Subscriber Spotlight
+            <span class="sponsored-pill" id="adBadgePill">
+              <span class="ai-sparkle-icon">✨</span>
+              <span>AI-Generated Commercial (15s)</span>
             </span>
             <span id="adTimerDisplay" class="sponsored-live-timer">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              15s remaining
+              <span>15s remaining</span>
+            </span>
+            <span id="adDurationBadge" class="sponsored-duration-tag">
+              🗓️ 1 Week Homepage Feature
             </span>
           </div>
 
+          <!-- Video Player Controls -->
           <div class="sponsored-ad-controls">
-            <button type="button" id="adPauseBtn" onclick="togglePauseAdShowcase()" class="ad-ctrl-btn" title="Pause / Resume Ad Timer">
+            <!-- Sound Audio Toggle -->
+            <button type="button" id="adSoundBtn" onclick="toggleAdAudioSound()" class="ad-ctrl-btn" title="Toggle Commercial Audio (Mute / Sound On)">
+              <span id="adSoundIcon">🔇</span>
+              <span class="audio-wave-bars">
+                <span class="wave-bar"></span>
+                <span class="wave-bar"></span>
+                <span class="wave-bar"></span>
+              </span>
+            </button>
+
+            <!-- Play / Pause -->
+            <button type="button" id="adPauseBtn" onclick="togglePauseAdShowcase()" class="ad-ctrl-btn" title="Play / Pause Commercial">
               <span id="adPauseIcon">⏸️</span>
             </button>
-            <button type="button" onclick="prevSponsoredAd()" class="ad-ctrl-btn" title="Previous Subscriber Ad">
+
+            <!-- Scene Timeline Jumpers -->
+            <div class="scene-timeline-dots" title="Commercial Scenes (0-5s Terroir, 5-10s Harvest, 10-15s Order)">
+              <button type="button" class="scene-dot active" onclick="seekAdScene(0)" title="Scene 1: Farm Terroir (0-5s)">1</button>
+              <button type="button" class="scene-dot" onclick="seekAdScene(5)" title="Scene 2: Fresh Harvest (5-10s)">2</button>
+              <button type="button" class="scene-dot" onclick="seekAdScene(10)" title="Scene 3: Direct Order (10-15s)">3</button>
+            </div>
+
+            <!-- Ad Cyclers -->
+            <button type="button" onclick="prevSponsoredAd()" class="ad-ctrl-btn" title="Previous Commercial Video">
               ‹
             </button>
-            <button type="button" onclick="nextSponsoredAd()" class="ad-ctrl-btn" title="Next Subscriber Ad">
+            <button type="button" onclick="nextSponsoredAd()" class="ad-ctrl-btn" title="Next Commercial Video">
               ›
             </button>
-            <a href="#subscriptionsSection" class="ad-ctrl-btn" style="background: rgba(254, 240, 138, 0.22); border-color: #fef08a; color: #fef08a; text-decoration: none; margin-left: 0.25rem;">
-              🚀 Feature Your Farm
+            <a href="#subscriptionsSection" class="ad-ctrl-btn feature-cta-pill" style="text-decoration: none;">
+              🚀 Feature Your Farm with AI Video
             </a>
           </div>
         </div>
 
-        <!-- Dynamic Ad Content Body -->
+        <!-- Dynamic 15-Second Video Reel Screen Body -->
         <div id="sponsoredAdContent" class="sponsored-ad-body">
           <!-- Populated dynamically by app.js renderCurrentSponsoredAd() -->
         </div>
@@ -521,30 +545,26 @@
           AgriConnect Partner Subscriptions
         </h2>
         <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.65rem; line-height: 1.6;">
-          Elevate your harvest visibility directly to thousands of wholesale and commercial buyers across the Philippines. Gain guaranteed high-impact exposure, verified badges, and our premier promotional spotlight.
-        </p>
-      </div>
-
-      <!-- Key Benefit Callout -->
+          Elevate your harvest visibility directly to thousands of wholesale and commercial buyers across the Philippines. Gain guaranteed high-impact exposure, verified badges, and our      <!-- Key Benefit Callout -->
       <div class="subscription-feature-callout">
         <div style="display: flex; align-items: center; gap: 1.15rem;">
           <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.6rem; border: 1px solid #86efac;">
-            ⏱️
+            🎬
           </div>
           <div>
             <div style="font-size: 0.75rem; font-weight: 800; color: #15803d; text-transform: uppercase; letter-spacing: 0.04em;">
-              Key Flagship Privilege
+              Automated AI Flagship Privilege
             </div>
             <h3 style="font-size: 1.15rem; font-weight: 800; color: #14532d; margin-top: 0.15rem;">
-              Generates an Exclusive 15-Second Top Homepage Ad
+              Triggers an AI-Generated 15-Second Video Commercial for the Homepage
             </h3>
             <p style="font-size: 0.86rem; color: #166534; line-height: 1.5; margin-top: 0.25rem;">
-              Every subscriber gets dedicated 15-second promotional airtime positioned at the very top of AgriConnect—before "The Farmer's Situation"—ensuring your farm, fresh harvests, and direct contact details are seen first by every visiting buyer.
+              No manual input or copywriting required! AgriMate AI automatically analyzes your farm's terroir and harvest catalog to synthesize a modern, high-production 15-second video commercial. Simply wait 5–10 minutes for rendering; your video then automatically deploys to the homepage and remains live for your subscription package duration (1 Week for ₱200, 1 Month for ₱700, or 1 Year for ₱2,500).
             </p>
           </div>
         </div>
         <a href="#sponsoredTopAdSection" class="btn-primary" style="white-space: nowrap; font-size: 0.825rem; padding: 0.6rem 1.1rem; flex-shrink: 0; text-decoration: none;">
-          View Live Ad Banner ↑
+          View Live Video Ad ↑
         </a>
       </div>
 
@@ -554,7 +574,7 @@
         <div class="sub-card">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 0.775rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Weekly Pass</span>
-            <span style="background: var(--bg-subtle); font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); padding: 0.2rem 0.5rem; border-radius: 4px;">Harvest Boost</span>
+            <span style="background: var(--bg-subtle); font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); padding: 0.2rem 0.5rem; border-radius: 4px;">1 Week Active</span>
           </div>
 
           <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-top: 0.4rem;">Weekly Flash</h3>
@@ -566,12 +586,20 @@
             <span class="sub-card-price">₱200</span>
             <span class="sub-card-period">/ week</span>
           </div>
-          <div style="font-size: 0.75rem; color: var(--text-muted);">Billed weekly • Cancel anytime</div>
+          <div style="font-size: 0.75rem; color: #15803d; font-weight: 700;">Keeps ad visible on homepage for 1 full week (7 days)</div>
 
           <ul class="sub-feature-list">
             <li class="sub-feature-item">
               <span class="sub-feature-icon">✓</span>
-              <span><strong>15-Second Top Homepage Ad</strong> rotation showcase</span>
+              <span><strong>AI-Generated 15-Second Video Ad</strong> on homepage (7 Days)</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon">✓</span>
+              <span><strong>Zero manual input required</strong> — AI writes script & crafts video</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon">✓</span>
+              <span>Ready in 5–10 minutes via AgriMate AI Studio pipeline</span>
             </li>
             <li class="sub-feature-item">
               <span class="sub-feature-icon">✓</span>
@@ -583,16 +611,12 @@
             </li>
             <li class="sub-feature-item">
               <span class="sub-feature-icon">✓</span>
-              <span>Direct WhatsApp & phone contact links for buyers</span>
-            </li>
-            <li class="sub-feature-item">
-              <span class="sub-feature-icon">✓</span>
-              <span>Instant live ad generator & activation</span>
+              <span>Direct WhatsApp & phone contact links for wholesale buyers</span>
             </li>
           </ul>
 
-          <button type="button" onclick="openSubscribeModal('weekly', 200, 'Weekly Flash')" class="btn-secondary" style="width: 100%; justify-content: center; font-weight: 800; padding: 0.75rem; font-size: 0.875rem;">
-            Choose Weekly (₱200)
+          <button type="button" onclick="openSubscribeModal('weekly', 200, 'Weekly Flash', 7)" class="btn-secondary" style="width: 100%; justify-content: center; font-weight: 800; padding: 0.75rem; font-size: 0.875rem;">
+            Choose Weekly (₱200) • 1 Week
           </button>
         </div>
 
@@ -602,7 +626,7 @@
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem;">
             <span style="font-size: 0.775rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Monthly Pro</span>
-            <span style="background: #dcfce7; font-size: 0.72rem; font-weight: 800; color: #15803d; padding: 0.2rem 0.55rem; border-radius: 4px;">Save ~12%</span>
+            <span style="background: #dcfce7; font-size: 0.72rem; font-weight: 800; color: #15803d; padding: 0.2rem 0.55rem; border-radius: 4px;">30 Days Active</span>
           </div>
 
           <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-top: 0.4rem;">Monthly Grower Pro</h3>
@@ -614,16 +638,20 @@
             <span class="sub-card-price" style="color: var(--primary-deep);">₱700</span>
             <span class="sub-card-period">/ month</span>
           </div>
-          <div style="font-size: 0.75rem; color: #15803d; font-weight: 700;">Save ~₱100/mo compared to weekly plan</div>
+          <div style="font-size: 0.75rem; color: #15803d; font-weight: 700;">Keeps ad visible on homepage for 1 full month (30 days)</div>
 
           <ul class="sub-feature-list">
             <li class="sub-feature-item">
               <span class="sub-feature-icon" style="color: #15803d; font-weight: 800;">✓</span>
-              <span><strong>Priority 15-Second Top Homepage Ad</strong> (high-frequency rotation)</span>
+              <span><strong>Priority 15-Second AI Video Ad</strong> on homepage (30 Days)</span>
             </li>
             <li class="sub-feature-item">
               <span class="sub-feature-icon" style="color: #15803d;">✓</span>
-              <span>Priority rank in Marketplace category search results</span>
+              <span><strong>Zero manual input</strong> — AI generates modern 4K commercial</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon" style="color: #15803d;">✓</span>
+              <span>Automatic deployment in 5–10 minutes from subscription</span>
             </li>
             <li class="sub-feature-item">
               <span class="sub-feature-icon" style="color: #15803d;">✓</span>
@@ -631,11 +659,7 @@
             </li>
             <li class="sub-feature-item">
               <span class="sub-feature-icon" style="color: #15803d;">✓</span>
-              <span>Custom promotional copy, custom photo, & direct product link</span>
-            </li>
-            <li class="sub-feature-item">
-              <span class="sub-feature-icon" style="color: #15803d;">✓</span>
-              <span>Weekly analytics summary on buyer impressions & leads</span>
+              <span>Priority rank in Marketplace category search results</span>
             </li>
             <li class="sub-feature-item">
               <span class="sub-feature-icon" style="color: #15803d;">✓</span>
@@ -643,8 +667,8 @@
             </li>
           </ul>
 
-          <button type="button" onclick="openSubscribeModal('monthly', 700, 'Monthly Grower Pro')" class="btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 0.8rem; font-size: 0.9rem; box-shadow: 0 4px 14px rgba(21, 128, 61, 0.25);">
-            Choose Monthly Pro (₱700) 🚀
+          <button type="button" onclick="openSubscribeModal('monthly', 700, 'Monthly Grower Pro', 30)" class="btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 0.8rem; font-size: 0.9rem; box-shadow: 0 4px 14px rgba(21, 128, 61, 0.25);">
+            Choose Monthly Pro (₱700) • 1 Month 🚀
           </button>
         </div>
 
@@ -654,7 +678,7 @@
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem;">
             <span style="font-size: 0.775rem; font-weight: 800; color: #b45309; text-transform: uppercase; letter-spacing: 0.05em;">Yearly Champion</span>
-            <span style="background: #fef3c7; font-size: 0.72rem; font-weight: 800; color: #b45309; padding: 0.2rem 0.55rem; border-radius: 4px;">Top Tier</span>
+            <span style="background: #fef3c7; font-size: 0.72rem; font-weight: 800; color: #b45309; padding: 0.2rem 0.55rem; border-radius: 4px;">365 Days Active</span>
           </div>
 
           <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-top: 0.4rem;">Yearly Champion Co-Op</h3>
@@ -666,12 +690,16 @@
             <span class="sub-card-price" style="color: #92400e;">₱2,500</span>
             <span class="sub-card-period">/ year</span>
           </div>
-          <div style="font-size: 0.75rem; color: #b45309; font-weight: 700;">Only ~₱208/month • Massive ₱5,900 annual savings</div>
+          <div style="font-size: 0.75rem; color: #b45309; font-weight: 700;">Keeps ad visible on homepage for 1 full year (365 days)</div>
 
           <ul class="sub-feature-list">
             <li class="sub-feature-item">
               <span class="sub-feature-icon highlight" style="font-weight: 800;">✓</span>
-              <span><strong>Guaranteed Top-Tier 15-Second Homepage Ad</strong> running 365 days</span>
+              <span><strong>Top-Tier 15-Second AI Video Ad</strong> running on homepage for 365 Days</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon highlight">✓</span>
+              <span><strong>100% Automated AI Production</strong> (5–10 min synthesis pipeline)</span>
             </li>
             <li class="sub-feature-item">
               <span class="sub-feature-icon highlight">✓</span>
@@ -689,14 +717,10 @@
               <span class="sub-feature-icon highlight">✓</span>
               <span>Dedicated AgriConnect logistics & account manager</span>
             </li>
-            <li class="sub-feature-item">
-              <span class="sub-feature-icon highlight">✓</span>
-              <span>Comprehensive supply and seasonal price intelligence</span>
-            </li>
           </ul>
 
-          <button type="button" onclick="openSubscribeModal('yearly', 2500, 'Yearly Champion Co-Op')" class="btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 0.8rem; font-size: 0.9rem; background: #d97706; border-color: #d97706; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25);">
-            Choose Yearly (₱2,500) ⭐
+          <button type="button" onclick="openSubscribeModal('yearly', 2500, 'Yearly Champion Co-Op', 365)" class="btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 0.8rem; font-size: 0.9rem; background: #d97706; border-color: #d97706; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25);">
+            Choose Yearly (₱2,500) • 1 Year ⭐
           </button>
         </div>
       </div>
@@ -941,88 +965,101 @@
     </div>
   </div>
 
-  <!-- Subscription Ad Generator & Checkout Modal -->
+  <!-- Subscription AI Video Generator & Checkout Modal -->
   <div id="subscribeAdModal" class="modal-overlay" onclick="if(event.target === this) closeSubscribeModal()">
-    <div class="modal-content" style="max-width: 640px; padding: 2rem;">
+    <div class="modal-content" style="max-width: 620px; padding: 2rem;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem;">
         <div>
           <span id="subModalPlanBadge" class="sponsored-tier-tag" style="display: inline-block; margin-bottom: 0.35rem; background: #dcfce7; color: #15803d; border-color: #86efac; font-weight: 800;">Monthly Grower Pro</span>
-          <h3 id="subModalTitle" style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">Activate 15-Second Top Homepage Ad</h3>
-          <p style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.2rem;">
-            Your promotional spotlight will be featured at the very top of AgriConnect for 15 seconds per buyer rotation.
+          <h3 id="subModalTitle" style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">AI-Generated 15-Second Video Commercial</h3>
+          <p id="subModalSubtitle" style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Subscribing triggers AgriMate AI to automatically generate a modern 15-second video commercial for your farm.
           </p>
         </div>
         <button type="button" onclick="closeSubscribeModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer; padding: 0.2rem;" aria-label="Close modal">&times;</button>
       </div>
 
-      <!-- Live Ad Preview Inside Modal -->
-      <div style="margin-bottom: 1.25rem;">
-        <label style="display: block; font-size: 0.775rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 0.4rem; letter-spacing: 0.04em;">
-          Live Preview: Top 15-Second Ad Banner
-        </label>
-        <div style="background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); color: #ffffff; border-radius: var(--radius-md); padding: 1rem; border: 1px solid rgba(167, 243, 208, 0.3); box-shadow: var(--shadow-sm);">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.72rem;">
-            <span style="background: #f59e0b; color: #fff; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 9999px;">SUBSCRIBER SPOTLIGHT</span>
-            <span style="color: #fef3c7; font-weight: 700;">⏱️ 15s Timer</span>
+      <!-- Plan Duration & Highlights Card -->
+      <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem; border: 1px solid var(--border-subtle);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Homepage Visibility Duration:</span>
+          <strong id="subModalDurationDisplay" style="font-size: 1rem; color: var(--primary-deep); font-weight: 800;">1 Week (7 Days)</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding-top: 0.4rem; border-top: 1px dashed var(--border-subtle);">
+          <span style="color: var(--text-secondary);">Subscription Amount:</span>
+          <strong id="subModalPriceDisplay" style="font-size: 1.2rem; color: var(--text-main); font-weight: 800;">₱200</strong>
+        </div>
+      </div>
+
+      <!-- Zero Manual Work: AI Engine Explanation -->
+      <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #86efac; border-radius: var(--radius-md); padding: 1.15rem; margin-bottom: 1.25rem;">
+        <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #15803d; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+            ✨
           </div>
-          <div style="display: flex; gap: 0.75rem; align-items: center;">
-            <img id="previewModalAdAvatar" src="https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300" alt="Farm Logo" style="width: 52px; height: 52px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid #ffffff;">
-            <div style="flex: 1; min-width: 0;">
-              <div id="previewModalFarmName" style="font-weight: 800; font-size: 0.95rem; color: #ffffff;">Cordillera Strawberry Haven</div>
-              <div id="previewModalHeadline" style="font-weight: 700; font-size: 0.85rem; color: #fef08a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Fresh High-Altitude Strawberries Farmgate Wholesale</div>
-              <div id="previewModalTags" style="font-size: 0.72rem; color: #d1fae5; margin-top: 0.2rem;">Direct Farmgate • Cold-Chain Delivery</div>
+          <div>
+            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #14532d;">
+              Zero Manual Copywriting or Design Required
+            </h4>
+            <p style="margin: 0.3rem 0 0; font-size: 0.8rem; color: #166534; line-height: 1.5;">
+              The AI automatically handles the creative aspect of the 15-second video! It scans your farm’s verified location, harvest specialty, and pricing to compose 4K cinematic scenes, kinetic motion captions, and buyer call-to-actions.
+            </p>
+            <div style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.4rem; font-size: 0.725rem;">
+              <span style="background: #ffffff; color: #15803d; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700; border: 1px solid #bbf7d0;">✓ 4K Cinematic Scene Cuts</span>
+              <span style="background: #ffffff; color: #15803d; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700; border: 1px solid #bbf7d0;">✓ Modern Kinetic Motion Text</span>
+              <span style="background: #ffffff; color: #15803d; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700; border: 1px solid #bbf7d0;">✓ Commercial Soundtrack</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Form Inputs -->
+      <!-- 5-10 Min Pipeline Notice -->
+      <div style="display: flex; align-items: center; gap: 0.65rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.825rem; color: #92400e;">
+        <span style="font-size: 1.15rem;">⏱️</span>
+        <div>
+          <strong>5–10 Minutes AI Finalization:</strong>
+          <span>Once confirmed, simply wait 5–10 minutes for the AI to finalize the video. It will then automatically appear at the top of the homepage.</span>
+        </div>
+      </div>
+
+      <!-- Simple Farm Selector Form -->
       <form id="subscribeAdForm" onsubmit="handleSubscribeSubmit(event)">
-        <input type="hidden" id="subTierInput" value="monthly">
-        <input type="hidden" id="subPriceInput" value="700">
+        <input type="hidden" id="subTierInput" value="weekly">
+        <input type="hidden" id="subPriceInput" value="200">
+        <input type="hidden" id="subDurationDaysInput" value="7">
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
-          <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Farm / Brand Name *</label>
-            <input type="text" id="subFarmName" required placeholder="e.g. Cordillera Strawberry Haven" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Province / Location *</label>
-            <input type="text" id="subLocation" required placeholder="e.g. La Trinidad, Benguet" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
-          </div>
+        <div style="margin-bottom: 1.25rem;">
+          <label style="display: block; font-size: 0.825rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem;">
+            Select Farm / Listing to Feature *
+          </label>
+          <select id="subFarmSelect" onchange="handleSubFarmChange()" required style="width: 100%; padding: 0.7rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.875rem; background: #ffffff;">
+            <option value="farmer-ramon">Mang Ramon Dela Cruz — Dela Cruz Family Farm (Benguet)</option>
+            <option value="farmer-nena">Aling Nena Bautista — Bautista Rice Fields (Nueva Ecija)</option>
+            <option value="farmer-jun">Kuya Jun Villanueva — Villanueva Mango Orchard (Guimaras)</option>
+            <option value="farmer-marites">Ate Marites Sarmiento — Sarmiento Coastal Catch (Navotas)</option>
+            <option value="farmer-berting">Tatay Berting Lopez — Lopez Coconut & Root Farm (Quezon)</option>
+            <option value="farmer-cora">Nanay Cora Aquino — Aquino Poultry Yard (Cavite)</option>
+            <option value="custom">Enter Custom Farm / Enterprise Name...</option>
+          </select>
         </div>
 
-        <div style="margin-bottom: 0.85rem;">
-          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Promotional Headline (Appears in Bold Yellow) *</label>
-          <input type="text" id="subHeadline" required placeholder="e.g. 🍓 First-Harvest High-Altitude Strawberries Farmgate Wholesale" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
-        </div>
-
-        <div style="margin-bottom: 0.85rem;">
-          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Promotional Story / Pitch *</label>
-          <textarea id="subDescription" rows="2" required placeholder="Picked fresh at dawn with refrigerated transport to Metro Manila restaurant and wholesale buyers." style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;"></textarea>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem;">
-          <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Highlight Tags (Comma-Separated)</label>
-            <input type="text" id="subTags" placeholder="Direct Farmgate, 100% Organic, Cold-Chain" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Action Button Link / Target</label>
-            <select id="subActionLink" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
-              <option value="marketplace.html">Live Marketplace Catalog</option>
-              <option value="farmers.html">Farmer Directory Listing</option>
-              <option value="marketplace.html?category=Vegetables">Vegetables Section</option>
-              <option value="marketplace.html?category=Fruits">Fruits Section</option>
-              <option value="marketplace.html?category=Grains">Grains & Rice Section</option>
-            </select>
+        <div id="customFarmWrap" style="display: none; margin-bottom: 1.25rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+            <div>
+              <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.3rem;">Farm Name</label>
+              <input type="text" id="customFarmName" placeholder="e.g. Bukidnon Mountain Organics" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.3rem;">Province / Location</label>
+              <input type="text" id="customFarmLocation" placeholder="e.g. Malaybalay, Bukidnon" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
+            </div>
           </div>
         </div>
 
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
-          <button type="button" onclick="closeSubscribeModal()" class="btn-secondary" style="padding: 0.6rem 1.2rem;">Cancel</button>
-          <button type="submit" id="subSubmitBtn" class="btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.9rem; font-weight: 800;">
-            Activate Plan & Launch 15s Ad 🚀
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+          <button type="button" onclick="closeSubscribeModal()" class="btn-secondary" style="padding: 0.65rem 1.25rem; font-weight: 600;">Cancel</button>
+          <button type="submit" id="subSubmitBtn" class="btn-primary" style="padding: 0.65rem 1.6rem; font-size: 0.925rem; font-weight: 800; background: #15803d; border-color: #15803d; box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);">
+            🚀 Start AI Video Generation & Activate Plan
           </button>
         </div>
       </form>
