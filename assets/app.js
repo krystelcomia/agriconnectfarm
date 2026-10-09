@@ -133,6 +133,95 @@ const SEED_DATA = {
   ]
 };
 
+// Province Coordinates Lookup for Farm Pin Geocoding
+function getProvinceCoordinates(provName) {
+  if (!provName) return { lat: 14.5995, lng: 120.9842 };
+  const p = provName.toLowerCase();
+  if (p.includes('benguet') || p.includes('la trinidad') || p.includes('baguio')) return { lat: 16.455, lng: 120.588 };
+  if (p.includes('nueva ecija') || p.includes('cabanatuan') || p.includes('munoz')) return { lat: 15.486, lng: 120.967 };
+  if (p.includes('guimaras') || p.includes('jordan')) return { lat: 10.658, lng: 122.593 };
+  if (p.includes('navotas') || p.includes('manila') || p.includes('metro manila') || p.includes('quezon city') || p.includes('pasig') || p.includes('taguig') || p.includes('makati')) return { lat: 14.669, lng: 120.939 };
+  if (p.includes('quezon') || p.includes('lucban') || p.includes('tayabas')) return { lat: 14.113, lng: 121.556 };
+  if (p.includes('cavite') || p.includes('silang') || p.includes('tagaytay') || p.includes('dasmarinas')) return { lat: 14.230, lng: 120.974 };
+  if (p.includes('batangas') || p.includes('lipa')) return { lat: 13.756, lng: 121.058 };
+  if (p.includes('laguna') || p.includes('calamba') || p.includes('los banos')) return { lat: 14.270, lng: 121.417 };
+  if (p.includes('pampanga') || p.includes('san fernando') || p.includes('angeles')) return { lat: 15.035, lng: 120.685 };
+  if (p.includes('bulacan') || p.includes('malolos')) return { lat: 14.852, lng: 120.816 };
+  if (p.includes('pangasinan') || p.includes('dagupan')) return { lat: 15.975, lng: 120.347 };
+  if (p.includes('tarlac')) return { lat: 15.480, lng: 120.597 };
+  if (p.includes('isabela') || p.includes('ilagan')) return { lat: 16.975, lng: 121.810 };
+  if (p.includes('bukidnon') || p.includes('malaybalay') || p.includes('impasugong')) return { lat: 8.156, lng: 125.127 };
+  if (p.includes('davao')) return { lat: 7.190, lng: 125.455 };
+  if (p.includes('iloilo')) return { lat: 10.720, lng: 122.562 };
+  if (p.includes('cebu')) return { lat: 10.315, lng: 123.885 };
+  
+  // Deterministic pseudo-offset for other Philippine locations
+  let hash = 0;
+  for (let i = 0; i < provName.length; i++) hash = ((hash << 5) - hash) + provName.charCodeAt(i);
+  const latOffset = ((Math.abs(hash) % 20) - 10) * 0.04;
+  const lngOffset = ((Math.abs(hash >> 3) % 20) - 10) * 0.04;
+  return { lat: 14.5995 + latOffset, lng: 120.9842 + lngOffset };
+}
+
+// Unified Accounts & Farmers Directory Database Loader
+function getStoredFarmers() {
+  const farmerMap = new Map();
+
+  // 1. Load Seeded Philippine Growers
+  if (Array.isArray(SEED_DATA.farmers)) {
+    SEED_DATA.farmers.forEach(f => {
+      if (f && f.id) farmerMap.set(f.id, { ...f });
+    });
+  }
+
+  // 2. Load Persisted Custom Registered Farmers
+  try {
+    const custom = JSON.parse(localStorage.getItem('agri_custom_farmers') || '[]');
+    if (Array.isArray(custom)) {
+      custom.forEach(f => {
+        if (f && f.id) farmerMap.set(f.id, { ...f });
+      });
+    }
+  } catch (e) {
+    console.warn('Error reading agri_custom_farmers', e);
+  }
+
+  // 3. Scan Registered Accounts in agri_users
+  try {
+    const users = JSON.parse(localStorage.getItem('agri_users') || '[]');
+    if (Array.isArray(users)) {
+      users.filter(u => u && u.role === 'farmer').forEach(u => {
+        if (!farmerMap.has(u.id)) {
+          const coords = getProvinceCoordinates(u.province || u.city || 'Benguet');
+          const farmerEntry = {
+            id: u.id,
+            full_name: u.full_name,
+            farm_name: u.farm_name || `${u.full_name}'s Farm`,
+            city: u.city || 'Local Municipality',
+            province: u.province || 'Luzon',
+            latitude: u.latitude || coords.lat,
+            longitude: u.longitude || coords.lng,
+            address: u.address || `${u.province || 'Luzon'}, Philippines`,
+            bio: u.bio || `Direct agricultural producer partner on AgriConnect specializing in ${u.specialty || 'fresh harvests'}.`,
+            rating: u.rating || 5.0,
+            reviewsCount: u.reviewsCount || 1,
+            verified: true,
+            phone: u.phone || '+63 900 000 0000',
+            pickupHours: u.pickupHours || '7:00 AM – 5:00 PM (Daily)',
+            specialty: u.specialty || 'Direct Farm Harvests',
+            avatar: u.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'
+          };
+          farmerMap.set(u.id, farmerEntry);
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('Error reading agri_users for farmers directory', e);
+  }
+
+  return Array.from(farmerMap.values());
+}
+
 // Active User Session
 const activeUser = JSON.parse(localStorage.getItem('agri_user') || 'null');
 
@@ -140,7 +229,7 @@ const activeUser = JSON.parse(localStorage.getItem('agri_user') || 'null');
 window.AgriState = {
   products: [],
   categories: SEED_DATA.categories,
-  farmers: SEED_DATA.farmers,
+  farmers: getStoredFarmers(),
   cart: activeUser ? JSON.parse(localStorage.getItem(`agri_cart_${activeUser.id}`) || localStorage.getItem('agri_cart') || '[]') : [],
   orders: activeUser ? (JSON.parse(localStorage.getItem(`agri_orders_${activeUser.id}`) || localStorage.getItem('agri_orders') || '[]').filter(o => o && o.id !== 'AGRI-849201' && o.id !== 'AGRI-592014')) : [],
   currentCategory: 'all',
@@ -2443,6 +2532,120 @@ async function submitOrder(e) {
     addBuyerOrder(newOrder);
   }
 
+  // Group cart items by seller farmer and persist orders for each farmer in agri_farmer_orders
+  try {
+    const farmerGroups = {};
+    (newOrder.items || []).forEach(item => {
+      let fId = item.farmer_id;
+      let fName = item.farmer_name;
+
+      if (!fId) {
+        const prod = window.AgriState.products.find(p => p.id === item.id || p.name === item.name);
+        if (prod && prod.farmer_id) {
+          fId = prod.farmer_id;
+          fName = prod.farmer_name || fName;
+        } else {
+          fId = 'farmer-ramon';
+          fName = 'Dela Cruz Family Farm';
+        }
+      }
+
+      const key = fId || fName || 'general-producer';
+      if (!farmerGroups[key]) {
+        farmerGroups[key] = {
+          farmer_id: fId,
+          farmer_name: fName || 'Direct Farm Partner',
+          items: [],
+          subtotal: 0
+        };
+      }
+      farmerGroups[key].items.push(item);
+      farmerGroups[key].subtotal += ((item.price || 0) * (item.quantity || 1));
+    });
+
+    let allFarmerOrders = [];
+    const savedOrdersStr = localStorage.getItem('agri_farmer_orders');
+    if (savedOrdersStr) {
+      try {
+        allFarmerOrders = JSON.parse(savedOrdersStr);
+      } catch (e) {
+        allFarmerOrders = [...DEFAULT_FARMER_ORDERS];
+      }
+    } else {
+      allFarmerOrders = [...DEFAULT_FARMER_ORDERS];
+    }
+
+    const groupKeys = Object.keys(farmerGroups);
+    groupKeys.forEach((k, idx) => {
+      const grp = farmerGroups[k];
+      const farmerOrderId = groupKeys.length > 1 ? `${orderId}-F${idx + 1}` : orderId;
+
+      const farmerOrderRecord = {
+        id: farmerOrderId,
+        master_order_id: orderId,
+        farmer_id: grp.farmer_id,
+        farmer_name: grp.farmer_name,
+        buyer_id: user.id,
+        customer_name: newOrder.customerName,
+        customer_phone: newOrder.phone,
+        delivery_address: newOrder.address,
+        items: grp.items.map(it => ({
+          id: it.id,
+          name: it.name,
+          quantity: it.quantity,
+          unit: it.unit || 'kg',
+          price: it.price,
+          image_url: it.image_url,
+          farmer_name: it.farmer_name || grp.farmer_name,
+          farmer_id: it.farmer_id || grp.farmer_id
+        })),
+        total_amount: grp.subtotal,
+        payment_method: newOrder.paymentMethod,
+        payment_status: newOrder.paymentStatus,
+        status: 'Pending Harvest',
+        status_code: 'pending',
+        remaining_time: '1 day',
+        eta: 'Tomorrow, Morning Dispatch (6:00 AM - 10:00 AM)',
+        temp_c: 'Cold-Chain Verified',
+        placed_at: new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        delivery_method: fulfillment === 'delivery' ? 'AgriConnect Cold-Chain Direct Delivery' : 'Direct Farmgate Pickup'
+      };
+
+      allFarmerOrders.unshift(farmerOrderRecord);
+    });
+
+    localStorage.setItem('agri_farmer_orders', JSON.stringify(allFarmerOrders));
+  } catch (err) {
+    console.warn('Could not dispatch farmer orders to agri_farmer_orders:', err);
+  }
+
+  // Live Inventory Stock Deduction
+  try {
+    let customProducts = JSON.parse(localStorage.getItem('agri_custom_products') || '[]');
+    let customChanged = false;
+
+    (newOrder.items || []).forEach(cartItem => {
+      const prod = window.AgriState.products.find(p => p.id === cartItem.id || p.name === cartItem.name);
+      if (prod) {
+        prod.quantity = Math.max(0, (prod.quantity || 0) - cartItem.quantity);
+        if (prod.quantity === 0) prod.is_available = false;
+      }
+
+      const custProd = customProducts.find(p => p.id === cartItem.id || p.name === cartItem.name);
+      if (custProd) {
+        custProd.quantity = Math.max(0, (custProd.quantity || 0) - cartItem.quantity);
+        if (custProd.quantity === 0) custProd.is_available = false;
+        customChanged = true;
+      }
+    });
+
+    if (customChanged) {
+      localStorage.setItem('agri_custom_products', JSON.stringify(customProducts));
+    }
+  } catch (err) {
+    console.warn('Error deducting stock inventory:', err);
+  }
+
   window.AgriState.cart = [];
   saveCart();
   updateCartBadge();
@@ -3833,6 +4036,41 @@ function saveFarmerProfile(e) {
     localStorage.setItem('agri_users', JSON.stringify(registeredUsers));
   }
 
+  if (isFarmer) {
+    try {
+      const customFarmers = JSON.parse(localStorage.getItem('agri_custom_farmers') || '[]');
+      const fIdx = customFarmers.findIndex(f => f.id === user.id);
+      const coords = getProvinceCoordinates(user.province || user.city || 'Benguet');
+      const updatedEntry = {
+        id: user.id,
+        full_name: user.full_name,
+        farm_name: user.farm_name || `${user.full_name}'s Farm`,
+        city: user.city || 'Local Municipality',
+        province: user.province || 'Luzon',
+        latitude: user.latitude || coords.lat,
+        longitude: user.longitude || coords.lng,
+        address: user.address || `${user.province || 'Luzon'}, Philippines`,
+        bio: user.bio || `Direct agricultural producer partner on AgriConnect specializing in ${user.crops || user.specialty || 'fresh harvests'}.`,
+        rating: user.rating || 5.0,
+        reviewsCount: user.reviewsCount || 1,
+        verified: true,
+        phone: user.phone || '+63 900 000 0000',
+        pickupHours: user.pickupHours || '7:00 AM – 5:00 PM (Daily)',
+        specialty: user.crops || user.specialty || 'Direct Farm Harvests',
+        avatar: user.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'
+      };
+      if (fIdx >= 0) {
+        customFarmers[fIdx] = { ...customFarmers[fIdx], ...updatedEntry };
+      } else {
+        customFarmers.unshift(updatedEntry);
+      }
+      localStorage.setItem('agri_custom_farmers', JSON.stringify(customFarmers));
+      window.AgriState.farmers = getStoredFarmers();
+    } catch (e) {
+      console.warn('Error updating custom farmer entry:', e);
+    }
+  }
+
   // Sync with Dashboard elements if present
   const welcomeFarmerName = document.getElementById('welcomeFarmerName');
   if (welcomeFarmerName) welcomeFarmerName.textContent = user.full_name;
@@ -4955,25 +5193,26 @@ function renderSellHarvestActiveListings() {
   const container = document.getElementById('activeFarmerListingsContainer');
   if (!container) return;
 
-  const user = window.AgriState.user;
-  let ownProducts = window.AgriState.products.filter(p => isUserOwnProduct(p));
-  if (ownProducts.length === 0 && user && user.role === 'farmer') {
-    ownProducts = window.AgriState.products.filter(p => p.farmer_id === 'farmer-ramon');
-  }
+  const ownProducts = window.AgriState.products.filter(p => isUserOwnProduct(p));
+
   if (ownProducts.length === 0) {
-    ownProducts = window.AgriState.products.slice(0, 3);
+    container.innerHTML = `
+      <div style="padding: 1.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; background: var(--bg-page); border-radius: var(--radius-sm); border: 1px dashed var(--border-subtle);">
+        No active listings yet. Fill in the form on the left to publish your first harvest directly to consumers!
+      </div>
+    `;
+    return;
   }
 
-  container.innerHTML = ownProducts.slice(0, 4).map(p => `
+  container.innerHTML = ownProducts.slice(0, 6).map(p => `
     <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-page); transition: transform 0.15s ease;">
-      <img src="${p.image_url}" alt="${p.name}" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0;">
+      <img src="${p.image_url}" alt="${p.name}" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex-shrink: 0;" onerror="this.src='assets/logo.png'">
       <div style="flex: 1; min-width: 0;">
         <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</div>
-        <div style="font-size: 0.75rem; color: var(--text-muted);">${p.quantity} ${p.unit} remaining</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">${p.quantity} ${p.unit} in stock • ₱${p.price.toLocaleString()}/${p.unit}</div>
       </div>
       <div style="text-align: right; flex-shrink: 0;">
-        <div style="font-size: 0.9rem; font-weight: 800; color: #15803d;">₱${p.price.toLocaleString()}</div>
-        <div style="font-size: 0.675rem; color: var(--text-muted);">/${p.unit}</div>
+        <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 0.15rem 0.45rem; border-radius: 4px;">Active</span>
       </div>
     </div>
   `).join('');
@@ -5502,23 +5741,40 @@ function handleRegister(e) {
 
   // If farmer, add to local farmer directory as well
   if (role === 'farmer') {
+    const coords = getProvinceCoordinates(newUser.province || 'Benguet');
     const newFarmer = {
       id: newUser.id,
       full_name: newUser.full_name,
       farm_name: newUser.farm_name,
       city: 'Local Municipality',
       province: newUser.province,
+      latitude: coords.lat,
+      longitude: coords.lng,
       address: `${newUser.province}, Philippines`,
       bio: `Direct farmer partner on AgriConnect specializing in ${newUser.specialty}.`,
       rating: 5.0,
       reviewsCount: 1,
       verified: true,
       phone: newUser.phone,
-      pickupHours: '7:00 AM – 4:00 PM (Mon-Sat)',
+      pickupHours: '7:00 AM – 5:00 PM (Daily)',
       specialty: newUser.specialty,
       avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'
     };
-    window.AgriState.farmers.unshift(newFarmer);
+
+    try {
+      const customFarmers = JSON.parse(localStorage.getItem('agri_custom_farmers') || '[]');
+      const existIdx = customFarmers.findIndex(f => f.id === newFarmer.id);
+      if (existIdx >= 0) {
+        customFarmers[existIdx] = newFarmer;
+      } else {
+        customFarmers.unshift(newFarmer);
+      }
+      localStorage.setItem('agri_custom_farmers', JSON.stringify(customFarmers));
+    } catch (err) {
+      console.warn('Error saving custom farmer:', err);
+    }
+
+    window.AgriState.farmers = getStoredFarmers();
     window.AgriState.currentMode = 'farmer';
     localStorage.setItem('agri_mode', 'farmer');
   }
@@ -5868,53 +6124,94 @@ function getFarmerOrders() {
   }
 
   const saved = localStorage.getItem('agri_farmer_orders');
-  let orders = DEFAULT_FARMER_ORDERS;
+  let allOrders = [];
   if (saved) {
     try {
-      orders = JSON.parse(saved);
+      allOrders = JSON.parse(saved);
     } catch (e) {
       console.warn('Failed parsing farmer orders', e);
+      allOrders = [];
     }
+  } else {
+    // Seed default farmer orders for demo/testing
+    allOrders = [...DEFAULT_FARMER_ORDERS];
+    localStorage.setItem('agri_farmer_orders', JSON.stringify(allOrders));
   }
 
-  // Ensure default remaining_time and eta exist on all orders
-  let modified = false;
-  orders = orders.map(o => {
+  // Filter orders strictly for the active logged-in farmer
+  const farmerOrders = allOrders.filter(o => {
+    if (!o) return false;
+    // 1. Direct farmer_id match
+    if (o.farmer_id && o.farmer_id === user.id) return true;
+
+    // 2. Farmer farm name match
+    if (user.farm_name && o.farmer_name) {
+      const uFarm = user.farm_name.toLowerCase().trim();
+      const oFarm = o.farmer_name.toLowerCase().trim();
+      if (uFarm === oFarm || oFarm.includes(uFarm) || uFarm.includes(oFarm)) return true;
+    }
+
+    // 3. Farmer full name match
+    if (user.full_name && o.farmer_name) {
+      const uName = user.full_name.toLowerCase().trim();
+      const oFarm = o.farmer_name.toLowerCase().trim();
+      if (oFarm.includes(uName)) return true;
+    }
+
+    // 4. Check if any items belong to this farmer
+    if (o.items && Array.isArray(o.items)) {
+      const hasMatchingItem = o.items.some(item => {
+        if (item.farmer_id && item.farmer_id === user.id) return true;
+        const p = window.AgriState.products.find(prod => prod.id === item.id || prod.name === item.name);
+        return p && isUserOwnProduct(p);
+      });
+      if (hasMatchingItem) return true;
+    }
+
+    // 5. If Ramon Dela Cruz is logged in, include Ramon's default orders
+    if (user.id === 'farmer-ramon' && (!o.farmer_id || o.farmer_id === 'farmer-ramon' || (o.farmer_name || '').toLowerCase().includes('dela cruz'))) {
+      return true;
+    }
+
+    return false;
+  });
+
+  return farmerOrders.map(o => {
     if (!o.remaining_time || !o.eta) {
-      modified = true;
       if (o.status_code === 'delivered') {
         o.remaining_time = '0 mins (Delivered)';
         o.eta = o.eta || 'Delivered to Buyer';
         o.temp_c = o.temp_c || 'Safe Cold-Chain Verified';
-      } else if (o.id === 'ORD-8491') {
-        o.remaining_time = '45 minutes';
-        o.eta = 'Today, 11:15 AM';
-        o.temp_c = '3.8°C Temperature Verified';
-      } else if (o.id === 'ORD-8495') {
-        o.remaining_time = '3 hours 20 minutes';
-        o.eta = 'Today, 02:30 PM';
-        o.temp_c = '4.1°C Cold Store Verified';
-      } else if (o.id === 'ORD-8512') {
-        o.remaining_time = '1 day';
-        o.eta = 'Tomorrow, 09:30 AM';
-        o.temp_c = '3.5°C Chilled Prep';
+      } else if (o.status_code === 'in_transit') {
+        o.remaining_time = o.remaining_time || '45 minutes';
+        o.eta = o.eta || 'Today, 11:15 AM';
+        o.temp_c = o.temp_c || '3.8°C Temperature Verified';
       } else {
-        o.remaining_time = '1 day';
-        o.eta = 'Tomorrow, 10:00 AM';
-        o.temp_c = '4.0°C Temperature Verified';
+        o.remaining_time = o.remaining_time || '1 day';
+        o.eta = o.eta || 'Tomorrow, 09:30 AM';
+        o.temp_c = o.temp_c || 'Cold-Chain Verified';
       }
     }
     return o;
   });
-
-  if (modified || !saved) {
-    localStorage.setItem('agri_farmer_orders', JSON.stringify(orders));
-  }
-  return orders;
 }
 
 function saveFarmerOrders(orders) {
-  localStorage.setItem('agri_farmer_orders', JSON.stringify(orders));
+  const saved = localStorage.getItem('agri_farmer_orders');
+  let allOrders = [];
+  if (saved) {
+    try {
+      allOrders = JSON.parse(saved);
+    } catch (e) {
+      allOrders = [];
+    }
+  }
+
+  const map = new Map();
+  allOrders.forEach(o => { if (o && o.id) map.set(o.id, o); });
+  orders.forEach(o => { if (o && o.id) map.set(o.id, o); });
+
+  localStorage.setItem('agri_farmer_orders', JSON.stringify(Array.from(map.values())));
 }
 
 let currentFarmerOrderFilter = 'all';
@@ -5931,6 +6228,8 @@ function renderFarmerOrders(filter = currentFarmerOrderFilter) {
   const orders = getFarmerOrders();
   const pendingOrders = orders.filter(o => o.status_code === 'pending');
   const deliveredOrders = orders.filter(o => o.status_code === 'delivered');
+  const totalSalesAmount = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+  const deliveredPayoutAmount = deliveredOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
   // Update tabs styling & counters
   const tabAll = document.getElementById('tabBtnAllOrders');
@@ -5951,10 +6250,15 @@ function renderFarmerOrders(filter = currentFarmerOrderFilter) {
   }
 
   // Update KPI counters
+  const statTotalSales = document.getElementById('statTotalSales');
   const statPending = document.getElementById('statPendingOrders');
   const statDelivered = document.getElementById('statDeliveredItems');
+  const payoutValEl = document.getElementById('farmerPayoutBalanceVal');
+
+  if (statTotalSales) statTotalSales.textContent = `₱${totalSalesAmount.toLocaleString()}`;
   if (statPending) statPending.textContent = `${pendingOrders.length} Order${pendingOrders.length === 1 ? '' : 's'}`;
   if (statDelivered) statDelivered.textContent = `${deliveredOrders.length} Completed`;
+  if (payoutValEl) payoutValEl.textContent = `₱${deliveredPayoutAmount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   let filtered = orders;
   if (filter === 'pending') {
@@ -5966,7 +6270,7 @@ function renderFarmerOrders(filter = currentFarmerOrderFilter) {
   if (filtered.length === 0) {
     listEl.innerHTML = `
       <div style="text-align: center; padding: 2.5rem 1rem; background: #ffffff; border: 1px dashed var(--border-strong); border-radius: var(--radius-md);">
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">No orders found in this category.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">${filter === 'pending' ? 'No orders currently pending harvest.' : filter === 'delivered' ? 'No delivered orders recorded yet.' : 'No orders received for your farm products yet. Once buyers place orders, they will appear here in real-time!'}</p>
       </div>
     `;
     return;
@@ -6004,7 +6308,7 @@ function renderFarmerOrders(filter = currentFarmerOrderFilter) {
 
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
         <div style="display: flex; flex-direction: column; gap: 0.3rem;">
-          ${o.items.map(item => `
+          ${(o.items || []).map(item => `
             <div style="font-size: 0.85rem; color: var(--text-main);">
               <strong>${item.quantity} ${item.unit}</strong> × ${item.name} <span style="color: var(--text-muted); font-size: 0.78rem;">(@ ₱${item.price}/${item.unit})</span>
             </div>
@@ -6013,7 +6317,7 @@ function renderFarmerOrders(filter = currentFarmerOrderFilter) {
 
         <div style="text-align: right;">
           <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Direct Farmgate Total</div>
-          <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary-deep);">₱${o.total_amount.toLocaleString()}</div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary-deep);">₱${(o.total_amount || 0).toLocaleString()}</div>
         </div>
       </div>
     </div>
@@ -6021,22 +6325,87 @@ function renderFarmerOrders(filter = currentFarmerOrderFilter) {
 }
 
 function updateFarmerOrderStatus(orderId, newStatusCode) {
-  const orders = getFarmerOrders();
-  const order = orders.find(o => o.id === orderId);
+  const saved = localStorage.getItem('agri_farmer_orders');
+  let allOrders = [];
+  if (saved) {
+    try { allOrders = JSON.parse(saved); } catch (e) { allOrders = []; }
+  }
+
+  const order = allOrders.find(o => o.id === orderId);
   if (!order) return;
 
   order.status_code = newStatusCode;
   if (newStatusCode === 'delivered') {
     order.status = 'Delivered to Buyer';
     order.remaining_time = '0 mins (Delivered)';
+    order.eta = 'Delivered Today';
   } else if (newStatusCode === 'in_transit') {
     order.status = 'In Transit';
     order.remaining_time = (order.remaining_time && !order.remaining_time.includes('0 mins')) ? order.remaining_time : '45 minutes';
+    order.eta = 'Today, Cold-Chain Transit';
   } else {
     order.status = 'Pending Harvest';
     order.remaining_time = (order.remaining_time && !order.remaining_time.includes('0 mins')) ? order.remaining_time : '1 day';
+    order.eta = 'Tomorrow, Morning Dispatch';
   }
-  saveFarmerOrders(orders);
+
+  localStorage.setItem('agri_farmer_orders', JSON.stringify(allOrders));
+
+  // Sync with Buyer Orders in localStorage so the buyer sees the updated status in track-orders.html and profile.html!
+  const masterId = order.master_order_id || order.id.split('-F')[0];
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (key.startsWith('agri_orders') || key.startsWith('agri_buyer_orders'))) {
+      try {
+        let bOrders = JSON.parse(localStorage.getItem(key) || '[]');
+        if (Array.isArray(bOrders)) {
+          let modified = false;
+          bOrders.forEach(bo => {
+            if (bo && (bo.id === masterId || bo.id === order.id)) {
+              if (newStatusCode === 'delivered') {
+                bo.status = 'Delivered';
+                bo.status_code = 'past';
+                bo.progressStep = 4;
+              } else if (newStatusCode === 'in_transit') {
+                bo.status = 'In Transit';
+                bo.status_code = 'to_deliver';
+                bo.progressStep = 3;
+              } else {
+                bo.status = 'Order Confirmed';
+                bo.status_code = 'to_deliver';
+                bo.progressStep = 1;
+              }
+              modified = true;
+            }
+          });
+          if (modified) {
+            localStorage.setItem(key, JSON.stringify(bOrders));
+          }
+        }
+      } catch (err) {
+        console.warn('Error syncing buyer order status', err);
+      }
+    }
+  }
+
+  // Update in-memory orders if active
+  if (window.AgriState.orders && Array.isArray(window.AgriState.orders)) {
+    window.AgriState.orders.forEach(bo => {
+      if (bo && (bo.id === masterId || bo.id === order.id)) {
+        if (newStatusCode === 'delivered') {
+          bo.status = 'Delivered';
+          bo.status_code = 'past';
+          bo.progressStep = 4;
+        } else if (newStatusCode === 'in_transit') {
+          bo.status = 'In Transit';
+          bo.status_code = 'to_deliver';
+          bo.progressStep = 3;
+        }
+      }
+    });
+  }
+
   renderFarmerOrders();
   if (typeof renderFarmerOrdersDrawer === 'function') {
     renderFarmerOrdersDrawer(currentFarmerDrawerFilter);
@@ -6053,11 +6422,7 @@ function renderFarmerOwnProducts() {
   const container = document.getElementById('farmerProductsGrid');
   if (!container) return;
 
-  const user = window.AgriState.user;
-  let ownProducts = window.AgriState.products.filter(p => isUserOwnProduct(p));
-  if (ownProducts.length === 0 && user && user.role === 'farmer') {
-    ownProducts = window.AgriState.products.filter(p => p.farmer_id === 'farmer-ramon');
-  }
+  const ownProducts = window.AgriState.products.filter(p => isUserOwnProduct(p));
 
   const statActive = document.getElementById('statActiveListings');
   if (statActive) {
@@ -6067,9 +6432,9 @@ function renderFarmerOwnProducts() {
   if (ownProducts.length === 0) {
     container.innerHTML = `
       <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1rem; background: #ffffff; border-radius: var(--radius-md); border: 1px dashed var(--border-strong);">
-        <h4 style="font-size: 1.1rem; font-weight: 700;">No crops listed yet</h4>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.35rem 0 1rem;">Start listing your farm product directly to consumers without middlemen.</p>
-        <button onclick="openSellHarvestModal()" class="btn-primary">+ List Your First Crop</button>
+        <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">No crops listed yet</h4>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0.35rem 0 1rem;">Start listing your farm produce directly to consumers without middlemen.</p>
+        <a href="sell-harvest.html" class="btn-primary" style="text-decoration: none; display: inline-block; padding: 0.6rem 1.25rem;">+ List Your First Crop</a>
       </div>
     `;
     return;
