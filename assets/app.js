@@ -4317,6 +4317,83 @@ function runAIPricingAssistant() {
 // -------------------------------------------------------------
 
 let currentAiRecommendedPrice = 85;
+let stagedCustomProductImage = null;
+
+function handleProductImageFileChange(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('Image file too large. Please select an image under 10MB.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    stagedCustomProductImage = evt.target.result;
+
+    const urlInput = document.getElementById('pageProductImageUrl');
+    if (urlInput) urlInput.value = '';
+
+    const resetBtn = document.getElementById('resetProductImageBtn');
+    if (resetBtn) resetBtn.style.display = 'inline-block';
+
+    const thumb = document.getElementById('formProductImgThumb');
+    if (thumb) thumb.src = stagedCustomProductImage;
+
+    const badge = document.getElementById('formProductImgBadge');
+    if (badge) badge.textContent = 'Custom Photo';
+
+    const previewImg = document.getElementById('previewProductImg');
+    if (previewImg) previewImg.src = stagedCustomProductImage;
+
+    showToast('Harvest photo uploaded and attached successfully!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleProductImageUrlChange() {
+  const urlInput = document.getElementById('pageProductImageUrl');
+  const url = urlInput ? urlInput.value.trim() : '';
+
+  const cropInput = document.getElementById('pageCropName') || document.getElementById('sellCropName');
+  const catSelect = document.getElementById('pageCropCategory') || document.getElementById('sellCategory');
+  const cropName = cropInput ? cropInput.value.trim() : '';
+  const categoryVal = catSelect ? catSelect.value : 'cat-veg';
+
+  const resetBtn = document.getElementById('resetProductImageBtn');
+  const thumb = document.getElementById('formProductImgThumb');
+  const badge = document.getElementById('formProductImgBadge');
+  const previewImg = document.getElementById('previewProductImg');
+
+  if (url) {
+    stagedCustomProductImage = url;
+    if (resetBtn) resetBtn.style.display = 'inline-block';
+    if (thumb) thumb.src = url;
+    if (badge) badge.textContent = 'URL Photo';
+    if (previewImg) previewImg.src = url;
+  } else {
+    stagedCustomProductImage = null;
+    if (resetBtn) resetBtn.style.display = 'none';
+    const defaultUrl = getProductPhotoUrl(cropName, categoryVal);
+    if (thumb) thumb.src = defaultUrl;
+    if (badge) badge.textContent = 'Default Photo';
+    if (previewImg) previewImg.src = defaultUrl;
+  }
+}
+
+function resetToDefaultProductImage() {
+  stagedCustomProductImage = null;
+  const fileInput = document.getElementById('pageProductImageFile');
+  if (fileInput) fileInput.value = '';
+  const urlInput = document.getElementById('pageProductImageUrl');
+  if (urlInput) urlInput.value = '';
+  const resetBtn = document.getElementById('resetProductImageBtn');
+  if (resetBtn) resetBtn.style.display = 'none';
+
+  handleListingFormInput();
+  showToast('Reset to automatic farmgate crop photo.');
+}
 
 function getProductPhotoUrl(cropName, categoryId) {
   const name = (cropName || '').toLowerCase();
@@ -4480,13 +4557,31 @@ function handleListingFormInput() {
   if (previewUnit) previewUnit.textContent = `/ ${unit}`;
   if (previewQty) previewQty.textContent = `${quantity > 0 ? quantity.toLocaleString() : '150'} ${unit.includes('kg') ? 'kg' : unit}`;
   if (previewDesc) previewDesc.textContent = desc || 'Freshly harvested mountain product grown with natural organic compost in Benguet.';
-  if (previewImg) previewImg.src = getProductPhotoUrl(cropName, categoryVal);
+
+  const activeImgSrc = stagedCustomProductImage || (document.getElementById('pageProductImageUrl')?.value?.trim()) || getProductPhotoUrl(cropName, categoryVal);
+  if (previewImg) previewImg.src = activeImgSrc;
+
+  const formThumb = document.getElementById('formProductImgThumb');
+  if (formThumb) formThumb.src = activeImgSrc;
+
+  const formBadge = document.getElementById('formProductImgBadge');
+  if (formBadge) {
+    formBadge.textContent = stagedCustomProductImage ? 'Custom Photo' : (document.getElementById('pageProductImageUrl')?.value?.trim() ? 'URL Photo' : 'Default Photo');
+  }
 
   // Auto-adapt AI recommendations dynamically
   triggerAiPriceRecommendation(false);
 }
 
 function quickFillCrop(name, categoryVal, unit, price, qty, desc) {
+  stagedCustomProductImage = null;
+  const fileInput = document.getElementById('pageProductImageFile');
+  if (fileInput) fileInput.value = '';
+  const urlInput = document.getElementById('pageProductImageUrl');
+  if (urlInput) urlInput.value = '';
+  const resetBtn = document.getElementById('resetProductImageBtn');
+  if (resetBtn) resetBtn.style.display = 'none';
+
   const cropInput = document.getElementById('pageCropName') || document.getElementById('sellCropName');
   const catSelect = document.getElementById('pageCropCategory') || document.getElementById('sellCategory');
   const unitSelect = document.getElementById('pageCropUnit') || document.getElementById('sellUnit');
@@ -4741,7 +4836,7 @@ function handlePageHarvestSubmit(e) {
     harvest_date: harvestDate,
     hub_location: hubLocation,
     is_available: true,
-    image_url: getProductPhotoUrl(cropName, categoryVal),
+    image_url: stagedCustomProductImage || (document.getElementById('pageProductImageUrl')?.value?.trim()) || getProductPhotoUrl(cropName, categoryVal),
     farmer_name: (user && (user.farm_name || user.full_name)) || 'Dela Cruz Family Farm',
     farmer_id: (user && user.id) || 'farmer-ramon',
     city: (user && user.city) || 'La Trinidad',
@@ -4813,6 +4908,14 @@ function closePublishSuccessModal() {
   const modal = document.getElementById('harvestPublishSuccessModal');
   if (modal) modal.classList.remove('open');
 
+  stagedCustomProductImage = null;
+  const fileInput = document.getElementById('pageProductImageFile');
+  if (fileInput) fileInput.value = '';
+  const urlInput = document.getElementById('pageProductImageUrl');
+  if (urlInput) urlInput.value = '';
+  const resetBtn = document.getElementById('resetProductImageBtn');
+  if (resetBtn) resetBtn.style.display = 'none';
+
   const form = document.getElementById('sellHarvestPageForm');
   if (form) {
     form.reset();
@@ -4821,6 +4924,14 @@ function closePublishSuccessModal() {
 }
 
 function resetListingForm() {
+  stagedCustomProductImage = null;
+  const fileInput = document.getElementById('pageProductImageFile');
+  if (fileInput) fileInput.value = '';
+  const urlInput = document.getElementById('pageProductImageUrl');
+  if (urlInput) urlInput.value = '';
+  const resetBtn = document.getElementById('resetProductImageBtn');
+  if (resetBtn) resetBtn.style.display = 'none';
+
   setTimeout(() => {
     handleListingFormInput();
     triggerAiPriceRecommendation(false);
