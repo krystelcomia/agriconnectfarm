@@ -5571,6 +5571,17 @@ function updateAuthUI() {
     heroBrowseBtn.innerHTML = isFarmer ? 'View My Products &rarr;' : 'Browse Marketplace &rarr;';
   }
 
+  // Toggle Subscription sections: Hide from buyer accounts (buyers only see homepage sponsored ads)
+  const isBuyer = Boolean(user && user.role !== 'farmer');
+  const subSection = document.getElementById('subscriptionsSection');
+  if (subSection) {
+    subSection.style.setProperty('display', isBuyer ? 'none' : '', isBuyer ? 'important' : '');
+  }
+  const farmerSubGuide = document.getElementById('farmerSubscriptionGuide');
+  if (farmerSubGuide) {
+    farmerSubGuide.style.setProperty('display', isBuyer ? 'none' : '', isBuyer ? 'important' : '');
+  }
+
   if (!container) return;
 
   if (user && user.full_name) {
@@ -8398,6 +8409,10 @@ function stopCommercialAudio() {
 /* Subscription Modal & AI Trigger (Zero Manual Work)           */
 /* ============================================================ */
 function openSubscribeModal(tier, price, planName, durationDays) {
+  // Prevent buyers from opening subscription modal (buyers don't subscribe)
+  if (window.AgriState?.user && window.AgriState.user.role !== 'farmer') {
+    return;
+  }
   const modal = document.getElementById('subscribeAdModal');
   if (!modal) return;
 

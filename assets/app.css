@@ -2090,6 +2090,14 @@ body.is-farmer .sell-harvest-btn.sell-harvest-mobile-btn {
 /* ============================================================ */
 /* Subscription Plans & Pricing Section                        */
 /* ============================================================ */
+/* Buyer Role: Hide all Subscription Details & Plans (buyers only see the live ads) */
+body.is-buyer #subscriptionsSection,
+body.is-buyer .subscriptions-section,
+body.is-buyer #farmerSubscriptionGuide,
+body.is-buyer #subscribeAdModal {
+  display: none !important;
+}
+
 .subscriptions-section {
   max-width: 1240px;
   margin: 4.5rem auto 3rem;
