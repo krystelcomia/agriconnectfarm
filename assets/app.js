@@ -1795,7 +1795,25 @@ function renderFarmerOrdersDrawer(filter = 'all') {
   const drawer = document.getElementById('farmerOrdersDrawer');
   if (!drawer) return;
 
-  const user = window.AgriState.user || { full_name: 'Mang Ramon Dela Cruz', farm_name: 'Dela Cruz Family Farm' };
+  const user = window.AgriState.user;
+  if (!user || user.role !== 'farmer') {
+    drawer.innerHTML = `
+      <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #14532d 0%, #166534 100%); color: #ffffff;">
+        <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #ffffff;">Farmer Orders Management</h3>
+        <button onclick="toggleFarmerOrdersDrawer(false)" style="background: none; border: none; font-size: 1.6rem; color: #ffffff; cursor: pointer; line-height: 1; padding: 0.2rem 0.5rem;" aria-label="Close Drawer">&times;</button>
+      </div>
+      <div style="padding: 3rem 1.5rem; text-align: center;">
+        <div style="font-size: 2.2rem; margin-bottom: 0.75rem;">🔒</div>
+        <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">Producer Access Required</h4>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 320px; margin: 0 auto 1.5rem; line-height: 1.5;">
+          You are currently in guest mode. Please log in with a registered farmer producer account to manage incoming farmgate orders.
+        </p>
+        <a href="auth.html?redirect=dashboard.html" class="btn-primary" style="text-decoration: none; padding: 0.65rem 1.25rem; font-weight: 700; display: inline-block;">Log In as Farmer</a>
+      </div>
+    `;
+    return;
+  }
+
   const orders = getFarmerOrders();
   const pendingOrders = orders.filter(o => o.status_code === 'pending');
   const deliveredOrders = orders.filter(o => o.status_code === 'delivered');
@@ -1819,7 +1837,7 @@ function renderFarmerOrdersDrawer(filter = 'all') {
         <div>
           <h3 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #ffffff;">Farmer Orders Management</h3>
           <p style="margin: 0.15rem 0 0; font-size: 0.75rem; color: #86efac; opacity: 0.95;">
-            ${user.full_name} • ${user.farm_name || 'Dela Cruz Family Farm'}
+            ${user.full_name} • ${user.farm_name || 'AgriConnect Producer Farm'}
           </p>
         </div>
       </div>
@@ -2107,21 +2125,64 @@ function renderCartDrawer() {
     `;
   }).join('');
 
+  const isGuest = !window.AgriState.user;
+  const pageRef = (window.location.pathname.split('/').pop() || 'marketplace.html') + (window.location.search || '');
+
+  // Render Guest Account Notice in Cart Drawer
+  if (isGuest) {
+    container.innerHTML += `
+      <div style="background: #fef3c7; border: 1.5px solid #fde68a; border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 1rem; display: flex; gap: 0.65rem; align-items: flex-start; text-align: left;">
+        <span style="font-size: 1.15rem; line-height: 1;">🔒</span>
+        <div>
+          <div style="font-size: 0.825rem; font-weight: 800; color: #92400e; margin-bottom: 0.2rem;">Account Required to Purchase</div>
+          <p style="font-size: 0.775rem; color: #78350f; margin: 0 0 0.55rem; line-height: 1.4;">
+            Demo accounts are no longer used. Please <strong>log in</strong> or <strong>create an account</strong> to provide verified shipping details and place an order.
+          </p>
+          <div style="display: flex; gap: 0.45rem; flex-wrap: wrap;">
+            <a href="auth.html?mode=login&redirect=${encodeURIComponent(pageRef)}" style="font-size: 0.725rem; font-weight: 700; color: #ffffff; background: #b45309; padding: 0.3rem 0.65rem; border-radius: 4px; text-decoration: none;">Log In</a>
+            <a href="auth.html?mode=signup&redirect=${encodeURIComponent(pageRef)}" style="font-size: 0.725rem; font-weight: 700; color: #92400e; background: #ffffff; border: 1px solid #fcd34d; padding: 0.3rem 0.65rem; border-radius: 4px; text-decoration: none;">Create Account</a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   const deliveryFee = 95;
   if (subtotalEl) subtotalEl.textContent = `₱${subtotal.toLocaleString()}`;
   if (totalEl) totalEl.textContent = `₱${(subtotal + deliveryFee).toLocaleString()}`;
-  if (checkoutBtn) checkoutBtn.disabled = false;
+  
+  // Update all cart checkout buttons across drawer
+  const checkoutButtons = document.querySelectorAll('#cartDrawer button.btn-primary, #cartDrawer #checkoutBtn, button[onclick*="openCheckoutModal"], button[onclick*="proceedToCheckout"]');
+  checkoutButtons.forEach(btn => {
+    btn.disabled = false;
+    if (isGuest) {
+      btn.textContent = 'Log In / Create Account to Checkout';
+      btn.title = 'Please log in or create an account to make a purchase';
+      btn.onclick = () => {
+        showToast('Please log in or create an account to make a purchase.');
+        setTimeout(() => {
+          window.location.href = `auth.html?redirect=${encodeURIComponent(pageRef)}`;
+        }, 600);
+      };
+    } else {
+      btn.textContent = 'Proceed to Checkout';
+      btn.title = 'Proceed to Checkout';
+      btn.onclick = openCheckoutModal;
+    }
+  });
 }
 
 function proceedToCheckout() {
   const user = window.AgriState.user;
+  const page = window.location.pathname.split('/').pop() || 'marketplace.html';
+  const search = window.location.search || '';
+  const pageRef = page + search;
+
   if (!user) {
-    showToast('Please log in to your account before proceeding to checkout.');
+    showToast('Please log in or create an account to make a purchase.');
     setTimeout(() => {
-      const page = window.location.pathname.split('/').pop() || 'marketplace.html';
-      const search = window.location.search || '';
-      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
-    }, 800);
+      window.location.href = `auth.html?redirect=${encodeURIComponent(pageRef)}`;
+    }, 700);
     return;
   }
   openCheckoutModal();
@@ -2129,13 +2190,15 @@ function proceedToCheckout() {
 
 function openCheckoutModal() {
   const user = window.AgriState.user;
+  const page = window.location.pathname.split('/').pop() || 'marketplace.html';
+  const search = window.location.search || '';
+  const pageRef = page + search;
+
   if (!user) {
-    showToast('Please log in to your account before proceeding to checkout.');
+    showToast('Please log in or create an account to make a purchase.');
     setTimeout(() => {
-      const page = window.location.pathname.split('/').pop() || 'marketplace.html';
-      const search = window.location.search || '';
-      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
-    }, 800);
+      window.location.href = `auth.html?redirect=${encodeURIComponent(pageRef)}`;
+    }, 700);
     return;
   }
 
@@ -2147,6 +2210,23 @@ function openCheckoutModal() {
     window.location.href = 'marketplace.html';
     return;
   }
+
+  // Pre-fill buyer shipment details if available on user account
+  const form = document.getElementById('checkoutForm');
+  if (form && user) {
+    const nameInput = form.querySelector('input[name="fullName"], input[name="customerName"]');
+    if (nameInput && !nameInput.value) nameInput.value = user.full_name || user.name || '';
+
+    const phoneInput = form.querySelector('input[name="phone"]');
+    if (phoneInput && !phoneInput.value) phoneInput.value = user.phone || '';
+
+    const cityInput = form.querySelector('input[name="city"]');
+    if (cityInput && !cityInput.value) cityInput.value = user.shipping_city || user.province || user.city || '';
+
+    const addrInput = form.querySelector('textarea[name="address"], input[name="address"]');
+    if (addrInput && !addrInput.value) addrInput.value = user.shipping_address || user.address || '';
+  }
+
   const summaryEl = document.getElementById('checkoutSummary');
 
   const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
@@ -2184,6 +2264,17 @@ function closeCheckoutModal() {
 
 async function submitOrder(e) {
   e.preventDefault();
+  const user = window.AgriState.user;
+  if (!user) {
+    showToast('Please log in or create an account to complete your purchase.');
+    closeCheckoutModal();
+    const pageRef = (window.location.pathname.split('/').pop() || 'marketplace.html') + (window.location.search || '');
+    setTimeout(() => {
+      window.location.href = `auth.html?redirect=${encodeURIComponent(pageRef)}`;
+    }, 700);
+    return;
+  }
+
   const form = e.target;
   const submitBtn = form.querySelector('button[type="submit"]');
   if (submitBtn) {
@@ -2620,26 +2711,32 @@ function saveFarmerEWallets(wallets) {
 }
 
 function initProfilePage() {
-  const user = window.AgriState.user || {
-    role: 'farmer',
-    full_name: 'Mang Ramon Dela Cruz',
-    farm_name: 'Dela Cruz Family Farm',
-    cooperative: 'Benguet Farmers Multi-Purpose Cooperative (BFMPC)',
-    phone: '+63 917 842 1092',
-    email: 'ramon.delacruz@agriconnect.ph',
-    alt_phone: '+63 928 551 8934',
-    experience: '18 Years (Highland Agriculture)',
-    role_tier: 'Tier-1 Direct Farmgate Supplier',
-    address: 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601',
-    coords: '16.4582° N, 120.5891° E',
-    area: '2.8 Hectares (Terraced Mountain Agro-Ecosystem)',
-    elevation: '1,450 meters above sea level (MASL)',
-    hub: 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad',
-    crops: 'Baguio Beans, Cabbage, Strawberries, Carrots',
-    rating: '★ 4.9 / 5.0',
-    fulfillment: '100% On-Time',
-    compliance: 'Grade A+'
-  };
+  const user = window.AgriState.user;
+  const guestContainer = document.getElementById('profileGuestContainer');
+  const authContainer = document.getElementById('profileAuthenticatedContainer');
+  const topActions = document.getElementById('profileTopActions');
+
+  if (!user) {
+    if (guestContainer) guestContainer.style.display = 'block';
+    if (authContainer) authContainer.style.display = 'none';
+    if (topActions) topActions.style.display = 'none';
+
+    const heading = document.getElementById('profilePageHeading');
+    const subheading = document.getElementById('profilePageSubheading');
+    if (heading) heading.textContent = 'Account Profile';
+    if (subheading) subheading.textContent = 'You are currently browsing as a guest. Please log in or create an account to view and manage your profile.';
+
+    const dashBreadcrumb = document.getElementById('profileBreadcrumbDashboard');
+    if (dashBreadcrumb) {
+      dashBreadcrumb.textContent = 'Marketplace';
+      dashBreadcrumb.href = 'marketplace.html';
+    }
+    return;
+  }
+
+  if (guestContainer) guestContainer.style.display = 'none';
+  if (authContainer) authContainer.style.display = 'block';
+  if (topActions) topActions.style.display = 'flex';
 
   const isFarmer = user.role === 'farmer';
 
@@ -2648,10 +2745,10 @@ function initProfilePage() {
   const farmEl = document.getElementById('profileFarm') || document.getElementById('profileModalFarm');
   const avatarEl = document.getElementById('profileAvatar') || document.getElementById('profileModalAvatar');
 
-  if (nameEl) nameEl.textContent = user.full_name || (isFarmer ? 'Mang Ramon Dela Cruz' : 'Krystel Comia');
+  if (nameEl) nameEl.textContent = user.full_name || (isFarmer ? 'Verified Farmer' : 'Verified Buyer');
   if (farmEl) {
     farmEl.textContent = isFarmer
-      ? `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.cooperative || 'Benguet Farmers Multi-Purpose Cooperative (BFMPC)'}`
+      ? `${user.farm_name || 'AgriConnect Family Farm'} • ${user.cooperative || 'Benguet Farmers Multi-Purpose Cooperative'}`
       : `${user.shipping_city || user.province || 'Luzon'} Delivery Hub • Registered AgriConnect Direct Farmgate Buyer`;
   }
   if (avatarEl && user.avatar) avatarEl.src = user.avatar;
@@ -2873,31 +2970,31 @@ function initProfilePage() {
     : 'Unit 802, Pioneer Woodlands, EDSA cor. Pioneer St., Barangay Ilaya, Mandaluyong City, Metro Manila, 1550');
 
   const fields = isFarmer ? [
-    ['profileInfoFullName', user.full_name || 'Mang Ramon Dela Cruz'],
-    ['profileInfoPhone', user.phone || '+63 917 842 1092'],
-    ['profileInfoEmail', user.email || 'ramon.delacruz@agriconnect.ph'],
-    ['profileInfoAltPhone', user.alt_phone || '+63 928 551 8934'],
-    ['profileInfoCoop', user.cooperative || 'Benguet Farmers Multi-Purpose Coop (BFMPC)'],
-    ['profileInfoExperience', user.experience || '18 Years (Highland Agriculture)'],
+    ['profileInfoFullName', user.full_name || 'Verified Farmer'],
+    ['profileInfoPhone', user.phone || '—'],
+    ['profileInfoEmail', user.email || '—'],
+    ['profileInfoAltPhone', user.alt_phone || '—'],
+    ['profileInfoCoop', user.cooperative || 'AgriConnect Producers Network'],
+    ['profileInfoExperience', user.experience || 'Direct Farm Producer'],
     ['profileInfoAddress', defaultAddress],
-    ['profileInfoCoords', user.coords || '16.4582° N, 120.5891° E'],
-    ['profileInfoArea', user.area || '2.8 Hectares (Terraced Mountain Agro-Ecosystem)'],
-    ['profileInfoElevation', user.elevation || '1,450 meters above sea level (MASL)'],
-    ['profileInfoHub', user.hub || 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad'],
-    ['profileInfoSpecialization', user.crops || 'Baguio Beans, Cabbage, Strawberries, Carrots']
+    ['profileInfoCoords', user.coords || 'Coordinates on file'],
+    ['profileInfoArea', user.area || 'Direct Farm Parcel'],
+    ['profileInfoElevation', user.elevation || '—'],
+    ['profileInfoHub', user.hub || 'Regional Agri-Hub Depot'],
+    ['profileInfoSpecialization', user.crops || user.specialty || 'Highland & Farmgate Crops']
   ] : [
-    ['profileInfoFullName', user.full_name || 'Krystel Comia'],
-    ['profileInfoPhone', user.phone || '09271836734'],
-    ['profileInfoEmail', user.email || 'comiakrystel65@gmail.com'],
-    ['profileInfoAltPhone', user.alt_phone || '0920-551-8930'],
-    ['profileInfoCoop', user.cooperative || 'AgriConnect Consumer Direct Sourcing Program'],
-    ['profileInfoExperience', user.experience || 'Consumer Account • 2+ Years Farmgate Buyer'],
+    ['profileInfoFullName', user.full_name || 'Verified Direct Buyer'],
+    ['profileInfoPhone', user.phone || '—'],
+    ['profileInfoEmail', user.email || '—'],
+    ['profileInfoAltPhone', user.alt_phone || '—'],
+    ['profileInfoCoop', user.cooperative || 'AgriConnect Direct Consumer Sourcing'],
+    ['profileInfoExperience', user.experience || 'Consumer Account • Direct Farmgate Buyer'],
     ['profileInfoAddress', defaultAddress],
-    ['profileInfoCoords', user.coords || '14.5732° N, 121.0480° E (Delivery Coordinates)'],
-    ['profileInfoArea', user.area || 'Residential Delivery Zone (Cold-Chain Accessible)'],
-    ['profileInfoElevation', user.elevation || '30 meters above sea level (MASL)'],
-    ['profileInfoHub', user.hub || 'Metro Manila Direct Logistics Depot, Mandaluyong'],
-    ['profileInfoSpecialization', user.crops || 'Highland Crisp Vegetables, Dinorado Organic Rice, Fresh Fruits']
+    ['profileInfoCoords', user.coords || 'Delivery Zone Verified'],
+    ['profileInfoArea', user.area || 'Residential Delivery Zone'],
+    ['profileInfoElevation', user.elevation || '—'],
+    ['profileInfoHub', user.hub || 'Direct Logistics Hub'],
+    ['profileInfoSpecialization', user.crops || 'Fresh Farm Products']
   ];
 
   fields.forEach(([id, val]) => {
@@ -3050,7 +3147,15 @@ function toggleEditFarmerProfile(forceOpen) {
 
   const shouldOpen = forceOpen !== undefined ? forceOpen : editContainer.style.display === 'none';
   if (shouldOpen) {
-    const user = window.AgriState.user || {};
+    const user = window.AgriState.user;
+    if (!user) {
+      showToast('Please log in or create an account to edit profile details.');
+      const pageRef = (window.location.pathname.split('/').pop() || 'profile.html') + (window.location.search || '');
+      setTimeout(() => {
+        window.location.href = `auth.html?redirect=${encodeURIComponent(pageRef)}`;
+      }, 700);
+      return;
+    }
     const isFarmer = user.role === 'farmer';
 
     // Update modal title and subtitle
@@ -3076,10 +3181,10 @@ function toggleEditFarmerProfile(forceOpen) {
     const emailInput = document.getElementById('editProfileEmail');
     const altPhoneInput = document.getElementById('editProfileAltPhone');
 
-    if (fnInput) fnInput.value = user.full_name || (isFarmer ? 'Mang Ramon Dela Cruz' : 'Krystel Comia');
-    if (phoneInput) phoneInput.value = user.phone || (isFarmer ? '+63 917 842 1092' : '09271836734');
-    if (emailInput) emailInput.value = user.email || (isFarmer ? 'ramon.delacruz@agriconnect.ph' : 'comiakrystel65@gmail.com');
-    if (altPhoneInput) altPhoneInput.value = user.alt_phone || (isFarmer ? '+63 928 551 8934' : '0920-551-8930');
+    if (fnInput) fnInput.value = user.full_name || '';
+    if (phoneInput) phoneInput.value = user.phone || '';
+    if (emailInput) emailInput.value = user.email || '';
+    if (altPhoneInput) altPhoneInput.value = user.alt_phone || '';
 
     if (isFarmer) {
       const farmInput = document.getElementById('editProfileFarmName');
@@ -3091,14 +3196,14 @@ function toggleEditFarmerProfile(forceOpen) {
       const hubInput = document.getElementById('editProfileHub');
       const specInput = document.getElementById('editProfileSpecialization');
 
-      if (farmInput) farmInput.value = user.farm_name || 'Dela Cruz Family Farm';
-      if (coopInput) coopInput.value = user.cooperative || 'Benguet Farmers Multi-Purpose Coop (BFMPC)';
-      if (addrInput) addrInput.value = user.address || 'Sitio Pungayan, Barangay Cabanao, La Trinidad, Benguet, Cordillera Administrative Region (CAR), 2601';
-      if (coordsInput) coordsInput.value = user.coords || '16.4582° N, 120.5891° E';
-      if (elevInput) elevInput.value = user.elevation || '1,450 meters above sea level (MASL)';
-      if (expInput) expInput.value = user.experience || '18 Years (Highland Agriculture)';
-      if (hubInput) hubInput.value = user.hub || 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad';
-      if (specInput) specInput.value = user.crops || 'Baguio Beans, Cabbage, Strawberries, Carrots';
+      if (farmInput) farmInput.value = user.farm_name || '';
+      if (coopInput) coopInput.value = user.cooperative || '';
+      if (addrInput) addrInput.value = user.address || '';
+      if (coordsInput) coordsInput.value = user.coords || '';
+      if (elevInput) elevInput.value = user.elevation || '';
+      if (expInput) expInput.value = user.experience || '';
+      if (hubInput) hubInput.value = user.hub || '';
+      if (specInput) specInput.value = user.crops || user.specialty || '';
     } else {
       const buyerAddrInput = document.getElementById('editBuyerShipmentAddress');
       const buyerCityInput = document.getElementById('editBuyerCity');
@@ -3108,12 +3213,12 @@ function toggleEditFarmerProfile(forceOpen) {
       const buyerLandmarkInput = document.getElementById('editBuyerLandmark');
       const buyerPayInput = document.getElementById('editBuyerPaymentPref');
 
-      if (buyerAddrInput) buyerAddrInput.value = user.shipping_address || user.address || 'Unit 802, Pioneer Woodlands, EDSA cor. Pioneer St., Barangay Ilaya';
-      if (buyerCityInput) buyerCityInput.value = user.shipping_city || 'Mandaluyong City';
-      if (buyerProvInput) buyerProvInput.value = user.shipping_province || user.province || 'Metro Manila';
-      if (buyerZipInput) buyerZipInput.value = user.shipping_postal || '1550';
+      if (buyerAddrInput) buyerAddrInput.value = user.shipping_address || user.address || '';
+      if (buyerCityInput) buyerCityInput.value = user.shipping_city || '';
+      if (buyerProvInput) buyerProvInput.value = user.shipping_province || user.province || '';
+      if (buyerZipInput) buyerZipInput.value = user.shipping_postal || '';
       if (buyerSchedInput) buyerSchedInput.value = user.delivery_schedule || 'Morning Batch (8:00 AM – 12:00 PM) • Cold-Chain Delivery';
-      if (buyerLandmarkInput) buyerLandmarkInput.value = user.delivery_landmark || 'Near Boni MRT Station. Leave with lobby concierge or building guard if recipient is unavailable.';
+      if (buyerLandmarkInput) buyerLandmarkInput.value = user.delivery_landmark || '';
       if (buyerPayInput) buyerPayInput.value = user.payment_preference || 'Cash on Delivery (COD) or Direct GCash / Maya QR Scan';
     }
 
@@ -3127,11 +3232,11 @@ function toggleEditFarmerProfile(forceOpen) {
 function saveFarmerProfile(e) {
   if (e) e.preventDefault();
 
-  if (!window.AgriState.user) {
-    window.AgriState.user = { role: 'buyer', full_name: 'Krystel Comia', email: 'comiakrystel65@gmail.com' };
-  }
-
   const user = window.AgriState.user;
+  if (!user) {
+    showToast('Please log in or create an account to save profile changes.');
+    return;
+  }
   const isFarmer = user.role === 'farmer';
 
   const fn = document.getElementById('editProfileFullName')?.value.trim();
@@ -3219,14 +3324,18 @@ function saveFarmerProfile(e) {
 
 function handleProfileAvatarUpload(e) {
   if (!e.target.files || !e.target.files[0]) return;
+  const user = window.AgriState.user;
+  if (!user) {
+    showToast('Please log in or create an account to update your profile photo.');
+    return;
+  }
   const file = e.target.files[0];
   const reader = new FileReader();
 
   reader.onload = function(evt) {
     const dataUrl = evt.target.result;
-    if (!window.AgriState.user) window.AgriState.user = { role: 'farmer' };
-    window.AgriState.user.avatar = dataUrl;
-    localStorage.setItem('agri_user', JSON.stringify(window.AgriState.user));
+    user.avatar = dataUrl;
+    localStorage.setItem('agri_user', JSON.stringify(user));
 
     const profileAvatar = document.getElementById('profileAvatar') || document.getElementById('profileModalAvatar');
     if (profileAvatar) profileAvatar.src = dataUrl;
@@ -4782,10 +4891,18 @@ function handleRegister(e) {
 function handleLogout() {
   window.AgriState.user = null;
   localStorage.removeItem('agri_user');
+  localStorage.setItem('agri_mode', 'buyer');
+  window.AgriState.currentMode = 'buyer';
   updateAuthUI();
-  showToast('You have been signed out.');
+  showToast('You have been signed out. Reverted to guest state.');
   if (window.location.pathname.includes('auth.html')) {
     switchAuthTab('login');
+  } else if (window.location.pathname.includes('profile.html')) {
+    initProfilePage();
+  } else if (window.location.pathname.includes('dashboard.html') || window.location.pathname.includes('sell-harvest.html')) {
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 400);
   } else {
     setTimeout(() => {
       window.location.reload();

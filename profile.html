@@ -79,7 +79,7 @@
       </div>
 
       <!-- Quick Actions -->
-      <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+      <div id="profileTopActions" style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
         <a id="profileDashboardActionBtn" href="dashboard.html" class="btn-secondary" style="font-size: 0.825rem; padding: 0.55rem 1.1rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.45rem;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           Back to Dashboard
@@ -94,6 +94,78 @@
         </a>
       </div>
     </div>
+
+    <!-- Guest State Container (Shown when signed out) -->
+    <div id="profileGuestContainer" style="display: none; margin: 1.5rem 0 3.5rem;">
+      <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #86efac; border-radius: var(--radius-lg); padding: 2.5rem 2rem; box-shadow: var(--shadow-md); text-align: center; max-width: 860px; margin: 0 auto;">
+        <div style="width: 68px; height: 68px; border-radius: 50%; background: #ffffff; color: var(--primary-deep); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.25rem; box-shadow: 0 4px 14px rgba(22, 101, 52, 0.15); border: 2px solid #86efac;">
+          🔒
+        </div>
+        <div style="display: inline-block; background: #ffffff; color: var(--primary-deep); font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.3rem 0.85rem; border-radius: 9999px; margin-bottom: 0.85rem; border: 1px solid #86efac;">
+          Guest Browsing Mode
+        </div>
+        <h2 style="font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight: 800; color: #14532d; margin: 0 0 0.65rem; line-height: 1.25;">
+          You Are Currently Browsing as a Guest
+        </h2>
+        <p style="font-size: 0.95rem; color: #166534; max-width: 650px; margin: 0 auto 1.75rem; line-height: 1.6;">
+          Demo accounts have been disabled across AgriConnect to safeguard authentic farm-to-table transactions and genuine deliveries. To manage product shipment details, view purchase history, or list harvest crops, please log in or create an account.
+        </p>
+
+        <!-- Primary Action CTAs -->
+        <div style="display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.25rem;">
+          <a href="auth.html?mode=login&redirect=profile.html" class="btn-primary" style="font-size: 0.925rem; padding: 0.75rem 1.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 800; box-shadow: 0 4px 14px rgba(22, 101, 52, 0.25);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Log In to Account
+          </a>
+          <a href="auth.html?mode=signup&redirect=profile.html" class="btn-secondary" style="font-size: 0.925rem; padding: 0.75rem 1.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 800; background: #ffffff; border-color: #86efac; color: var(--primary-deep);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            Create New Account
+          </a>
+          <a href="marketplace.html" class="btn-secondary" style="font-size: 0.925rem; padding: 0.75rem 1.5rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; background: transparent; border-color: rgba(22, 101, 52, 0.3); color: #166534;">
+            Browse Marketplace →
+          </a>
+        </div>
+
+        <!-- Account Types Comparison Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; text-align: left;">
+          <!-- Buyer Account Features -->
+          <div style="background: #ffffff; border: 1.5px solid #bbf7d0; border-radius: var(--radius-md); padding: 1.35rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.75rem;">
+              <span style="width: 32px; height: 32px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">🛒</span>
+              <div>
+                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text-main);">Direct Buyer Account</h4>
+                <span style="font-size: 0.725rem; color: #0284c7; font-weight: 700;">Simple & Fast Purchase Setup</span>
+              </div>
+            </div>
+            <ul style="margin: 0; padding-left: 1.1rem; font-size: 0.825rem; color: var(--text-secondary); line-height: 1.6;">
+              <li><strong>Product Shipment Details:</strong> Enter your full name, mobile number, and delivery address.</li>
+              <li><strong>Zero Payout Account Required:</strong> Buyers do not need to link e-wallets or bank accounts.</li>
+              <li><strong>Spending & Orders:</strong> View active cold-chain dispatches, past orders, and total spending.</li>
+            </ul>
+          </div>
+
+          <!-- Farmer Producer Account Features -->
+          <div style="background: #ffffff; border: 1.5px solid #bbf7d0; border-radius: var(--radius-md); padding: 1.35rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.75rem;">
+              <span style="width: 32px; height: 32px; border-radius: 8px; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">🌾</span>
+              <div>
+                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text-main);">Farmer Producer Account</h4>
+                <span style="font-size: 0.725rem; color: #15803d; font-weight: 700;">Verified Direct Farmgate Seller</span>
+              </div>
+            </div>
+            <ul style="margin: 0; padding-left: 1.1rem; font-size: 0.825rem; color: var(--text-secondary); line-height: 1.6;">
+              <li><strong>Farm Accreditation:</strong> Upload DA-RSBSA and valid IDs to establish grower credibility.</li>
+              <li><strong>Direct Payment Channels:</strong> Link GCash, Maya, or Bank QR codes for direct payouts.</li>
+              <li><strong>Listing & Fulfillment:</strong> Post harvests, manage dispatches, and receive farmgate payouts.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Authenticated Profile View Container -->
+    <div id="profileAuthenticatedContainer">
 
     <!-- Hero Profile Banner Card with Background Photo -->
     <div class="farmer-dashboard-banner" style="margin-bottom: 2rem;">
@@ -686,6 +758,8 @@
       </div>
 
     </div>
+
+    </div> <!-- /profileAuthenticatedContainer -->
 
   </main>
 
