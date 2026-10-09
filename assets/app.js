@@ -5836,10 +5836,13 @@ function handleLogin(e) {
     localStorage.setItem('agri_mode', 'admin');
 
     updateAuthUI();
-    showToast('👑 Welcome back, Administrator Krystel Comia! Opening Admin Console...');
+    showToast('👑 Welcome back, Administrator Krystel Comia! Directing to Executive Access...');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get('redirect') || 'admin.html';
 
     setTimeout(() => {
-      window.location.href = 'admin.html';
+      window.location.href = redirectUrl;
     }, 500);
     return;
   }
