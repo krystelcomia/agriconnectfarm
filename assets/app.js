@@ -190,6 +190,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (document.getElementById('homeChartSection')) {
     initHomeCharts();
   }
+  if (document.getElementById('sponsoredTopAdSection')) {
+    initSponsoredTopAd();
+  }
   if (document.getElementById('productsGrid')) {
     renderCategories();
     renderProducts();
@@ -6400,5 +6403,317 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+/* ============================================================ */
+/* Top 15-Second Sponsored Subscriber Ad Showcase Logic        */
+/* ============================================================ */
+const AD_DURATION_SECONDS = 15;
+let currentAdIndex = 0;
+let adSecondsRemaining = AD_DURATION_SECONDS;
+let isAdPaused = false;
+let isManualPause = false;
+let adTickInterval = null;
+let adProgressInterval = null;
+
+const DEFAULT_SPONSORED_ADS = [
+  {
+    id: 'ad-benguet-strawberries',
+    tierName: 'Monthly Grower Pro',
+    tierBadge: '⭐ VIP Grower Sponsor',
+    farmName: 'Cordillera Highland Strawberry & Greens',
+    location: 'La Trinidad, Benguet',
+    headline: '🍓 Fresh High-Altitude Strawberries & Crisp Wombok Farmgate Direct',
+    description: 'Harvested at 5:00 AM in Benguet and dispatched via refrigerated cold-chain to Metro Manila buyers within 18 hours. Farmgate wholesale discounts for restaurants, fruit vendors, and organic markets.',
+    tags: ['Direct Farmgate', 'Cold-Chain Certified', '1,500m Altitude', 'Zero Middlemen'],
+    avatar: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300',
+    actionLink: 'marketplace.html?category=Fruits',
+    actionText: 'View Strawberries & Order'
+  },
+  {
+    id: 'ad-ne-grains',
+    tierName: 'Yearly Champion Co-Op',
+    tierBadge: '🏆 Annual Champion Sponsor',
+    farmName: 'Vergara Rice Mills & Grain Collective',
+    location: 'Muñoz, Nueva Ecija',
+    headline: '🌾 Newly Harvested Nueva Ecija Premium Dinorado & Jasmine Rice',
+    description: '100% whole grain aromatic rice straight from the central plains of Luzon. Freshly milled weekly with zero chemical fumigation. Available in 25kg & 50kg wholesale sacks with direct depot dispatch.',
+    tags: ['Rice Granary of PH', 'Direct Mill Pricing', 'Bulk Sacks (25kg/50kg)', 'Fresh Harvest'],
+    avatar: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300',
+    actionLink: 'marketplace.html?category=Grains',
+    actionText: 'Browse Grain Sacks'
+  },
+  {
+    id: 'ad-guimaras-mangoes',
+    tierName: 'Weekly Flash Boost',
+    tierBadge: '🌟 Featured Harvest Flash',
+    farmName: 'Jordan Sweet Carabao Mango Orchard',
+    location: 'Jordan, Guimaras',
+    headline: '🥭 World-Renowned Guimaras Sweet Mangoes in Fresh Export-Grade Crates',
+    description: 'Handpicked at peak sweetness from certified pesticide-free Guimaras orchards. Guaranteed minimum 16° Brix sweetness with fast sea-and-air cargo delivery direct to NCR and Cebu buyers.',
+    tags: ['Certified Sweetest', 'Export Grade', 'Air Cargo Direct', 'Limited Harvest'],
+    avatar: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=300',
+    actionLink: 'marketplace.html?category=Fruits',
+    actionText: 'Order Sweet Mangoes'
+  }
+];
+
+function getActiveSponsoredAds() {
+  const customAdJson = localStorage.getItem('agri_custom_sponsor_ad');
+  if (customAdJson) {
+    try {
+      const customAd = JSON.parse(customAdJson);
+      return [customAd, ...DEFAULT_SPONSORED_ADS];
+    } catch (e) {
+      console.warn('Error parsing custom sponsor ad', e);
+      return DEFAULT_SPONSORED_ADS;
+    }
+  }
+  return DEFAULT_SPONSORED_ADS;
+}
+
+function initSponsoredTopAd() {
+  const container = document.getElementById('sponsoredAdContent');
+  if (!container) return;
+
+  renderCurrentSponsoredAd();
+  startAdCountdownLoop();
+
+  const card = document.getElementById('sponsoredAdCard');
+  if (card) {
+    card.addEventListener('mouseenter', () => {
+      if (!isManualPause) {
+        isAdPaused = true;
+        updatePauseUI();
+      }
+    });
+    card.addEventListener('mouseleave', () => {
+      if (!isManualPause) {
+        isAdPaused = false;
+        updatePauseUI();
+      }
+    });
+  }
+}
+
+function startAdCountdownLoop() {
+  if (adTickInterval) clearInterval(adTickInterval);
+  if (adProgressInterval) clearInterval(adProgressInterval);
+
+  adSecondsRemaining = AD_DURATION_SECONDS;
+  updateTimerDisplay();
+
+  adProgressInterval = setInterval(() => {
+    if (!isAdPaused) {
+      const bar = document.getElementById('adTimerProgressBar');
+      if (bar) {
+        const pct = Math.max(0, (adSecondsRemaining / AD_DURATION_SECONDS) * 100);
+        bar.style.width = pct + '%';
+      }
+    }
+  }, 100);
+
+  adTickInterval = setInterval(() => {
+    if (!isAdPaused) {
+      adSecondsRemaining--;
+      updateTimerDisplay();
+
+      if (adSecondsRemaining <= 0) {
+        nextSponsoredAd(true);
+      }
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const timerDisplay = document.getElementById('adTimerDisplay');
+  if (timerDisplay) {
+    timerDisplay.innerHTML = `
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>${Math.max(1, adSecondsRemaining)}s remaining</span>
+    `;
+  }
+}
+
+function renderCurrentSponsoredAd() {
+  const container = document.getElementById('sponsoredAdContent');
+  if (!container) return;
+
+  const ads = getActiveSponsoredAds();
+  if (currentAdIndex >= ads.length) currentAdIndex = 0;
+  if (currentAdIndex < 0) currentAdIndex = ads.length - 1;
+
+  const ad = ads[currentAdIndex];
+
+  container.style.opacity = '0';
+  container.style.transform = 'translateY(4px)';
+
+  setTimeout(() => {
+    const tagsHtml = (ad.tags || []).map(t => `<span class="sponsored-tag-pill">${escapeHtml(t)}</span>`).join('');
+
+    container.innerHTML = `
+      <img src="${escapeHtml(ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(ad.farmName)}" class="sponsored-ad-avatar">
+      <div>
+        <div class="sponsored-ad-title-row">
+          <span class="sponsored-ad-farm-name">${escapeHtml(ad.farmName)}</span>
+          <span class="sponsored-tier-tag">${escapeHtml(ad.tierBadge || 'Subscriber Spotlight')}</span>
+          <span style="font-size: 0.775rem; color: #a7f3d0;">• ${escapeHtml(ad.location || 'Direct Producer')}</span>
+        </div>
+        <div class="sponsored-ad-headline">${escapeHtml(ad.headline)}</div>
+        <div class="sponsored-ad-description">${escapeHtml(ad.description)}</div>
+        <div class="sponsored-ad-tags">${tagsHtml}</div>
+      </div>
+      <div class="sponsored-ad-actions">
+        <a href="${escapeHtml(ad.actionLink || 'marketplace.html')}" class="btn-primary" style="font-size: 0.85rem; padding: 0.55rem 1.15rem; background: #ffffff; color: #064e3b; font-weight: 800; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.15); white-space: nowrap; text-decoration: none;">
+          ${escapeHtml(ad.actionText || 'Explore Harvest')} &rarr;
+        </a>
+        <a href="#subscriptionsSection" style="font-size: 0.75rem; color: #fef08a; text-decoration: underline; font-weight: 600; text-align: right;">
+          Subscriber Feature (15s Ad)
+        </a>
+      </div>
+    `;
+
+    container.style.opacity = '1';
+    container.style.transform = 'translateY(0)';
+  }, 120);
+}
+
+function nextSponsoredAd(isAuto = false) {
+  const ads = getActiveSponsoredAds();
+  currentAdIndex = (currentAdIndex + 1) % ads.length;
+  adSecondsRemaining = AD_DURATION_SECONDS;
+  renderCurrentSponsoredAd();
+  updateTimerDisplay();
+}
+
+function prevSponsoredAd() {
+  const ads = getActiveSponsoredAds();
+  currentAdIndex = (currentAdIndex - 1 + ads.length) % ads.length;
+  adSecondsRemaining = AD_DURATION_SECONDS;
+  renderCurrentSponsoredAd();
+  updateTimerDisplay();
+}
+
+function togglePauseAdShowcase() {
+  isManualPause = !isManualPause;
+  isAdPaused = isManualPause;
+  updatePauseUI();
+}
+
+function updatePauseUI() {
+  const icon = document.getElementById('adPauseIcon');
+  const btn = document.getElementById('adPauseBtn');
+  if (icon) {
+    icon.textContent = isAdPaused ? '▶️' : '⏸️';
+  }
+  if (btn) {
+    btn.title = isAdPaused ? 'Resume 15s Ad Timer' : 'Pause 15s Ad Timer';
+  }
+}
+
+/* ============================================================ */
+/* Subscription Modal & Ad Generator Actions                    */
+/* ============================================================ */
+function openSubscribeModal(tier, price, planName) {
+  const modal = document.getElementById('subscribeAdModal');
+  if (!modal) return;
+
+  const tierInput = document.getElementById('subTierInput');
+  const priceInput = document.getElementById('subPriceInput');
+  const badge = document.getElementById('subModalPlanBadge');
+  const title = document.getElementById('subModalTitle');
+
+  if (tierInput) tierInput.value = tier;
+  if (priceInput) priceInput.value = price;
+  if (badge) badge.textContent = planName;
+  if (title) title.textContent = `Subscribe ${planName} (₱${Number(price).toLocaleString()})`;
+
+  // Attach live preview event listeners
+  const farmInput = document.getElementById('subFarmName');
+  const headlineInput = document.getElementById('subHeadline');
+  const tagsInput = document.getElementById('subTags');
+
+  const updatePreview = () => {
+    const pfName = document.getElementById('previewModalFarmName');
+    const pfHead = document.getElementById('previewModalHeadline');
+    const pfTags = document.getElementById('previewModalTags');
+
+    if (pfName && farmInput) pfName.textContent = farmInput.value.trim() || 'Your Farm / Brand Name';
+    if (pfHead && headlineInput) pfHead.textContent = headlineInput.value.trim() || 'Your Catchy 15-Second Promotional Headline';
+    if (pfTags && tagsInput) pfTags.textContent = tagsInput.value.trim() || 'Direct Farmgate • Cold-Chain Delivery';
+  };
+
+  if (farmInput) farmInput.oninput = updatePreview;
+  if (headlineInput) headlineInput.oninput = updatePreview;
+  if (tagsInput) tagsInput.oninput = updatePreview;
+
+  modal.classList.add('open');
+}
+
+function closeSubscribeModal() {
+  const modal = document.getElementById('subscribeAdModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function handleSubscribeSubmit(e) {
+  e.preventDefault();
+
+  const tier = document.getElementById('subTierInput')?.value || 'monthly';
+  const price = document.getElementById('subPriceInput')?.value || '700';
+  const farmName = document.getElementById('subFarmName')?.value || 'My Verified Farm';
+  const location = document.getElementById('subLocation')?.value || 'Philippines';
+  const headline = document.getElementById('subHeadline')?.value || 'Fresh Direct Farmgate Harvest';
+  const description = document.getElementById('subDescription')?.value || 'Promoting direct fresh agricultural harvest.';
+  const tagsRaw = document.getElementById('subTags')?.value || 'Direct Farmgate, Verified Grower';
+  const actionLink = document.getElementById('subActionLink')?.value || 'marketplace.html';
+
+  const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+
+  let tierBadge = '⭐ VIP Grower Sponsor';
+  if (tier === 'weekly') tierBadge = '🌟 Weekly Flash Sponsor';
+  if (tier === 'yearly') tierBadge = '🏆 Annual Champion Sponsor';
+
+  const newCustomAd = {
+    id: 'custom-sub-ad-' + Date.now(),
+    tierName: tier.toUpperCase(),
+    tierBadge: tierBadge,
+    farmName: farmName,
+    location: location,
+    headline: headline,
+    description: description,
+    tags: tags.length ? tags : ['Direct Farmgate', 'Verified Grower'],
+    avatar: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300',
+    actionLink: actionLink,
+    actionText: 'View Harvest Direct'
+  };
+
+  // Persist subscriber ad
+  localStorage.setItem('agri_custom_sponsor_ad', JSON.stringify(newCustomAd));
+  localStorage.setItem('agri_active_subscription', JSON.stringify({
+    tier: tier,
+    price: price,
+    farmName: farmName,
+    activatedAt: new Date().toISOString()
+  }));
+
+  closeSubscribeModal();
+
+  // Reset ad index to 0 so the subscriber's ad plays immediately
+  currentAdIndex = 0;
+  adSecondsRemaining = AD_DURATION_SECONDS;
+  isAdPaused = false;
+  isManualPause = false;
+  updatePauseUI();
+  renderCurrentSponsoredAd();
+  updateTimerDisplay();
+
+  showToast(`🎉 Subscription activated! Your 15-second ad is now live at the top of the homepage!`);
+
+  // Smooth scroll to top ad banner
+  const adSection = document.getElementById('sponsoredTopAdSection');
+  if (adSection) {
+    adSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 
 

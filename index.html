@@ -137,6 +137,52 @@
       </div>
     </div>
 
+    <!-- Sponsored Subscriber Showcase: 15-Second Dynamic Top Ad -->
+    <section id="sponsoredTopAdSection" class="sponsored-ad-section" aria-label="Sponsored Subscriber Showcase">
+      <div class="sponsored-ad-card" id="sponsoredAdCard">
+        <div class="sponsored-ad-bg-glow"></div>
+
+        <!-- 15-Second Countdown Bar -->
+        <div class="sponsored-ad-timer-bar-wrap" title="15-Second Ad Showcase Progress">
+          <div id="adTimerProgressBar" class="sponsored-ad-timer-bar"></div>
+        </div>
+
+        <!-- Ad Header & Meta -->
+        <div class="sponsored-ad-header">
+          <div class="sponsored-badge-wrap">
+            <span class="sponsored-pill">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Subscriber Spotlight
+            </span>
+            <span id="adTimerDisplay" class="sponsored-live-timer">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              15s remaining
+            </span>
+          </div>
+
+          <div class="sponsored-ad-controls">
+            <button type="button" id="adPauseBtn" onclick="togglePauseAdShowcase()" class="ad-ctrl-btn" title="Pause / Resume Ad Timer">
+              <span id="adPauseIcon">⏸️</span>
+            </button>
+            <button type="button" onclick="prevSponsoredAd()" class="ad-ctrl-btn" title="Previous Subscriber Ad">
+              ‹
+            </button>
+            <button type="button" onclick="nextSponsoredAd()" class="ad-ctrl-btn" title="Next Subscriber Ad">
+              ›
+            </button>
+            <a href="#subscriptionsSection" class="ad-ctrl-btn" style="background: rgba(254, 240, 138, 0.22); border-color: #fef08a; color: #fef08a; text-decoration: none; margin-left: 0.25rem;">
+              🚀 Feature Your Farm
+            </a>
+          </div>
+        </div>
+
+        <!-- Dynamic Ad Content Body -->
+        <div id="sponsoredAdContent" class="sponsored-ad-body">
+          <!-- Populated dynamically by app.js renderCurrentSponsoredAd() -->
+        </div>
+      </div>
+    </section>
+
     <!-- Farmer Situation & Agricultural Overview -->
     <section style="max-width: 1240px; margin: 3.5rem auto 2rem; padding: 0 1.25rem;">
       <div style="text-align: center; max-width: 760px; margin: 0 auto 2.5rem;">
@@ -463,6 +509,197 @@
         </div>
       </div>
     </section>
+
+    <!-- Subscription Plans & Sponsorship Section -->
+    <section id="subscriptionsSection" class="subscriptions-section" aria-label="Grower & Sponsor Subscription Plans">
+      <div class="subscription-header">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
+          Grow Your Reach & Sales
+        </span>
+        <h2 style="font-size: 2.1rem; font-weight: 800; color: var(--text-main); margin-top: 0.4rem; letter-spacing: -0.02em;">
+          AgriConnect Partner Subscriptions
+        </h2>
+        <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 0.65rem; line-height: 1.6;">
+          Elevate your harvest visibility directly to thousands of wholesale and commercial buyers across the Philippines. Gain guaranteed high-impact exposure, verified badges, and our premier promotional spotlight.
+        </p>
+      </div>
+
+      <!-- Key Benefit Callout -->
+      <div class="subscription-feature-callout">
+        <div style="display: flex; align-items: center; gap: 1.15rem;">
+          <div style="width: 52px; height: 52px; border-radius: var(--radius-md); background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.6rem; border: 1px solid #86efac;">
+            ⏱️
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; font-weight: 800; color: #15803d; text-transform: uppercase; letter-spacing: 0.04em;">
+              Key Flagship Privilege
+            </div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #14532d; margin-top: 0.15rem;">
+              Generates an Exclusive 15-Second Top Homepage Ad
+            </h3>
+            <p style="font-size: 0.86rem; color: #166534; line-height: 1.5; margin-top: 0.25rem;">
+              Every subscriber gets dedicated 15-second promotional airtime positioned at the very top of AgriConnect—before "The Farmer's Situation"—ensuring your farm, fresh harvests, and direct contact details are seen first by every visiting buyer.
+            </p>
+          </div>
+        </div>
+        <a href="#sponsoredTopAdSection" class="btn-primary" style="white-space: nowrap; font-size: 0.825rem; padding: 0.6rem 1.1rem; flex-shrink: 0; text-decoration: none;">
+          View Live Ad Banner ↑
+        </a>
+      </div>
+
+      <!-- 3 Tier Pricing Cards -->
+      <div class="subscription-grid">
+        <!-- Tier 1: Weekly (₱200) -->
+        <div class="sub-card">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.775rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Weekly Pass</span>
+            <span style="background: var(--bg-subtle); font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); padding: 0.2rem 0.5rem; border-radius: 4px;">Harvest Boost</span>
+          </div>
+
+          <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-top: 0.4rem;">Weekly Flash</h3>
+          <p style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.45;">
+            Ideal for quick seasonal crop harvests, flash inventory clearance, and weekend market drives.
+          </p>
+
+          <div class="sub-card-price-row">
+            <span class="sub-card-price">₱200</span>
+            <span class="sub-card-period">/ week</span>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Billed weekly • Cancel anytime</div>
+
+          <ul class="sub-feature-list">
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon">✓</span>
+              <span><strong>15-Second Top Homepage Ad</strong> rotation showcase</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon">✓</span>
+              <span>Promote up to 2 active crop harvest listings</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon">✓</span>
+              <span>Verified Grower spotlight badge</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon">✓</span>
+              <span>Direct WhatsApp & phone contact links for buyers</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon">✓</span>
+              <span>Instant live ad generator & activation</span>
+            </li>
+          </ul>
+
+          <button type="button" onclick="openSubscribeModal('weekly', 200, 'Weekly Flash')" class="btn-secondary" style="width: 100%; justify-content: center; font-weight: 800; padding: 0.75rem; font-size: 0.875rem;">
+            Choose Weekly (₱200)
+          </button>
+        </div>
+
+        <!-- Tier 2: Monthly (₱700) - Most Popular -->
+        <div class="sub-card popular">
+          <span class="sub-badge">MOST POPULAR • BEST VALUE</span>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem;">
+            <span style="font-size: 0.775rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Monthly Pro</span>
+            <span style="background: #dcfce7; font-size: 0.72rem; font-weight: 800; color: #15803d; padding: 0.2rem 0.55rem; border-radius: 4px;">Save ~12%</span>
+          </div>
+
+          <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-top: 0.4rem;">Monthly Grower Pro</h3>
+          <p style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.45;">
+            The proven standard for active farm co-ops, regular restaurant suppliers, and continuous harvests.
+          </p>
+
+          <div class="sub-card-price-row">
+            <span class="sub-card-price" style="color: var(--primary-deep);">₱700</span>
+            <span class="sub-card-period">/ month</span>
+          </div>
+          <div style="font-size: 0.75rem; color: #15803d; font-weight: 700;">Save ~₱100/mo compared to weekly plan</div>
+
+          <ul class="sub-feature-list">
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon" style="color: #15803d; font-weight: 800;">✓</span>
+              <span><strong>Priority 15-Second Top Homepage Ad</strong> (high-frequency rotation)</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon" style="color: #15803d;">✓</span>
+              <span>Priority rank in Marketplace category search results</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon" style="color: #15803d;">✓</span>
+              <span>Golden VIP Grower verification ribbon</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon" style="color: #15803d;">✓</span>
+              <span>Custom promotional copy, custom photo, & direct product link</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon" style="color: #15803d;">✓</span>
+              <span>Weekly analytics summary on buyer impressions & leads</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon" style="color: #15803d;">✓</span>
+              <span>Refrigerated cold-chain pickup coordination support</span>
+            </li>
+          </ul>
+
+          <button type="button" onclick="openSubscribeModal('monthly', 700, 'Monthly Grower Pro')" class="btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 0.8rem; font-size: 0.9rem; box-shadow: 0 4px 14px rgba(21, 128, 61, 0.25);">
+            Choose Monthly Pro (₱700) 🚀
+          </button>
+        </div>
+
+        <!-- Tier 3: Yearly (₱2,500) - Maximum Exposure -->
+        <div class="sub-card featured-annual">
+          <span class="sub-badge gold">SAVE 70% • MAXIMUM EXPOSURE</span>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem;">
+            <span style="font-size: 0.775rem; font-weight: 800; color: #b45309; text-transform: uppercase; letter-spacing: 0.05em;">Yearly Champion</span>
+            <span style="background: #fef3c7; font-size: 0.72rem; font-weight: 800; color: #b45309; padding: 0.2rem 0.55rem; border-radius: 4px;">Top Tier</span>
+          </div>
+
+          <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin-top: 0.4rem;">Yearly Champion Co-Op</h3>
+          <p style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.45;">
+            Massive 70%+ savings. The complete growth package for commercial growers, plantations, and agri brands.
+          </p>
+
+          <div class="sub-card-price-row">
+            <span class="sub-card-price" style="color: #92400e;">₱2,500</span>
+            <span class="sub-card-period">/ year</span>
+          </div>
+          <div style="font-size: 0.75rem; color: #b45309; font-weight: 700;">Only ~₱208/month • Massive ₱5,900 annual savings</div>
+
+          <ul class="sub-feature-list">
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon highlight" style="font-weight: 800;">✓</span>
+              <span><strong>Guaranteed Top-Tier 15-Second Homepage Ad</strong> running 365 days</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon highlight">✓</span>
+              <span>Permanent VIP Sponsor pinning in the Farmer Directory</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon highlight">✓</span>
+              <span>Unlimited harvest catalog promotions & buyer push notifications</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon highlight">✓</span>
+              <span>Direct introductions to institutional supermarket & hotel buyers</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon highlight">✓</span>
+              <span>Dedicated AgriConnect logistics & account manager</span>
+            </li>
+            <li class="sub-feature-item">
+              <span class="sub-feature-icon highlight">✓</span>
+              <span>Comprehensive supply and seasonal price intelligence</span>
+            </li>
+          </ul>
+
+          <button type="button" onclick="openSubscribeModal('yearly', 2500, 'Yearly Champion Co-Op')" class="btn-primary" style="width: 100%; justify-content: center; font-weight: 800; padding: 0.8rem; font-size: 0.9rem; background: #d97706; border-color: #d97706; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25);">
+            Choose Yearly (₱2,500) ⭐
+          </button>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Site Footer -->
@@ -700,6 +937,94 @@
   <div id="orderSuccessModal" class="modal-overlay" onclick="if(event.target === this) closeSuccessModal()">
     <div class="modal-content" id="orderSuccessContent" style="max-width: 520px; padding: 2rem; text-align: center;">
       <!-- Injected by showOrderSuccessModal() -->
+    </div>
+  </div>
+
+  <!-- Subscription Ad Generator & Checkout Modal -->
+  <div id="subscribeAdModal" class="modal-overlay" onclick="if(event.target === this) closeSubscribeModal()">
+    <div class="modal-content" style="max-width: 640px; padding: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem;">
+        <div>
+          <span id="subModalPlanBadge" class="sponsored-tier-tag" style="display: inline-block; margin-bottom: 0.35rem; background: #dcfce7; color: #15803d; border-color: #86efac; font-weight: 800;">Monthly Grower Pro</span>
+          <h3 id="subModalTitle" style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">Activate 15-Second Top Homepage Ad</h3>
+          <p style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Your promotional spotlight will be featured at the very top of AgriConnect for 15 seconds per buyer rotation.
+          </p>
+        </div>
+        <button type="button" onclick="closeSubscribeModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer; padding: 0.2rem;" aria-label="Close modal">&times;</button>
+      </div>
+
+      <!-- Live Ad Preview Inside Modal -->
+      <div style="margin-bottom: 1.25rem;">
+        <label style="display: block; font-size: 0.775rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 0.4rem; letter-spacing: 0.04em;">
+          Live Preview: Top 15-Second Ad Banner
+        </label>
+        <div style="background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); color: #ffffff; border-radius: var(--radius-md); padding: 1rem; border: 1px solid rgba(167, 243, 208, 0.3); box-shadow: var(--shadow-sm);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.72rem;">
+            <span style="background: #f59e0b; color: #fff; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 9999px;">SUBSCRIBER SPOTLIGHT</span>
+            <span style="color: #fef3c7; font-weight: 700;">⏱️ 15s Timer</span>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <img id="previewModalAdAvatar" src="https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300" alt="Farm Logo" style="width: 52px; height: 52px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid #ffffff;">
+            <div style="flex: 1; min-width: 0;">
+              <div id="previewModalFarmName" style="font-weight: 800; font-size: 0.95rem; color: #ffffff;">Cordillera Strawberry Haven</div>
+              <div id="previewModalHeadline" style="font-weight: 700; font-size: 0.85rem; color: #fef08a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Fresh High-Altitude Strawberries Farmgate Wholesale</div>
+              <div id="previewModalTags" style="font-size: 0.72rem; color: #d1fae5; margin-top: 0.2rem;">Direct Farmgate • Cold-Chain Delivery</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Inputs -->
+      <form id="subscribeAdForm" onsubmit="handleSubscribeSubmit(event)">
+        <input type="hidden" id="subTierInput" value="monthly">
+        <input type="hidden" id="subPriceInput" value="700">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Farm / Brand Name *</label>
+            <input type="text" id="subFarmName" required placeholder="e.g. Cordillera Strawberry Haven" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Province / Location *</label>
+            <input type="text" id="subLocation" required placeholder="e.g. La Trinidad, Benguet" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 0.85rem;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Promotional Headline (Appears in Bold Yellow) *</label>
+          <input type="text" id="subHeadline" required placeholder="e.g. 🍓 First-Harvest High-Altitude Strawberries Farmgate Wholesale" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
+        </div>
+
+        <div style="margin-bottom: 0.85rem;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Promotional Story / Pitch *</label>
+          <textarea id="subDescription" rows="2" required placeholder="Picked fresh at dawn with refrigerated transport to Metro Manila restaurant and wholesale buyers." style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;"></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.25rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Highlight Tags (Comma-Separated)</label>
+            <input type="text" id="subTags" placeholder="Direct Farmgate, 100% Organic, Cold-Chain" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem;">Action Button Link / Target</label>
+            <select id="subActionLink" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
+              <option value="marketplace.html">Live Marketplace Catalog</option>
+              <option value="farmers.html">Farmer Directory Listing</option>
+              <option value="marketplace.html?category=Vegetables">Vegetables Section</option>
+              <option value="marketplace.html?category=Fruits">Fruits Section</option>
+              <option value="marketplace.html?category=Grains">Grains & Rice Section</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+          <button type="button" onclick="closeSubscribeModal()" class="btn-secondary" style="padding: 0.6rem 1.2rem;">Cancel</button>
+          <button type="submit" id="subSubmitBtn" class="btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.9rem; font-weight: 800;">
+            Activate Plan & Launch 15s Ad 🚀
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
