@@ -9378,123 +9378,7 @@ function getAllPlatformOrders() {
     }
   } catch (e) {}
 
-  // 5. Seed default platform transactions covering all status states (Pending, In Transit, Delivered, Cancelled)
-  const seedPlatformOrders = [
-    {
-      id: 'ORD-9821',
-      date: 'Oct 10, 2026',
-      placed_at: 'Oct 10, 2026, 07:15 AM',
-      customer_name: 'Julia Barretto',
-      customer_phone: '+63 917 842 9012',
-      delivery_address: 'Bel-Air Village, Makati City, Metro Manila',
-      items: [
-        { name: 'Benguet Highland Strawberries', quantity: 3, unit: 'kg', price: 250 },
-        { name: 'Crisp Baguio Lettuce', quantity: 2, unit: 'kg', price: 140 }
-      ],
-      total: 1125,
-      total_amount: 1125,
-      paymentMethod: 'AgriConnect Balance (Pay Now)',
-      paymentStatus: 'Direct Settled (Escrow Cleared)',
-      status: 'In Cold-Chain Transit',
-      status_code: 'in_transit',
-      farmer_name: 'Mang Ramon Dela Cruz',
-      origin: 'Dela Cruz Family Farm, Benguet',
-      delivery_method: 'Refrigerated Cold-Chain Van (Route #4)',
-      eta: 'Today, 11:30 AM'
-    },
-    {
-      id: 'ORD-9784',
-      date: 'Oct 10, 2026',
-      placed_at: 'Oct 10, 2026, 06:40 AM',
-      customer_name: 'Marco Antonio',
-      customer_phone: '+63 922 419 8830',
-      delivery_address: 'Corinthian Gardens, Quezon City, Metro Manila',
-      items: [
-        { name: 'Nueva Ecija Premium Dinorado Rice (25kg)', quantity: 2, unit: 'sacks', price: 1350 }
-      ],
-      total: 2795,
-      total_amount: 2795,
-      paymentMethod: 'GCash Instant Settlement',
-      paymentStatus: 'Direct Settled (Escrow Cleared)',
-      status: 'Harvested & Packing',
-      status_code: 'pending',
-      farmer_name: 'Aling Nena Bautista',
-      origin: 'Bautista Rice Fields, Nueva Ecija',
-      delivery_method: 'Direct Farm Dispatch Truck',
-      eta: 'Tomorrow, 09:00 AM'
-    },
-    {
-      id: 'ORD-9650',
-      date: 'Oct 9, 2026',
-      placed_at: 'Oct 9, 2026, 04:20 PM',
-      customer_name: 'Chef Regina Cruz',
-      customer_phone: '+63 918 552 1144',
-      delivery_address: 'Bonifacio Global City, Taguig, Metro Manila',
-      items: [
-        { name: 'Guimaras Sweet Carabao Mangoes', quantity: 5, unit: 'kg', price: 180 },
-        { name: 'Fresh Navotas Bangus (Milkfish)', quantity: 4, unit: 'kg', price: 190 }
-      ],
-      total: 1755,
-      total_amount: 1755,
-      paymentMethod: 'Landbank Agri-Pay',
-      paymentStatus: 'Direct Settled (Escrow Cleared)',
-      status: 'Delivered to Buyer',
-      status_code: 'delivered',
-      farmer_name: 'Kuya Jun Villanueva & Ate Marites',
-      origin: 'Guimaras & Navotas Coastal Dispatch',
-      delivery_method: 'Cold-Chain Express Delivery',
-      eta: 'Delivered Oct 9, 07:15 PM'
-    },
-    {
-      id: 'ORD-9512',
-      date: 'Oct 9, 2026',
-      placed_at: 'Oct 9, 2026, 01:10 PM',
-      customer_name: 'David Reyes',
-      customer_phone: '+63 920 184 7729',
-      delivery_address: 'Alabang Hills, Muntinlupa City, Metro Manila',
-      items: [
-        { name: 'Quezon Virgin Coconut Oil (500ml)', quantity: 2, unit: 'bottles', price: 280 }
-      ],
-      total: 655,
-      total_amount: 655,
-      paymentMethod: 'GCash Instant Settlement',
-      paymentStatus: 'Escrow Refunded to Buyer',
-      status: 'Order Cancelled',
-      status_code: 'cancelled',
-      farmer_name: 'Tatay Berting Lopez',
-      origin: 'Lopez Coconut & Root Farm, Quezon',
-      delivery_method: 'Standard Farm Dispatch',
-      eta: 'Cancelled by Buyer'
-    },
-    {
-      id: 'ORD-9430',
-      date: 'Oct 8, 2026',
-      placed_at: 'Oct 8, 2026, 09:30 AM',
-      customer_name: 'Camilla Gomez',
-      customer_phone: '+63 917 339 5012',
-      delivery_address: 'Greenhills West, San Juan City, Metro Manila',
-      items: [
-        { name: 'Fresh Free-Range Farm Eggs (Tray of 30)', quantity: 3, unit: 'trays', price: 260 },
-        { name: 'Tagaytay Fresh Organic Kale', quantity: 2, unit: 'bunches', price: 95 }
-      ],
-      total: 1065,
-      total_amount: 1065,
-      paymentMethod: 'Maya Direct Settlement',
-      paymentStatus: 'Direct Settled (Escrow Cleared)',
-      status: 'Delivered to Buyer',
-      status_code: 'delivered',
-      farmer_name: 'Cora Valdez & Maria Santos',
-      origin: 'Batangas & Cavite Farm Gate',
-      delivery_method: 'AgriConnect Cold-Chain Van',
-      eta: 'Delivered Oct 8, 02:45 PM'
-    }
-  ];
-
-  seedPlatformOrders.forEach(seed => {
-    if (!orderMap.has(seed.id)) {
-      orderMap.set(seed.id, seed);
-    }
-  });
+  // Only genuine buyer orders are listed; no fictitious seeded transactions.
 
   const ordersArray = Array.from(orderMap.values());
   return ordersArray.sort((a, b) => {
@@ -10852,74 +10736,20 @@ function getAllFarmerSubscriptions() {
     },
     {
       id: 'SUB-2026-006',
-      farmer_id: 'farmer-maria-santos',
-      farmer_name: 'Maria Santos',
-      farm_name: 'Santos Organic Greens',
+      farmer_id: 'farmer-cora',
+      farmer_name: 'Nanay Cora Aquino',
+      farm_name: 'Aquino Poultry Yard',
       province: 'Cavite',
-      city: 'Tagaytay',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      city: 'Silang',
+      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400',
       plan_id: 'weekly',
       plan_name: 'Weekly Boost',
       plan_cost: 200,
       period_days: 7,
       start_date: '2026-10-07',
-      end_date: '2026-10-14', // 4 days remaining (Active)
+      end_date: '2026-10-14', // Active
       impressions: 3950,
       clicks: 580,
-      reminded: false
-    },
-    {
-      id: 'SUB-2026-007',
-      farmer_id: 'farmer-felipe-dizon',
-      farmer_name: 'Felipe Dizon',
-      farm_name: 'Dizon Citrus & Mango Grove',
-      province: 'Pampanga',
-      city: 'San Fernando',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
-      plan_id: 'monthly',
-      plan_name: 'Monthly Pro (AI Video Ad)',
-      plan_cost: 700,
-      period_days: 30,
-      start_date: '2026-09-13',
-      end_date: '2026-10-13', // 3 days remaining (Expiring soon)
-      impressions: 11900,
-      clicks: 1620,
-      reminded: false
-    },
-    {
-      id: 'SUB-2026-008',
-      farmer_id: 'farmer-cora-valdez',
-      farmer_name: 'Cora Valdez',
-      farm_name: 'Valdez Poultry & Egg Station',
-      province: 'Batangas',
-      city: 'Lipa',
-      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400',
-      plan_id: 'annual',
-      plan_name: 'Annual VIP (Priority Commercials)',
-      plan_cost: 5000,
-      period_days: 365,
-      start_date: '2026-02-01',
-      end_date: '2027-02-01', // Active
-      impressions: 68400,
-      clicks: 8900,
-      reminded: false
-    },
-    {
-      id: 'SUB-2026-009',
-      farmer_id: 'farmer-juan-dimagiba',
-      farmer_name: 'Juan Dimagiba',
-      farm_name: 'Dimagiba Root Crops Hub',
-      province: 'Laguna',
-      city: 'Calamba',
-      avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400',
-      plan_id: 'weekly',
-      plan_name: 'Weekly Boost',
-      plan_cost: 200,
-      period_days: 7,
-      start_date: '2026-09-28',
-      end_date: '2026-10-05', // Expired
-      impressions: 5120,
-      clicks: 690,
       reminded: false
     }
   ];
@@ -10928,6 +10758,12 @@ function getAllFarmerSubscriptions() {
     if (!subMap.has(s.id)) {
       subMap.set(s.id, s);
     }
+  });
+
+  // Only registered farmer accounts may hold subscriptions (keeps totals aligned with the accounts database)
+  const registeredFarmerIds = new Set(getAllPlatformFarmers().map(f => f.id));
+  Array.from(subMap.keys()).forEach(k => {
+    if (!registeredFarmerIds.has(subMap.get(k).farmer_id)) subMap.delete(k);
   });
 
   const now = new Date('2026-10-10T00:00:00');
