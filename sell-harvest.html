@@ -740,23 +740,34 @@
             </div>
 
             <!-- Alternative Payment Options -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; font-size: 0.8rem; margin-top: 0.25rem;">
-              <label style="display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border-strong); padding: 0.5rem; border-radius: var(--radius-sm); cursor: pointer; background: #ffffff;">
-                <input type="radio" name="paymentMethod" value="Direct GCash QR" onchange="handlePaymentMethodChange(this.value)"> GCash QR
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.8rem; margin-top: 0.25rem;">
+              <label id="paymentOptionEWallet" style="display: flex; align-items: flex-start; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer; background: #ffffff; transition: all 0.2s ease;">
+                <input type="radio" name="paymentMethod" value="E-Wallet" onchange="handlePaymentMethodChange(this.value)" style="margin-top: 0.2rem; accent-color: var(--primary);">
+                <div style="flex: 1;">
+                  <strong style="font-size: 0.85rem;">📱 E-Wallet</strong>
+                  <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.1rem;">GCash or Maya</div>
+                  <select name="eWalletProvider" id="checkoutEWalletProvider" onchange="handlePaymentMethodChange('E-Wallet')" style="display: none; width: 100%; margin-top: 0.4rem; padding: 0.35rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.8rem;">
+                    <option value="GCash">GCash</option>
+                    <option value="Maya">Maya</option>
+                  </select>
+                </div>
               </label>
-              <label style="display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border-strong); padding: 0.5rem; border-radius: var(--radius-sm); cursor: pointer; background: #ffffff;">
-                <input type="radio" name="paymentMethod" value="Direct Maya QR" onchange="handlePaymentMethodChange(this.value)"> Maya QR
-              </label>
-              <label style="display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border-strong); padding: 0.5rem; border-radius: var(--radius-sm); cursor: pointer; background: #ffffff;">
-                <input type="radio" name="paymentMethod" value="Cash on Delivery (COD)" onchange="handlePaymentMethodChange(this.value)"> Cash on Delivery
+              <label id="paymentOptionCOD" style="display: flex; align-items: flex-start; gap: 0.5rem; border: 1px solid var(--border-strong); padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer; background: #ffffff; transition: all 0.2s ease;">
+                <input type="radio" name="paymentMethod" value="Cash on Delivery (COD)" onchange="handlePaymentMethodChange(this.value)" style="margin-top: 0.2rem; accent-color: var(--primary);">
+                <div style="flex: 1;">
+                  <strong style="font-size: 0.85rem;">💵 Cash on Delivery</strong>
+                  <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.1rem;">Pay when it arrives</div>
+                </div>
               </label>
             </div>
           </div>
         </div>
 
-        <button type="submit" class="btn-primary" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem; font-size: 0.95rem;">
+        <div style="position: sticky; bottom: -1.75rem; background: #ffffff; padding: 0.75rem 0 0.35rem; margin-top: 0.25rem; border-top: 1px solid var(--border-subtle); z-index: 5;">
+          <button type="submit" id="checkoutSubmitBtn" class="btn-primary" style="width: 100%; padding: 0.8rem; font-size: 0.95rem; font-weight: 800;">
           💳 Pay Now & Schedule Morning Dispatch
         </button>
+        </div>
       </form>
     </div>
   </div>

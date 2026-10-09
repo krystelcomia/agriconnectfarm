@@ -2775,7 +2775,29 @@ function closeCheckoutModal() {
   unlockBodyScroll();
 }
 
+// Checkout entry point: runs the order and always tells the buyer whether checkout succeeded or failed
 async function submitOrder(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const form = e && e.target;
+  const submitBtn = form && form.querySelector ? form.querySelector('button[type="submit"]') : null;
+  const originalLabel = submitBtn ? submitBtn.innerHTML : '';
+  try {
+    const result = await submitOrderCore(e);
+    if (result && result.id) {
+      showToast(`✅ Checkout successful! Order #${result.id} was placed via ${result.paymentMethod}.`);
+    }
+  } catch (err) {
+    console.error('Checkout failed:', err);
+    showToast(`❌ Checkout failed: ${err && err.message ? err.message : 'something went wrong'}. Please review your order and try again.`);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalLabel;
+    }
+  }
+}
+
+async function submitOrderCore(e) {
   e.preventDefault();
   const user = window.AgriState.user;
   if (!user) {
@@ -2788,9 +2810,18 @@ async function submitOrder(e) {
     return;
   }
 
+  if (!window.AgriState.cart || window.AgriState.cart.length === 0) {
+    showToast('❌ Checkout failed: your cart is empty. Add items before checking out.');
+    closeCheckoutModal();
+    return;
+  }
+
   const form = e.target;
   const formData = new FormData(form);
-  const paymentMethod = formData.get('paymentMethod') || 'Pay Now (AgriConnect Balance)';
+  let paymentMethod = formData.get('paymentMethod') || 'Pay Now (AgriConnect Balance)';
+  if (paymentMethod === 'E-Wallet') {
+    paymentMethod = `E-Wallet (${formData.get('eWalletProvider') || 'GCash'})`;
+  }
 
   const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
   const fulfillment = formData.get('fulfillment') || 'delivery';
@@ -2802,7 +2833,7 @@ async function submitOrder(e) {
     const curBal = getBuyerBalance();
     if (curBal < total) {
       const shortfall = total - curBal;
-      showToast(`⚠️ Insufficient balance! Please deposit ₱${shortfall.toLocaleString()} to complete with Pay Now.`);
+      showToast(`❌ Checkout failed: insufficient balance. Deposit ₱${shortfall.toLocaleString()} or choose E-Wallet / Cash on Delivery.`);
       openDepositModal(shortfall);
       return;
     }
@@ -2988,6 +3019,7 @@ async function submitOrder(e) {
   if (document.getElementById('ordersListContainer')) {
     renderOrderTrackingList();
   }
+  return newOrder;
 }
 
 function showOrderSuccessModal(order) {
@@ -3684,12 +3716,31 @@ function refreshCheckoutPayNowCoverage() {
     if (prompt) prompt.style.display = 'none';
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Confirm Order & Schedule Farm Dispatch';
+      submitBtn.innerHTML = checkoutActionLabel();
     }
   }
 }
 
+function checkoutActionLabel() {
+  const m = document.querySelector('#checkoutForm input[name="paymentMethod"]:checked')?.value || '';
+  if (m === 'E-Wallet') {
+    const p = document.getElementById('checkoutEWalletProvider')?.value || 'GCash';
+    return `📱 Pay with ${p} & Place Order`;
+  }
+  if (m.includes('Cash on Delivery')) return '💵 Place Order (Cash on Delivery)';
+  return '✅ Confirm Order & Schedule Farm Dispatch';
+}
+
 function handlePaymentMethodChange(val) {
+  const eWalletProvider = document.getElementById('checkoutEWalletProvider');
+  if (eWalletProvider) eWalletProvider.style.display = val === 'E-Wallet' ? 'block' : 'none';
+  [['paymentOptionEWallet', val === 'E-Wallet'], ['paymentOptionCOD', String(val).includes('Cash on Delivery')]].forEach(([id, on]) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.borderColor = on ? 'var(--primary)' : 'var(--border-strong)';
+      el.style.background = on ? '#f0fdf4' : '#ffffff';
+    }
+  });
   const walletPanel = document.getElementById('checkoutWalletBalancePanel');
   const payNowLabel = document.getElementById('paymentOptionPayNow');
 
@@ -3709,7 +3760,7 @@ function handlePaymentMethodChange(val) {
     const submitBtn = document.querySelector('#checkoutForm button[type="submit"]');
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Confirm Order & Schedule Farm Dispatch';
+      submitBtn.innerHTML = checkoutActionLabel();
     }
   }
 }
