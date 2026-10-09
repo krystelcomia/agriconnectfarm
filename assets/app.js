@@ -379,6 +379,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (document.getElementById('sellHarvestPageContainer') || document.getElementById('sellHarvestPageForm')) {
     initSellHarvestPage();
   }
+  if (document.getElementById('adminMainView') || document.getElementById('adminTransactionsTableBody') || document.getElementById('adminAuthLockContainer')) {
+    initAdminDashboard();
+  }
 });
 
 // Load live data or fallback
@@ -2571,6 +2574,16 @@ async function submitOrder(e) {
     localStorage.setItem(`agri_orders_${user.id}`, JSON.stringify(window.AgriState.orders));
     localStorage.setItem(`agri_buyer_orders_${user.id}`, JSON.stringify(window.AgriState.orders));
   }
+  
+  // Master Platform Orders Store for Admin Oversight
+  try {
+    let allMasterOrders = JSON.parse(localStorage.getItem('agri_all_orders') || '[]');
+    allMasterOrders.unshift(newOrder);
+    localStorage.setItem('agri_all_orders', JSON.stringify(allMasterOrders));
+  } catch (err) {
+    console.warn('Could not update master platform orders:', err);
+  }
+
   if (typeof addBuyerOrder === 'function') {
     addBuyerOrder(newOrder);
   }
@@ -5498,11 +5511,52 @@ function togglePasswordVisibility(inputId, btn) {
 function handleLogin(e) {
   e.preventDefault();
   const form = e.target;
-  const email = form.email.value.trim().toLowerCase();
+  const email = (form.email.value || '').trim().toLowerCase();
   const password = form.password.value;
 
   if (!email || !password) {
     showToast('Please enter both email and password.');
+    return;
+  }
+
+  // Ensure Admin Account is seeded in storage
+  if (typeof ensureAdminAccountExists === 'function') {
+    ensureAdminAccountExists();
+  }
+
+  // Specific Admin Account Authentication
+  if (email === 'comiakrystel@gmail.com') {
+    if (password !== 'adminkrystel123') {
+      showToast('⚠️ Incorrect password for Executive Administrator account.');
+      return;
+    }
+
+    const adminUser = {
+      id: 'admin-krystel',
+      full_name: 'Krystel Comia',
+      email: 'comiakrystel@gmail.com',
+      role: 'admin',
+      is_admin: true,
+      phone: '+63 917 123 4567',
+      province: 'National Capital Region',
+      city: 'Quezon City',
+      address: 'AgriConnect National Operations Center, Quezon City, Metro Manila',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
+      bio: 'Executive Platform Administrator & PhilGAP Compliance Director',
+      createdAt: '2026-01-01T00:00:00.000Z'
+    };
+
+    window.AgriState.user = adminUser;
+    window.AgriState.currentMode = 'admin';
+    localStorage.setItem('agri_user', JSON.stringify(adminUser));
+    localStorage.setItem('agri_mode', 'admin');
+
+    updateAuthUI();
+    showToast('👑 Welcome back, Administrator Krystel Comia! Opening Admin Console...');
+
+    setTimeout(() => {
+      window.location.href = 'admin.html';
+    }, 500);
     return;
   }
 
@@ -5523,7 +5577,10 @@ function handleLogin(e) {
   window.AgriState.cart = JSON.parse(localStorage.getItem(`agri_cart_${matchedUser.id}`) || '[]');
   window.AgriState.orders = JSON.parse(localStorage.getItem(`agri_orders_${matchedUser.id}`) || '[]');
 
-  if (matchedUser.role === 'farmer') {
+  if (matchedUser.role === 'admin') {
+    window.AgriState.currentMode = 'admin';
+    localStorage.setItem('agri_mode', 'admin');
+  } else if (matchedUser.role === 'farmer') {
     window.AgriState.currentMode = 'farmer';
     localStorage.setItem('agri_mode', 'farmer');
   } else {
@@ -5536,8 +5593,12 @@ function handleLogin(e) {
   showToast(`Welcome back, ${matchedUser.full_name}!`);
 
   setTimeout(() => {
+    if (matchedUser.role === 'admin') {
+      window.location.href = 'admin.html';
+      return;
+    }
     const params = new URLSearchParams(window.location.search);
-    const redirectUrl = params.get('redirect') || 'dashboard.html';
+    const redirectUrl = params.get('redirect') || (matchedUser.role === 'farmer' ? 'dashboard.html' : 'marketplace.html');
     window.location.href = redirectUrl;
   }, 600);
 }
@@ -5914,13 +5975,31 @@ function updateAuthUI() {
 
   // Header Actions: Toggle Dashboard button in the former Sell Harvest position
   const headerDashBtns = document.querySelectorAll('.header-dashboard-btn');
+  const isAdmin = Boolean(user && (user.role === 'admin' || user.is_admin));
+  
   headerDashBtns.forEach(btn => {
     if (user) {
       btn.style.setProperty('display', 'inline-flex', 'important');
-      if (window.location.pathname.includes('dashboard.html')) {
-        btn.classList.add('active');
+      if (isAdmin) {
+        btn.href = 'admin.html';
+        btn.setAttribute('title', 'Open Admin Executive Console');
+        const span = btn.querySelector('span');
+        if (span) span.textContent = 'Admin Console';
+        if (window.location.pathname.includes('admin.html')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
       } else {
-        btn.classList.remove('active');
+        btn.href = 'dashboard.html';
+        btn.setAttribute('title', 'Open Dashboard');
+        const span = btn.querySelector('span');
+        if (span) span.textContent = 'Dashboard';
+        if (window.location.pathname.includes('dashboard.html')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
       }
     } else {
       btn.style.setProperty('display', 'none', 'important');
@@ -5930,7 +6009,14 @@ function updateAuthUI() {
   // Toggle Header Cart Button vs Farmer Orders Management Button
   const cartBtns = document.querySelectorAll('button[aria-label="View Cart"], button[aria-label="Manage Farmer Orders"], button[onclick*="toggleCart"], button[onclick*="toggleFarmerOrdersDrawer"]');
   cartBtns.forEach(btn => {
-    if (isFarmer) {
+    if (isAdmin) {
+      btn.setAttribute('aria-label', 'Admin Console');
+      btn.setAttribute('title', 'Open Admin Executive Console');
+      btn.setAttribute('onclick', "window.location.href='admin.html'");
+      btn.innerHTML = `
+        <span style="font-size: 0.95rem;">👑</span>
+      `;
+    } else if (isFarmer) {
       btn.setAttribute('aria-label', 'Manage Farmer Orders');
       btn.setAttribute('title', 'Manage Farmer Received Orders');
       btn.setAttribute('onclick', 'toggleFarmerOrdersDrawer(true)');
@@ -6002,7 +6088,7 @@ function updateAuthUI() {
   }
 
   // Toggle Subscription sections: Hide from buyer accounts (buyers only see homepage sponsored ads)
-  const isBuyer = Boolean(user && user.role !== 'farmer');
+  const isBuyer = Boolean(user && user.role !== 'farmer' && !isAdmin);
   const subSection = document.getElementById('subscriptionsSection');
   if (subSection) {
     subSection.style.setProperty('display', isBuyer ? 'none' : '', isBuyer ? 'important' : '');
@@ -6027,20 +6113,23 @@ function updateAuthUI() {
   if (user && user.full_name) {
     const initials = user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
     const isProfilePage = window.location.pathname.includes('profile.html');
+    const roleBadgeText = isAdmin ? '👑 Superadmin' : (user.role === 'farmer' ? 'Farmer' : 'Buyer');
+    const roleBadgeColor = isAdmin ? '#dc2626' : 'var(--primary)';
+    const profileLink = isAdmin ? 'admin.html' : 'profile.html';
+
     container.innerHTML = `
       <div style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; flex-shrink: 0;">
-        <a href="profile.html" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; padding: 0.2rem 0.35rem; border-radius: var(--radius-sm); transition: opacity 0.15s ease;" title="View My Profile">
-          <div style="width: 32px; height: 32px; border-radius: 9999px; background: var(--primary); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; box-shadow: var(--shadow-sm); overflow: hidden;">
+        <a href="${profileLink}" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; padding: 0.2rem 0.35rem; border-radius: var(--radius-sm); transition: opacity 0.15s ease;" title="Open Profile/Console">
+          <div style="width: 32px; height: 32px; border-radius: 9999px; background: ${isAdmin ? '#dc2626' : 'var(--primary)'}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; box-shadow: var(--shadow-sm); overflow: hidden;">
             ${user.avatar ? `<img src="${user.avatar}" alt="${user.full_name}" style="width: 100%; height: 100%; object-fit: cover;">` : initials}
           </div>
           <div style="display: flex; flex-direction: column; line-height: 1.15; text-align: left; white-space: nowrap;">
             <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main); white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis;" title="${user.full_name}">${user.full_name}</span>
-            <span style="font-size: 0.68rem; color: var(--primary); font-weight: 700; text-transform: uppercase; white-space: nowrap;">${user.role === 'farmer' ? 'Farmer' : 'Buyer'}</span>
+            <span style="font-size: 0.68rem; color: ${roleBadgeColor}; font-weight: 800; text-transform: uppercase; white-space: nowrap;">${roleBadgeText}</span>
           </div>
         </a>
-        <a href="profile.html" class="btn-secondary" style="font-size: 0.725rem; padding: 0.28rem 0.65rem; border-color: ${isProfilePage ? 'var(--primary)' : 'var(--border-subtle)'}; background: ${isProfilePage ? 'var(--primary-light)' : '#ffffff'}; color: ${isProfilePage ? 'var(--primary-deep)' : 'var(--text-main)'}; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700;" title="My Profile">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span>Profile</span>
+        <a href="${profileLink}" class="btn-secondary" style="font-size: 0.725rem; padding: 0.28rem 0.65rem; border-color: ${isProfilePage || window.location.pathname.includes('admin.html') ? 'var(--primary)' : 'var(--border-subtle)'}; background: ${isProfilePage || window.location.pathname.includes('admin.html') ? 'var(--primary-light)' : '#ffffff'}; color: ${isProfilePage || window.location.pathname.includes('admin.html') ? 'var(--primary-deep)' : 'var(--text-main)'}; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700;" title="${isAdmin ? 'Admin Console' : 'My Profile'}">
+          ${isAdmin ? '<span>👑 Admin</span>' : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span>'}
         </a>
         <button onclick="handleLogout()" class="btn-secondary" style="font-size: 0.725rem; padding: 0.28rem 0.55rem; border-color: var(--border-subtle); white-space: nowrap;" title="Log out">
           Sign Out
@@ -8842,6 +8931,1373 @@ function handleSubscribeSubmit(e) {
   // Launch the 5-10 minute AI video synthesis pipeline
   startAiVideoGeneration(generatedAd, durationDays, price, generatedAd.farmName, tier);
 }
+
+/* ============================================================ */
+/* 15. EXECUTIVE ADMIN CONSOLE & REAL-TIME INTERCONNECTED SYSTEM */
+/* ============================================================ */
+
+const ADMIN_ACCOUNT = {
+  id: 'admin-krystel',
+  full_name: 'Krystel Comia',
+  email: 'comiakrystel@gmail.com',
+  password: 'adminkrystel123',
+  role: 'admin',
+  is_admin: true,
+  phone: '+63 917 123 4567',
+  province: 'National Capital Region',
+  city: 'Quezon City',
+  address: 'AgriConnect National Operations Center, Quezon City, Metro Manila',
+  avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
+  bio: 'Executive Platform Administrator & PhilGAP Compliance Director',
+  createdAt: '2026-01-01T00:00:00.000Z'
+};
+
+function ensureAdminAccountExists() {
+  try {
+    const users = JSON.parse(localStorage.getItem('agri_users') || '[]');
+    const exists = users.some(u => u && u.email && u.email.toLowerCase() === ADMIN_ACCOUNT.email.toLowerCase());
+    if (!exists) {
+      users.unshift(ADMIN_ACCOUNT);
+      localStorage.setItem('agri_users', JSON.stringify(users));
+    }
+  } catch (e) {
+    console.warn('Could not initialize admin account in agri_users:', e);
+  }
+}
+
+// Auto-seed admin account immediately
+ensureAdminAccountExists();
+
+function autoLoginAsAdmin() {
+  ensureAdminAccountExists();
+  window.AgriState.user = ADMIN_ACCOUNT;
+  window.AgriState.currentMode = 'admin';
+  localStorage.setItem('agri_user', JSON.stringify(ADMIN_ACCOUNT));
+  localStorage.setItem('agri_mode', 'admin');
+  updateAuthUI();
+  showToast('👑 Logged in as Executive Administrator Krystel Comia!');
+  setTimeout(() => {
+    window.location.href = 'admin.html';
+  }, 400);
+}
+
+function fillAdminCredentials() {
+  const form = document.querySelector('form[onsubmit*="handleLogin"]');
+  if (form) {
+    if (form.email) form.email.value = 'comiakrystel@gmail.com';
+    if (form.password) form.password.value = 'adminkrystel123';
+    showToast('Admin credentials filled: comiakrystel@gmail.com / adminkrystel123');
+  }
+}
+
+// Aggregates all buyer orders from all platform stores
+function getAllPlatformOrders() {
+  const orderMap = new Map();
+
+  // 1. Check agri_all_orders (master transactions log)
+  try {
+    const masterOrders = JSON.parse(localStorage.getItem('agri_all_orders') || '[]');
+    if (Array.isArray(masterOrders)) {
+      masterOrders.forEach(o => {
+        if (o && o.id) orderMap.set(o.id, { ...o });
+      });
+    }
+  } catch (e) {}
+
+  // 2. Check general agri_orders
+  try {
+    const genOrders = JSON.parse(localStorage.getItem('agri_orders') || '[]');
+    if (Array.isArray(genOrders)) {
+      genOrders.forEach(o => {
+        if (o && o.id && !orderMap.has(o.id)) orderMap.set(o.id, { ...o });
+      });
+    }
+  } catch (e) {}
+
+  // 3. Scan all user-scoped orders in localStorage
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('agri_orders_') || key.startsWith('agri_buyer_orders_'))) {
+        try {
+          const userOrders = JSON.parse(localStorage.getItem(key) || '[]');
+          if (Array.isArray(userOrders)) {
+            userOrders.forEach(o => {
+              if (o && o.id && !orderMap.has(o.id)) orderMap.set(o.id, { ...o });
+            });
+          }
+        } catch (e) {}
+      }
+    }
+  } catch (e) {}
+
+  // 4. Scan agri_farmer_orders
+  try {
+    const farmerOrders = JSON.parse(localStorage.getItem('agri_farmer_orders') || '[]');
+    if (Array.isArray(farmerOrders)) {
+      farmerOrders.forEach(fo => {
+        const key = fo.master_order_id || fo.id;
+        if (key && !orderMap.has(key)) {
+          orderMap.set(key, {
+            id: key,
+            date: fo.placed_at || new Date().toLocaleDateString('en-PH'),
+            customerName: fo.customer_name || 'Verified Buyer',
+            phone: fo.customer_phone || '+63 927 183 6734',
+            address: fo.delivery_address || 'Delivery Address, Metro Manila',
+            items: fo.items || [],
+            subtotal: fo.total_amount || 0,
+            deliveryFee: 95,
+            total: (fo.total_amount || 0) + 95,
+            fulfillment: 'delivery',
+            paymentMethod: fo.payment_method || 'AgriConnect Balance (Pay Now)',
+            paymentStatus: fo.payment_status || 'Paid Direct (Instant Auto-Deduction)',
+            status: fo.status || 'Order Confirmed',
+            status_code: fo.status_code || 'to_deliver',
+            origin: fo.farmer_name || 'Benguet Organic Farm Hub',
+            originProvince: 'Benguet',
+            destination: fo.delivery_address || 'Metro Manila'
+          });
+        }
+      });
+    }
+  } catch (e) {}
+
+  const ordersArray = Array.from(orderMap.values());
+  return ordersArray.sort((a, b) => {
+    const timeA = new Date(a.date || a.placed_at || 0).getTime();
+    const timeB = new Date(b.date || b.placed_at || 0).getTime();
+    return timeB - timeA;
+  });
+}
+
+// Master Unified User Accounts Aggregator
+function getAllPlatformUsers() {
+  const userMap = new Map();
+
+  // 1. Seed Admin
+  userMap.set(ADMIN_ACCOUNT.id, { ...ADMIN_ACCOUNT });
+
+  // 2. agri_users
+  try {
+    const users = JSON.parse(localStorage.getItem('agri_users') || '[]');
+    if (Array.isArray(users)) {
+      users.forEach(u => {
+        if (u && u.id) userMap.set(u.id, { ...u });
+      });
+    }
+  } catch (e) {}
+
+  // 3. Stored farmers
+  try {
+    const farmers = getStoredFarmers();
+    if (Array.isArray(farmers)) {
+      farmers.forEach(f => {
+        if (f && f.id && !userMap.has(f.id)) {
+          userMap.set(f.id, {
+            id: f.id,
+            full_name: f.full_name,
+            email: `${f.id.replace('farmer-', '')}@agriconnect.ph`,
+            phone: f.phone || '+63 917 555 0192',
+            role: 'farmer',
+            farm_name: f.farm_name,
+            province: f.province,
+            city: f.city,
+            specialty: f.specialty,
+            verified: f.verified !== false,
+            avatar: f.avatar,
+            createdAt: '2026-01-01T00:00:00.000Z'
+          });
+        }
+      });
+    }
+  } catch (e) {}
+
+  return Array.from(userMap.values());
+}
+
+// Master Farmers Aggregator
+function getAllPlatformFarmers() {
+  const farmerMap = new Map();
+  const allUsers = getAllPlatformUsers();
+  
+  allUsers.filter(u => u.role === 'farmer').forEach(u => {
+    farmerMap.set(u.id, {
+      ...u,
+      farm_name: u.farm_name || `${u.full_name}'s Farm`,
+      province: u.province || 'Benguet',
+      verified: u.verified !== false
+    });
+  });
+
+  const storedFarmers = getStoredFarmers();
+  storedFarmers.forEach(f => {
+    if (!farmerMap.has(f.id)) {
+      farmerMap.set(f.id, { ...f, role: 'farmer', verified: f.verified !== false });
+    }
+  });
+
+  return Array.from(farmerMap.values());
+}
+
+// Farmer Accreditation Requirements Store
+function adminGetFarmerRequirements(farmerId) {
+  const reqKey = 'agri_farmer_requirements';
+  let allReqs = {};
+  try {
+    allReqs = JSON.parse(localStorage.getItem(reqKey) || '{}');
+  } catch (e) {}
+
+  if (allReqs[farmerId]) {
+    return allReqs[farmerId];
+  }
+
+  const farmers = getAllPlatformFarmers();
+  const farmer = farmers.find(f => f.id === farmerId) || { full_name: 'Farmer Partner', province: 'Benguet' };
+  const isDefaultVerified = farmer.verified !== false;
+
+  const defaultReqs = [
+    {
+      id: 'rsbsa',
+      name: 'RSBSA Registration (DA Official Registry)',
+      docNumber: 'RSBSA-CAR-2026-' + (farmerId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 90000 + 10000),
+      issuingAgency: 'Department of Agriculture Regional Field Office CAR',
+      dateSubmitted: 'Jan 15, 2026',
+      status: isDefaultVerified ? 'verified' : 'pending_review',
+      badge: isDefaultVerified ? 'Verified' : 'Under Review',
+      docType: 'Registry Certificate',
+      notes: 'Active Farmer Producer profile in DA RSBSA national agricultural registry.'
+    },
+    {
+      id: 'gov_id',
+      name: 'PhilSys National ID / Government Photo ID',
+      docNumber: 'PSN-7492-9182-4821',
+      issuingAgency: 'Philippine Statistics Authority (PSA)',
+      dateSubmitted: 'Jan 15, 2026',
+      status: isDefaultVerified ? 'verified' : 'pending_review',
+      badge: isDefaultVerified ? 'Verified' : 'Under Review',
+      docType: 'Government Identity Proof',
+      notes: 'Verified biometric digital Philippine National ID.'
+    },
+    {
+      id: 'brgy_cert',
+      name: 'Barangay Land Tenancy & Farming Certification',
+      docNumber: 'BLC-' + (farmer.province || 'LUZON').slice(0, 3).toUpperCase() + '-2026-084',
+      issuingAgency: `Office of the Punong Barangay (${farmer.city || 'La Trinidad'}, ${farmer.province || 'Benguet'})`,
+      dateSubmitted: 'Jan 16, 2026',
+      status: isDefaultVerified ? 'verified' : 'pending_review',
+      badge: isDefaultVerified ? 'Verified' : 'Under Review',
+      docType: 'Land / Tenancy Clearance',
+      notes: 'Certifies active bona fide farming cultivation of parcel land.'
+    },
+    {
+      id: 'philgap',
+      name: 'PhilGAP (Good Agricultural Practices) Safe Produce Clearance',
+      docNumber: 'BPI-PhilGAP-2026-' + (farmerId.includes('ramon') ? '019' : farmerId.includes('maria') ? '024' : '048'),
+      issuingAgency: 'Bureau of Plant Industry (BPI) - DA',
+      dateSubmitted: 'Jan 18, 2026',
+      status: isDefaultVerified ? 'verified' : 'pending_review',
+      badge: isDefaultVerified ? 'Verified' : 'Under Review',
+      docType: 'Agricultural Safety Compliance',
+      notes: 'Pesticide residue limit & soil organic management compliant.'
+    },
+    {
+      id: 'water_test',
+      name: 'Farm Irrigation & Potability Microbiological Water Test',
+      docNumber: 'DOST-PSTC-WT-9921',
+      issuingAgency: 'DOST Regional Laboratory Services',
+      dateSubmitted: 'Jan 18, 2026',
+      status: isDefaultVerified ? 'verified' : 'pending_review',
+      badge: isDefaultVerified ? 'Verified' : 'Under Review',
+      docType: 'Laboratory Analysis Report',
+      notes: 'E. coli & heavy metal free irrigation source compliant.'
+    }
+  ];
+
+  allReqs[farmerId] = defaultReqs;
+  localStorage.setItem(reqKey, JSON.stringify(allReqs));
+  return defaultReqs;
+}
+
+function adminSaveFarmerRequirements(farmerId, reqs) {
+  const reqKey = 'agri_farmer_requirements';
+  let allReqs = {};
+  try {
+    allReqs = JSON.parse(localStorage.getItem(reqKey) || '{}');
+  } catch (e) {}
+  allReqs[farmerId] = reqs;
+  localStorage.setItem(reqKey, JSON.stringify(allReqs));
+}
+
+// Approve a single requirement document
+function adminApproveRequirement(farmerId, reqId) {
+  const reqs = adminGetFarmerRequirements(farmerId);
+  const target = reqs.find(r => r.id === reqId);
+  if (target) {
+    target.status = 'verified';
+    target.badge = 'Verified';
+    delete target.rejectReason;
+    adminSaveFarmerRequirements(farmerId, reqs);
+    showToast(`✓ Document "${target.name}" approved.`);
+    
+    // Check if all are now verified
+    const allVerified = reqs.every(r => r.status === 'verified');
+    if (allVerified) {
+      adminSetFarmerVerificationStatus(farmerId, true);
+    }
+    refreshAdminData();
+    openAdminFarmerReviewModal(farmerId);
+  }
+}
+
+// Reject a single requirement document
+function adminRejectRequirement(farmerId, reqId, reason) {
+  const reqs = adminGetFarmerRequirements(farmerId);
+  const target = reqs.find(r => r.id === reqId);
+  if (target) {
+    target.status = 'rejected';
+    target.badge = 'Rejected';
+    target.rejectReason = reason || 'Document image unclear or requires renewed accreditation.';
+    adminSaveFarmerRequirements(farmerId, reqs);
+    adminSetFarmerVerificationStatus(farmerId, false);
+    showToast(`⚠️ Document "${target.name}" marked as rejected.`);
+    refreshAdminData();
+    openAdminFarmerReviewModal(farmerId);
+  }
+}
+
+// Full Farmer Accreditation Approval
+function adminApproveFarmerAccount(farmerId) {
+  const reqs = adminGetFarmerRequirements(farmerId);
+  reqs.forEach(r => {
+    r.status = 'verified';
+    r.badge = 'Verified';
+    delete r.rejectReason;
+  });
+  adminSaveFarmerRequirements(farmerId, reqs);
+  adminSetFarmerVerificationStatus(farmerId, true);
+  showToast(`🎉 Farmer accreditation APPROVED! Full PhilGAP Verified status active across platform.`);
+  refreshAdminData();
+  closeAdminDocReviewModal();
+}
+
+// Full Farmer Rejection
+function adminRejectFarmerAccount(farmerId, reason) {
+  const reqs = adminGetFarmerRequirements(farmerId);
+  reqs.forEach(r => {
+    if (r.status !== 'verified') {
+      r.status = 'rejected';
+      r.badge = 'Rejected';
+      r.rejectReason = reason || 'Accreditation documents incomplete.';
+    }
+  });
+  adminSaveFarmerRequirements(farmerId, reqs);
+  adminSetFarmerVerificationStatus(farmerId, false);
+  showToast(`⚠️ Farmer verification rejected.`);
+  refreshAdminData();
+  closeAdminDocReviewModal();
+}
+
+// Synchronize Verification Status across all databases
+function adminSetFarmerVerificationStatus(farmerId, isVerified) {
+  // 1. Update agri_users
+  try {
+    const users = JSON.parse(localStorage.getItem('agri_users') || '[]');
+    const u = users.find(x => x.id === farmerId);
+    if (u) {
+      u.verified = isVerified;
+      u.verification_status = isVerified ? 'verified' : 'rejected';
+      localStorage.setItem('agri_users', JSON.stringify(users));
+    }
+  } catch (e) {}
+
+  // 2. Update agri_custom_farmers
+  try {
+    const customFarmers = JSON.parse(localStorage.getItem('agri_custom_farmers') || '[]');
+    const cf = customFarmers.find(x => x.id === farmerId);
+    if (cf) {
+      cf.verified = isVerified;
+      localStorage.setItem('agri_custom_farmers', JSON.stringify(customFarmers));
+    }
+  } catch (e) {}
+
+  // 3. Update window.AgriState.farmers
+  if (window.AgriState && Array.isArray(window.AgriState.farmers)) {
+    const f = window.AgriState.farmers.find(x => x.id === farmerId);
+    if (f) {
+      f.verified = isVerified;
+    }
+  }
+
+  // 4. If current logged in user is this farmer, update session
+  if (window.AgriState?.user && window.AgriState.user.id === farmerId) {
+    window.AgriState.user.verified = isVerified;
+    window.AgriState.user.verification_status = isVerified ? 'verified' : 'rejected';
+    localStorage.setItem('agri_user', JSON.stringify(window.AgriState.user));
+    updateAuthUI();
+  }
+}
+
+// Update Order Status across all platform databases
+function adminUpdateOrderStatus(orderId, newStatus, newStatusCode) {
+  const resolvedCode = newStatusCode || (newStatus.toLowerCase().includes('delivered') ? 'delivered' : newStatus.toLowerCase().includes('transit') ? 'in_transit' : 'to_deliver');
+  
+  // 1. Update agri_all_orders
+  try {
+    const allOrders = JSON.parse(localStorage.getItem('agri_all_orders') || '[]');
+    const target = allOrders.find(o => o.id === orderId);
+    if (target) {
+      target.status = newStatus;
+      target.status_code = resolvedCode;
+      if (resolvedCode === 'delivered') {
+        target.paymentStatus = 'Settled & Released to Farmer';
+      }
+      localStorage.setItem('agri_all_orders', JSON.stringify(allOrders));
+    }
+  } catch (e) {}
+
+  // 2. Update all user-scoped orders
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('agri_orders_') || key.startsWith('agri_buyer_orders_'))) {
+        try {
+          const userOrders = JSON.parse(localStorage.getItem(key) || '[]');
+          let changed = false;
+          userOrders.forEach(o => {
+            if (o.id === orderId) {
+              o.status = newStatus;
+              o.status_code = resolvedCode;
+              if (resolvedCode === 'delivered') o.paymentStatus = 'Settled & Released to Farmer';
+              changed = true;
+            }
+          });
+          if (changed) {
+            localStorage.setItem(key, JSON.stringify(userOrders));
+          }
+        } catch (e) {}
+      }
+    }
+  } catch (e) {}
+
+  // 3. Update agri_farmer_orders
+  try {
+    const farmerOrders = JSON.parse(localStorage.getItem('agri_farmer_orders') || '[]');
+    let changed = false;
+    farmerOrders.forEach(fo => {
+      if (fo.master_order_id === orderId || fo.id === orderId || (fo.id && fo.id.startsWith(orderId))) {
+        fo.status = newStatus;
+        fo.status_code = resolvedCode;
+        if (resolvedCode === 'delivered') fo.payment_status = 'Disbursed to Escrow Wallet';
+        changed = true;
+      }
+    });
+    if (changed) {
+      localStorage.setItem('agri_farmer_orders', JSON.stringify(farmerOrders));
+    }
+  } catch (e) {}
+
+  // 4. Update window.AgriState.orders if matches
+  if (window.AgriState && Array.isArray(window.AgriState.orders)) {
+    window.AgriState.orders.forEach(o => {
+      if (o.id === orderId) {
+        o.status = newStatus;
+        o.status_code = resolvedCode;
+      }
+    });
+  }
+
+  showToast(`Order #${orderId} status updated to "${newStatus}"!`);
+  refreshAdminData();
+}
+
+// Disburse Escrow Funds
+function adminDisburseEscrow(orderId) {
+  adminUpdateOrderStatus(orderId, 'Delivered & Escrow Settled', 'delivered');
+  showToast(`💰 Escrow payment for Order #${orderId} successfully disbursed to farmer!`);
+}
+
+// Toggle Crop Catalog Availability
+function adminToggleProductAvailability(productId) {
+  const prod = (window.AgriState?.products || []).find(p => p.id === productId);
+  if (prod) {
+    prod.is_available = !prod.is_available;
+    try {
+      let customProducts = JSON.parse(localStorage.getItem('agri_custom_products') || '[]');
+      const cp = customProducts.find(p => p.id === productId);
+      if (cp) {
+        cp.is_available = prod.is_available;
+        localStorage.setItem('agri_custom_products', JSON.stringify(customProducts));
+      }
+    } catch (e) {}
+    showToast(`Product "${prod.name}" marked as ${prod.is_available ? 'IN STOCK' : 'OUT OF STOCK'}.`);
+    renderAdminProducts(document.getElementById('adminGlobalSearch')?.value || '');
+  }
+}
+
+// Initialize Admin Dashboard Console
+let adminActiveTab = 'transactions';
+let adminTxFilter = 'all';
+let adminFarmerFilter = 'all';
+let adminUserFilter = 'all';
+
+function initAdminDashboard() {
+  const user = window.AgriState?.user;
+  const lockContainer = document.getElementById('adminAuthLockContainer');
+  const mainView = document.getElementById('adminMainView');
+
+  const isAdmin = Boolean(user && (user.role === 'admin' || user.is_admin));
+
+  if (!isAdmin) {
+    if (lockContainer) lockContainer.style.display = 'block';
+    if (mainView) mainView.style.display = 'none';
+    return;
+  }
+
+  if (lockContainer) lockContainer.style.display = 'none';
+  if (mainView) mainView.style.display = 'block';
+
+  const userDisplayName = document.getElementById('adminUserDisplayName');
+  if (userDisplayName) {
+    userDisplayName.textContent = `${user.full_name} (${user.email}) • Superadmin`;
+  }
+
+  refreshAdminData();
+}
+
+function switchAdminTab(tabName) {
+  adminActiveTab = tabName;
+
+  // Toggle Tab Buttons
+  const tabBtns = {
+    transactions: document.getElementById('tabBtnTransactions'),
+    farmers: document.getElementById('tabBtnFarmers'),
+    users: document.getElementById('tabBtnUsers'),
+    products: document.getElementById('tabBtnProducts')
+  };
+
+  Object.keys(tabBtns).forEach(k => {
+    if (tabBtns[k]) {
+      tabBtns[k].classList.toggle('active', k === tabName);
+    }
+  });
+
+  // Toggle Sections
+  const sections = {
+    transactions: document.getElementById('adminSectionTransactions'),
+    farmers: document.getElementById('adminSectionFarmers'),
+    users: document.getElementById('adminSectionUsers'),
+    products: document.getElementById('adminSectionProducts')
+  };
+
+  Object.keys(sections).forEach(k => {
+    if (sections[k]) {
+      sections[k].style.display = (k === tabName) ? 'block' : 'none';
+    }
+  });
+
+  const searchVal = document.getElementById('adminGlobalSearch')?.value || '';
+  handleAdminSearch(searchVal);
+}
+
+function handleAdminSearch(query) {
+  const q = (query || '').trim().toLowerCase();
+  if (adminActiveTab === 'transactions') {
+    renderAdminTransactions(q, adminTxFilter);
+  } else if (adminActiveTab === 'farmers') {
+    renderAdminFarmers(q, adminFarmerFilter);
+  } else if (adminActiveTab === 'users') {
+    renderAdminUsers(q, adminUserFilter);
+  } else if (adminActiveTab === 'products') {
+    renderAdminProducts(q);
+  }
+}
+
+function filterAdminTransactions(filter) {
+  adminTxFilter = filter;
+  const btns = {
+    all: document.getElementById('txFilterAll'),
+    pending: document.getElementById('txFilterPending'),
+    in_transit: document.getElementById('txFilterTransit'),
+    delivered: document.getElementById('txFilterDelivered')
+  };
+  Object.keys(btns).forEach(k => {
+    if (btns[k]) {
+      btns[k].className = (k === filter) ? 'btn-primary' : 'btn-secondary';
+      btns[k].style.fontSize = '0.775rem';
+      btns[k].style.padding = '0.35rem 0.75rem';
+    }
+  });
+  renderAdminTransactions(document.getElementById('adminGlobalSearch')?.value || '', filter);
+}
+
+function filterAdminFarmers(filter) {
+  adminFarmerFilter = filter;
+  const btns = {
+    all: document.getElementById('farmerFilterAll'),
+    pending: document.getElementById('farmerFilterPending'),
+    verified: document.getElementById('farmerFilterVerified')
+  };
+  Object.keys(btns).forEach(k => {
+    if (btns[k]) {
+      btns[k].className = (k === filter) ? 'btn-primary' : 'btn-secondary';
+      btns[k].style.fontSize = '0.775rem';
+      btns[k].style.padding = '0.35rem 0.75rem';
+    }
+  });
+  renderAdminFarmers(document.getElementById('adminGlobalSearch')?.value || '', filter);
+}
+
+function filterAdminUsers(filter) {
+  adminUserFilter = filter;
+  const btns = {
+    all: document.getElementById('userFilterAll'),
+    farmer: document.getElementById('userFilterFarmer'),
+    buyer: document.getElementById('userFilterBuyer')
+  };
+  Object.keys(btns).forEach(k => {
+    if (btns[k]) {
+      btns[k].className = (k === filter) ? 'btn-primary' : 'btn-secondary';
+      btns[k].style.fontSize = '0.775rem';
+      btns[k].style.padding = '0.35rem 0.75rem';
+    }
+  });
+  renderAdminUsers(document.getElementById('adminGlobalSearch')?.value || '', filter);
+}
+
+function refreshAdminData() {
+  const orders = getAllPlatformOrders();
+  const farmers = getAllPlatformFarmers();
+  const users = getAllPlatformUsers();
+  const products = window.AgriState?.products || [];
+
+  // 1. KPI Calculations
+  const totalGMV = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const kpiGMV = document.getElementById('kpiAdminTotalGMV');
+  if (kpiGMV) kpiGMV.textContent = `₱${totalGMV.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const kpiOrders = document.getElementById('kpiAdminTotalOrders');
+  if (kpiOrders) kpiOrders.textContent = `${orders.length} Orders`;
+
+  const inTransitCount = orders.filter(o => o.status_code === 'in_transit' || (o.status && o.status.toLowerCase().includes('transit'))).length;
+  const deliveredCount = orders.filter(o => o.status_code === 'delivered' || (o.status && o.status.toLowerCase().includes('delivered'))).length;
+  const kpiOrdersSubtext = document.getElementById('kpiAdminOrdersSubtext');
+  if (kpiOrdersSubtext) kpiOrdersSubtext.textContent = `${inTransitCount} In Transit • ${deliveredCount} Delivered`;
+
+  const pendingFarmersCount = farmers.filter(f => !f.verified).length;
+  const kpiPending = document.getElementById('kpiAdminPendingVerifications');
+  if (kpiPending) kpiPending.textContent = `${pendingFarmersCount} Pending`;
+
+  const kpiUsers = document.getElementById('kpiAdminTotalUsers');
+  if (kpiUsers) kpiUsers.textContent = `${users.length} Accounts`;
+
+  const farmerCount = users.filter(u => u.role === 'farmer').length;
+  const buyerCount = users.filter(u => u.role === 'buyer' || !u.role).length;
+  const kpiUsersSubtext = document.getElementById('kpiAdminUsersSubtext');
+  if (kpiUsersSubtext) kpiUsersSubtext.textContent = `${farmerCount} Farmers • ${buyerCount} Buyers`;
+
+  const kpiCrops = document.getElementById('kpiAdminTotalCrops');
+  if (kpiCrops) kpiCrops.textContent = `${products.length} Crops`;
+
+  // Tab Badge Counters
+  const countTx = document.getElementById('tabCountTransactions');
+  if (countTx) countTx.textContent = orders.length;
+
+  const countFarmers = document.getElementById('tabCountFarmers');
+  if (countFarmers) countFarmers.textContent = farmers.length;
+
+  const countUsers = document.getElementById('tabCountUsers');
+  if (countUsers) countUsers.textContent = users.length;
+
+  const countProducts = document.getElementById('tabCountProducts');
+  if (countProducts) countProducts.textContent = products.length;
+
+  // Render Sub-Views
+  const searchVal = document.getElementById('adminGlobalSearch')?.value || '';
+  renderAdminTransactions(searchVal, adminTxFilter);
+  renderAdminFarmers(searchVal, adminFarmerFilter);
+  renderAdminUsers(searchVal, adminUserFilter);
+  renderAdminProducts(searchVal);
+}
+
+// -------------------------------------------------------------
+// RENDER 1: BUYER TRANSACTIONS MASTER TABLE
+// -------------------------------------------------------------
+function renderAdminTransactions(searchQuery, statusFilter) {
+  const tbody = document.getElementById('adminTransactionsTableBody');
+  if (!tbody) return;
+
+  let orders = getAllPlatformOrders();
+  const q = (searchQuery || '').toLowerCase();
+  const filter = statusFilter || 'all';
+
+  if (filter === 'pending') {
+    orders = orders.filter(o => o.status_code === 'pending' || (o.status && o.status.toLowerCase().includes('pending')));
+  } else if (filter === 'in_transit') {
+    orders = orders.filter(o => o.status_code === 'in_transit' || (o.status && o.status.toLowerCase().includes('transit')));
+  } else if (filter === 'delivered') {
+    orders = orders.filter(o => o.status_code === 'delivered' || (o.status && o.status.toLowerCase().includes('delivered')));
+  }
+
+  if (q) {
+    orders = orders.filter(o => {
+      const matchId = (o.id || '').toLowerCase().includes(q);
+      const matchBuyer = (o.customerName || '').toLowerCase().includes(q);
+      const matchPhone = (o.phone || '').toLowerCase().includes(q);
+      const matchAddr = (o.address || '').toLowerCase().includes(q);
+      const matchOrigin = (o.origin || '').toLowerCase().includes(q);
+      const matchItem = (o.items || []).some(it => (it.name || '').toLowerCase().includes(q));
+      return matchId || matchBuyer || matchPhone || matchAddr || matchOrigin || matchItem;
+    });
+  }
+
+  if (orders.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">📦</div>
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">No Buyer Transactions Found</div>
+          <p style="font-size: 0.85rem; margin-top: 0.25rem;">No orders match the selected filters or search terms.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = orders.map(order => {
+    const isPaid = (order.paymentStatus || '').toLowerCase().includes('paid') || (order.paymentStatus || '').toLowerCase().includes('settled');
+    const isDelivered = (order.status_code === 'delivered') || (order.status || '').toLowerCase().includes('delivered');
+    const isInTransit = (order.status_code === 'in_transit') || (order.status || '').toLowerCase().includes('transit');
+
+    const statusPillClass = isDelivered 
+      ? 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;' 
+      : isInTransit 
+      ? 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;' 
+      : 'background: #fef3c7; color: #b45309; border: 1px solid #fde68a;';
+
+    const itemsSummary = (order.items || []).map(it => {
+      return `<div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.775rem; margin-bottom: 0.2rem;">
+        <span style="font-weight: 700; color: var(--primary-deep);">${it.quantity}x</span>
+        <span style="font-weight: 600; color: var(--text-main);">${it.name}</span>
+        <span style="color: var(--text-muted);">(@ ₱${it.price}/${it.unit || 'kg'})</span>
+      </div>`;
+    }).join('');
+
+    return `
+      <tr>
+        <td>
+          <div style="font-weight: 800; font-family: monospace; font-size: 0.875rem; color: var(--primary-deep);">
+            #${order.id}
+          </div>
+          <span style="font-size: 0.7rem; font-weight: 700; background: #f1f5f9; padding: 0.15rem 0.45rem; border-radius: 9999px; text-transform: uppercase; color: var(--text-secondary); display: inline-block; margin-top: 0.25rem;">
+            ${order.fulfillment === 'pickup' ? 'Farmgate Pickup' : 'Cold-Chain Delivery'}
+          </span>
+        </td>
+        <td>
+          <div style="font-weight: 700; color: var(--text-main);">${order.customerName || 'Verified Buyer'}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">${order.phone || '09000000000'}</div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${order.address || ''}">
+            📍 ${order.address || 'Metro Manila'}
+          </div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem;">
+            🗓️ ${order.date || 'Today'}
+          </div>
+        </td>
+        <td>
+          <div style="max-height: 90px; overflow-y: auto; padding-right: 0.25rem;">
+            ${itemsSummary || '<span style="color: var(--text-muted); font-size: 0.75rem;">Direct Harvest Order</span>'}
+          </div>
+        </td>
+        <td>
+          <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-main);">
+            ${order.origin || 'Benguet Farm Hub'}
+          </div>
+          <div style="font-size: 0.725rem; color: var(--primary); font-weight: 600;">
+            ✓ Verified Cold-Chain Route
+          </div>
+        </td>
+        <td>
+          <div style="font-size: 1rem; font-weight: 800; color: var(--primary-deep);">
+            ₱${Number(order.total || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);">
+            Subtotal: ₱${Number(order.subtotal || 0).toLocaleString()} • Ship: ₱${order.deliveryFee || 95}
+          </div>
+        </td>
+        <td>
+          <div style="font-size: 0.75rem; font-weight: 700; color: ${isPaid ? '#15803d' : '#b45309'}; margin-bottom: 0.25rem;">
+            ${order.paymentMethod || 'AgriConnect Balance'}
+          </div>
+          <span style="font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 9999px; ${isPaid ? 'background: #dcfce7; color: #15803d;' : 'background: #fef3c7; color: #b45309;'}">
+            ${isPaid ? '✓ Direct Settled' : '⏳ Escrow Held'}
+          </span>
+        </td>
+        <td>
+          <span class="admin-status-pill" style="${statusPillClass}">
+            ${order.status || 'Order Confirmed'}
+          </span>
+          <div style="margin-top: 0.4rem;">
+            <select onchange="adminUpdateOrderStatus('${order.id}', this.value)" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: #ffffff; cursor: pointer;">
+              <option value="" disabled selected>Update Status...</option>
+              <option value="Order Confirmed">Order Confirmed</option>
+              <option value="Harvesting at Farm">Harvesting at Farm</option>
+              <option value="In Cold-Chain Transit">In Cold-Chain Transit</option>
+              <option value="Out for Delivery">Out for Delivery</option>
+              <option value="Delivered & Escrow Settled">Delivered & Escrow Settled</option>
+            </select>
+          </div>
+        </td>
+        <td style="text-align: right;">
+          <div style="display: flex; gap: 0.35rem; justify-content: flex-end; flex-wrap: wrap;">
+            <button onclick="openAdminReceiptModal('${order.id}')" class="btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; font-weight: 700;" title="View Full Receipt">
+              🧾 Receipt
+            </button>
+            ${!isDelivered ? `
+              <button onclick="adminDisburseEscrow('${order.id}')" class="btn-primary" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; font-weight: 700; background: #047857;" title="Disburse Escrow to Farmer">
+                💰 Settle
+              </button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// -------------------------------------------------------------
+// RENDER 2: FARMER ACCREDITATIONS & REQUIREMENTS
+// -------------------------------------------------------------
+function renderAdminFarmers(searchQuery, statusFilter) {
+  const container = document.getElementById('adminFarmersListContainer');
+  if (!container) return;
+
+  let farmers = getAllPlatformFarmers();
+  const q = (searchQuery || '').toLowerCase();
+  const filter = statusFilter || 'all';
+
+  if (filter === 'pending') {
+    farmers = farmers.filter(f => !f.verified);
+  } else if (filter === 'verified') {
+    farmers = farmers.filter(f => f.verified);
+  }
+
+  if (q) {
+    farmers = farmers.filter(f => {
+      return (f.full_name || '').toLowerCase().includes(q) ||
+             (f.farm_name || '').toLowerCase().includes(q) ||
+             (f.province || '').toLowerCase().includes(q) ||
+             (f.specialty || '').toLowerCase().includes(q) ||
+             (f.email || '').toLowerCase().includes(q);
+    });
+  }
+
+  if (farmers.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 3.5rem 1rem; background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👨‍🌾</div>
+        <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-main);">No Farmers Found</div>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">Try adjusting the filter or search keyword.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = farmers.map(farmer => {
+    const isVerified = farmer.verified !== false;
+    const reqs = adminGetFarmerRequirements(farmer.id);
+    const verifiedDocsCount = reqs.filter(r => r.status === 'verified').length;
+    const allDocsVerified = verifiedDocsCount === reqs.length;
+
+    const docBadgesHtml = reqs.map(r => {
+      const isDocOk = r.status === 'verified';
+      return `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0.65rem; background: ${isDocOk ? '#f0fdf4' : '#fffbeb'}; border: 1px solid ${isDocOk ? '#bbf7d0' : '#fde68a'}; border-radius: var(--radius-sm); font-size: 0.775rem;">
+          <div style="display: flex; align-items: center; gap: 0.45rem;">
+            <span>${isDocOk ? '✅' : '⏳'}</span>
+            <span style="font-weight: 700; color: var(--text-main);">${r.name}</span>
+          </div>
+          <span style="font-size: 0.7rem; font-weight: 800; color: ${isDocOk ? '#15803d' : '#b45309'}; text-transform: uppercase;">
+            ${isDocOk ? 'Verified' : 'Under Review'}
+          </span>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 1rem;">
+        
+        <!-- Farmer Header Row -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem;">
+          <div style="display: flex; gap: 1rem; align-items: center;">
+            <img src="${farmer.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'}" alt="${farmer.full_name}" style="width: 56px; height: 56px; border-radius: var(--radius-md); object-fit: cover; border: 2px solid var(--primary-light);">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">
+                  ${farmer.full_name}
+                </h4>
+                <span class="admin-status-pill" style="${isVerified ? 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;' : 'background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;'}">
+                  ${isVerified ? '✓ DA PhilGAP Accredited' : '⏳ Accreditation Pending'}
+                </span>
+              </div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary-deep); margin-top: 0.15rem;">
+                🏡 ${farmer.farm_name || `${farmer.full_name}'s Farm`} • 📍 ${farmer.province || 'Benguet, Philippines'}
+              </div>
+              <div style="font-size: 0.775rem; color: var(--text-muted); margin-top: 0.2rem;">
+                📞 ${farmer.phone || '+63 900 000 0000'} • ✉️ ${farmer.email || `${farmer.id}@agriconnect.ph`}
+              </div>
+            </div>
+          </div>
+
+          <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem;">
+            <div style="font-size: 0.75rem; font-weight: 800; color: ${allDocsVerified ? '#15803d' : '#b45309'}; background: ${allDocsVerified ? '#f0fdf4' : '#fffbeb'}; padding: 0.25rem 0.65rem; border-radius: 9999px; border: 1px solid ${allDocsVerified ? '#bbf7d0' : '#fde68a'};">
+              ${verifiedDocsCount} of ${reqs.length} Documents Approved
+            </div>
+            <button onclick="openAdminFarmerReviewModal('${farmer.id}')" class="btn-primary" style="font-size: 0.825rem; padding: 0.45rem 0.95rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+              <span>Review Requirements & Accreditations &rarr;</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5 Accreditation Requirements Checklist Grid -->
+        <div>
+          <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+            Submitted Regulatory & Safety Filings
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.5rem;">
+            ${docBadgesHtml}
+          </div>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+}
+
+// -------------------------------------------------------------
+// RENDER 3: USER ACCOUNTS DATABASE (BUYERS & FARMERS)
+// -------------------------------------------------------------
+function renderAdminUsers(searchQuery, roleFilter) {
+  const tbody = document.getElementById('adminUsersTableBody');
+  if (!tbody) return;
+
+  let users = getAllPlatformUsers();
+  const q = (searchQuery || '').toLowerCase();
+  const filter = roleFilter || 'all';
+
+  if (filter === 'farmer') {
+    users = users.filter(u => u.role === 'farmer');
+  } else if (filter === 'buyer') {
+    users = users.filter(u => u.role === 'buyer' || !u.role);
+  }
+
+  if (q) {
+    users = users.filter(u => {
+      return (u.full_name || '').toLowerCase().includes(q) ||
+             (u.email || '').toLowerCase().includes(q) ||
+             (u.phone || '').toLowerCase().includes(q) ||
+             (u.province || '').toLowerCase().includes(q) ||
+             (u.city || '').toLowerCase().includes(q) ||
+             (u.role || '').toLowerCase().includes(q);
+    });
+  }
+
+  if (users.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">👥</div>
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">No Accounts Found</div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = users.map(user => {
+    const isSuperAdmin = user.role === 'admin' || user.is_admin;
+    const isFarmer = user.role === 'farmer';
+
+    const rolePill = isSuperAdmin
+      ? '<span style="background: #fee2e2; color: #dc2626; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid #fecaca;">👑 Superadmin</span>'
+      : isFarmer
+      ? '<span style="background: #dcfce7; color: #15803d; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid #bbf7d0;">🌾 Farmer Producer</span>'
+      : '<span style="background: #e0f2fe; color: #0369a1; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid #bae6fd;">🛒 Verified Buyer</span>';
+
+    const initials = (user.full_name || 'U').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+
+    return `
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; overflow: hidden; flex-shrink: 0;">
+              ${user.avatar ? `<img src="${user.avatar}" alt="${user.full_name}" style="width: 100%; height: 100%; object-fit: cover;">` : initials}
+            </div>
+            <div>
+              <div style="font-weight: 800; color: var(--text-main); font-size: 0.875rem;">
+                ${user.full_name}
+              </div>
+              <div style="font-size: 0.7rem; font-family: monospace; color: var(--text-muted);">
+                ${user.id}
+              </div>
+            </div>
+          </div>
+        </td>
+        <td>${rolePill}</td>
+        <td>
+          <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-main);">${user.email}</div>
+          <div style="font-size: 0.725rem; color: var(--text-muted);">${user.phone || '+63 900 000 0000'}</div>
+        </td>
+        <td>
+          <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);">
+            ${user.farm_name ? `🏡 ${user.farm_name}` : (user.province || 'Metro Manila')}
+          </div>
+          <div style="font-size: 0.725rem; color: var(--text-muted);">${user.city || user.province || 'Philippines'}</div>
+        </td>
+        <td>
+          <div style="font-size: 0.75rem; color: var(--text-main); font-weight: 600;">
+            ${isFarmer ? `🌾 ${user.specialty || 'Fresh Harvests'}` : '🛒 Active Consumer'}
+          </div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);">
+            Reg: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-PH', { month: 'short', year: 'numeric' }) : 'Jan 2026'}
+          </div>
+        </td>
+        <td>
+          <span style="font-size: 0.725rem; font-weight: 700; ${user.verified !== false ? 'color: #15803d;' : 'color: #dc2626;'}">
+            ${user.verified !== false ? '✓ Good Standing' : '⏳ Pending Approval'}
+          </span>
+        </td>
+        <td style="text-align: right;">
+          ${isFarmer ? `
+            <button onclick="openAdminFarmerReviewModal('${user.id}')" class="btn-secondary" style="font-size: 0.725rem; padding: 0.28rem 0.55rem; font-weight: 700;">
+              Inspect
+            </button>
+          ` : `
+            <button onclick="showToast('User profile ${user.full_name} in good standing.')" class="btn-secondary" style="font-size: 0.725rem; padding: 0.28rem 0.55rem;">
+              Verified
+            </button>
+          `}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// -------------------------------------------------------------
+// RENDER 4: HARVEST INVENTORY CATALOG MODERATION
+// -------------------------------------------------------------
+function renderAdminProducts(searchQuery) {
+  const tbody = document.getElementById('adminProductsTableBody');
+  if (!tbody) return;
+
+  let products = window.AgriState?.products || [];
+  const q = (searchQuery || '').toLowerCase();
+
+  if (q) {
+    products = products.filter(p => {
+      return (p.name || '').toLowerCase().includes(q) ||
+             (p.category_name || '').toLowerCase().includes(q) ||
+             (p.farmer_name || '').toLowerCase().includes(q);
+    });
+  }
+
+  if (products.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌱</div>
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">No Crops in Catalog</div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = products.map(prod => {
+    const isAvail = prod.is_available !== false && (prod.quantity ?? 1) > 0;
+    return `
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <img src="${prod.image_url || 'assets/dashboard-banner.jpg'}" alt="${prod.name}" style="width: 40px; height: 40px; border-radius: var(--radius-sm); object-fit: cover;">
+            <div>
+              <div style="font-weight: 800; font-size: 0.875rem; color: var(--text-main);">${prod.name}</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;">${prod.id}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span style="font-size: 0.725rem; font-weight: 700; background: var(--bg-subtle); padding: 0.2rem 0.55rem; border-radius: var(--radius-sm); color: var(--text-secondary);">
+            ${prod.category_name || 'Produce'}
+          </span>
+        </td>
+        <td>
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary-deep);">${prod.farmer_name || 'Benguet Farm Hub'}</div>
+        </td>
+        <td>
+          <div style="font-size: 0.95rem; font-weight: 800; color: var(--primary-deep);">
+            ₱${Number(prod.price || 0).toLocaleString('en-PH')}/${prod.unit || 'kg'}
+          </div>
+          <div style="font-size: 0.68rem; color: #15803d; font-weight: 700;">✓ DA SRP Compliant</div>
+        </td>
+        <td>
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">
+            ${prod.quantity ?? 50} ${prod.unit || 'kg'}
+          </div>
+        </td>
+        <td>
+          <span style="font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 9999px; ${isAvail ? 'background: #dcfce7; color: #15803d;' : 'background: #fee2e2; color: #dc2626;'}">
+            ${isAvail ? '● In Stock' : '○ Out of Stock'}
+          </span>
+        </td>
+        <td style="text-align: right;">
+          <button onclick="adminToggleProductAvailability('${prod.id}')" class="btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.65rem; font-weight: 700;">
+            ${isAvail ? 'Mark Sold Out' : 'Restore Stock'}
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// -------------------------------------------------------------
+// MODAL 1: ORDER TRANSACTION FULL OFFICIAL RECEIPT
+// -------------------------------------------------------------
+function openAdminReceiptModal(orderId) {
+  const modal = document.getElementById('adminReceiptModal');
+  const title = document.getElementById('adminReceiptModalTitle');
+  const body = document.getElementById('adminReceiptModalBody');
+  if (!modal || !body) return;
+
+  const orders = getAllPlatformOrders();
+  const order = orders.find(o => o.id === orderId);
+
+  if (!order) {
+    showToast('Order not found.');
+    return;
+  }
+
+  if (title) title.textContent = `Official Transaction Invoice • #${order.id}`;
+
+  const isPaid = (order.paymentStatus || '').toLowerCase().includes('paid') || (order.paymentStatus || '').toLowerCase().includes('settled');
+
+  const itemsHtml = (order.items || []).map(it => `
+    <tr style="border-bottom: 1px solid var(--border-subtle);">
+      <td style="padding: 0.65rem 0.5rem; font-weight: 700; color: var(--text-main);">
+        ${it.name}
+        <div style="font-size: 0.725rem; color: var(--text-muted); font-weight: normal;">Producer: ${it.farmer_name || order.origin || 'Benguet Farm Hub'}</div>
+      </td>
+      <td style="padding: 0.65rem 0.5rem; text-align: center; color: var(--text-main); font-weight: 600;">
+        ${it.quantity} ${it.unit || 'kg'}
+      </td>
+      <td style="padding: 0.65rem 0.5rem; text-align: right; color: var(--text-secondary);">
+        ₱${Number(it.price || 0).toLocaleString()}
+      </td>
+      <td style="padding: 0.65rem 0.5rem; text-align: right; font-weight: 700; color: var(--primary-deep);">
+        ₱${((it.price || 0) * (it.quantity || 1)).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+      </td>
+    </tr>
+  `).join('');
+
+  body.innerHTML = `
+    <div style="border: 1.5px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1.25rem; background: #fafafa; margin-bottom: 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-strong); padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
+        <div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary-deep);">AgriConnect Philippines</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Direct Farm-to-Table Cold-Chain Network</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-main);">Date: ${order.date || 'Today'}</div>
+          <div style="font-size: 0.75rem; font-family: monospace; font-weight: 800; color: var(--primary);">TX-${order.id}</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.8rem; margin-bottom: 0.75rem;">
+        <div>
+          <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);">Billed To (Buyer):</div>
+          <div style="font-weight: 800; color: var(--text-main); font-size: 0.9rem;">${order.customerName || 'Verified Buyer'}</div>
+          <div style="color: var(--text-secondary);">📞 ${order.phone || '09000000000'}</div>
+          <div style="color: var(--text-secondary);">📍 ${order.address || 'Metro Manila'}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);">Farm Logistics Origin:</div>
+          <div style="font-weight: 800; color: var(--primary-deep); font-size: 0.9rem;">${order.origin || 'Benguet Farm Hub'}</div>
+          <div style="color: var(--text-secondary);">🚚 ${order.fulfillment === 'pickup' ? 'Farmgate Direct Pickup' : 'AgriConnect Cold-Chain Van'}</div>
+          <div style="color: #15803d; font-weight: 700;">🌡️ Cold-Chain Temp Verified (4°C)</div>
+        </div>
+      </div>
+
+      <!-- Line Items -->
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.75rem;">
+        <thead>
+          <tr style="background: var(--bg-subtle); border-bottom: 1px solid var(--border-subtle); text-align: left;">
+            <th style="padding: 0.5rem; font-weight: 700;">Harvest Item</th>
+            <th style="padding: 0.5rem; text-align: center; font-weight: 700;">Qty</th>
+            <th style="padding: 0.5rem; text-align: right; font-weight: 700;">Price</th>
+            <th style="padding: 0.5rem; text-align: right; font-weight: 700;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+        </tbody>
+      </table>
+
+      <!-- Totals Summary -->
+      <div style="margin-top: 1rem; border-top: 1px dashed var(--border-strong); padding-top: 0.75rem; display: flex; justify-content: flex-end;">
+        <div style="min-width: 220px; font-size: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+            <span style="color: var(--text-secondary);">Subtotal:</span>
+            <span style="font-weight: 700;">₱${Number(order.subtotal || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+            <span style="color: var(--text-secondary);">Cold-Chain Shipping:</span>
+            <span style="font-weight: 700;">₱${Number(order.deliveryFee || 95).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; color: var(--primary-deep); border-top: 1px solid var(--border-subtle); padding-top: 0.35rem; margin-top: 0.35rem;">
+            <span>Grand Total:</span>
+            <span>₱${Number(order.total || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 0.75rem; background: ${isPaid ? '#f0fdf4' : '#fffbeb'}; border: 1px solid ${isPaid ? '#bbf7d0' : '#fde68a'}; border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; font-size: 0.775rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="font-weight: 700; color: ${isPaid ? '#15803d' : '#b45309'};">Settlement: ${order.paymentMethod || 'AgriConnect Balance'}</span>
+          <div style="color: var(--text-muted); font-size: 0.7rem;">Status: ${order.paymentStatus || 'Direct Deduction'}</div>
+        </div>
+        <span style="font-weight: 800; font-size: 0.75rem; color: ${isPaid ? '#15803d' : '#b45309'}; text-transform: uppercase;">
+          ${isPaid ? '✓ Direct Settled' : '⏳ Escrow Held'}
+        </span>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('open');
+}
+
+function closeAdminReceiptModal() {
+  const modal = document.getElementById('adminReceiptModal');
+  if (modal) modal.classList.remove('open');
+}
+
+// -------------------------------------------------------------
+// MODAL 2: FARMER ACCREDITATION DOCUMENT REVIEW DRAWER
+// -------------------------------------------------------------
+function openAdminFarmerReviewModal(farmerId) {
+  const modal = document.getElementById('adminDocReviewModal');
+  const title = document.getElementById('adminDocModalFarmerTitle');
+  const body = document.getElementById('adminDocModalBody');
+  if (!modal || !body) return;
+
+  const farmers = getAllPlatformFarmers();
+  const farmer = farmers.find(f => f.id === farmerId);
+
+  if (!farmer) {
+    showToast('Farmer record not found.');
+    return;
+  }
+
+  if (title) title.textContent = `Accreditation Review • ${farmer.full_name}`;
+
+  const reqs = adminGetFarmerRequirements(farmerId);
+  const isAllApproved = reqs.every(r => r.status === 'verified');
+
+  const reqListHtml = reqs.map((req, idx) => {
+    const isDocVerified = req.status === 'verified';
+    const isDocRejected = req.status === 'rejected';
+
+    return `
+      <div style="border: 1px solid ${isDocVerified ? '#bbf7d0' : isDocRejected ? '#fecaca' : 'var(--border-strong)'}; background: ${isDocVerified ? '#f0fdf4' : isDocRejected ? '#fef2f2' : '#ffffff'}; border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 0.85rem;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="width: 24px; height: 24px; border-radius: 50%; background: ${isDocVerified ? '#15803d' : isDocRejected ? '#dc2626' : '#b45309'}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;">
+              ${idx + 1}
+            </span>
+            <div>
+              <div style="font-weight: 800; font-size: 0.9rem; color: var(--text-main);">${req.name}</div>
+              <div style="font-size: 0.725rem; color: var(--text-muted);">Doc No: <code style="font-weight: 700; color: var(--primary-deep);">${req.docNumber}</code> • Agency: ${req.issuingAgency}</div>
+            </div>
+          </div>
+
+          <span class="admin-status-pill" style="${isDocVerified ? 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;' : isDocRejected ? 'background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;' : 'background: #fef3c7; color: #b45309; border: 1px solid #fde68a;'}">
+            ${isDocVerified ? '✓ Approved' : isDocRejected ? '✗ Rejected' : '⏳ Pending Review'}
+          </span>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.02); border-radius: var(--radius-sm); padding: 0.6rem 0.75rem; font-size: 0.775rem; color: var(--text-secondary); margin-bottom: 0.65rem; border: 1px solid var(--border-subtle);">
+          <strong>Compliance Check:</strong> ${req.notes}
+          ${req.rejectReason ? `<div style="color: #dc2626; font-weight: 700; margin-top: 0.25rem;">⚠️ Reason for Rejection: ${req.rejectReason}</div>` : ''}
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <span style="font-size: 0.7rem; color: var(--text-muted);">Filing Date: ${req.dateSubmitted || 'Jan 2026'}</span>
+          <div style="display: flex; gap: 0.35rem;">
+            ${!isDocVerified ? `
+              <button onclick="adminApproveRequirement('${farmerId}', '${req.id}')" class="btn-primary" style="font-size: 0.725rem; padding: 0.3rem 0.65rem; background: #15803d; border-color: #15803d; font-weight: 700;">
+                ✓ Approve Document
+              </button>
+            ` : `
+              <span style="font-size: 0.725rem; color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem;">
+                ✓ Clearance Verified
+              </span>
+            `}
+            ${!isDocRejected ? `
+              <button onclick="adminRejectRequirement('${farmerId}', '${req.id}', prompt('Enter reason for document revision:'))" class="btn-secondary" style="font-size: 0.725rem; padding: 0.3rem 0.65rem; color: #dc2626; border-color: #fca5a5;">
+                Reject / Request Revision
+              </button>
+            ` : ''}
+          </div>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+
+  body.innerHTML = `
+    <!-- Farmer Brief Profile Card -->
+    <div style="display: flex; align-items: center; gap: 1rem; background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem; border: 1px solid var(--border-subtle);">
+      <img src="${farmer.avatar || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400'}" alt="${farmer.full_name}" style="width: 52px; height: 52px; border-radius: var(--radius-sm); object-fit: cover;">
+      <div style="flex: 1;">
+        <div style="font-weight: 800; font-size: 1rem; color: var(--text-main);">${farmer.full_name}</div>
+        <div style="font-size: 0.8rem; color: var(--primary-deep); font-weight: 700;">${farmer.farm_name || `${farmer.full_name}'s Farm`} • ${farmer.province || 'Benguet'}</div>
+        <div style="font-size: 0.725rem; color: var(--text-muted);">📞 ${farmer.phone || '+63 900 000 0000'} • ✉️ ${farmer.email || `${farmer.id}@agriconnect.ph`}</div>
+      </div>
+      <div style="text-align: right;">
+        <span class="admin-status-pill" style="${farmer.verified !== false ? 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;' : 'background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;'}">
+          ${farmer.verified !== false ? '✓ Accredited' : '⏳ Action Required'}
+        </span>
+      </div>
+    </div>
+
+    <!-- Requirements Submissions List -->
+    <div style="max-height: 400px; overflow-y: auto; padding-right: 0.35rem; margin-bottom: 1.25rem;">
+      ${reqListHtml}
+    </div>
+
+    <!-- Master Action Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+      <button onclick="closeAdminDocReviewModal()" class="btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+        Close Review
+      </button>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button onclick="adminRejectFarmerAccount('${farmerId}', prompt('Enter overall accreditation rejection reason:'))" class="btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem; color: #dc2626; border-color: #fca5a5;">
+          Reject Farmer Profile
+        </button>
+        <button onclick="adminApproveFarmerAccount('${farmerId}')" class="btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1.25rem; font-weight: 800; background: #15803d; border-color: #15803d;">
+          🎉 Approve All & Issue PhilGAP Accreditation
+        </button>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('open');
+}
+
+function closeAdminDocReviewModal() {
+  const modal = document.getElementById('adminDocReviewModal');
+  if (modal) modal.classList.remove('open');
+}
+
 
 
 

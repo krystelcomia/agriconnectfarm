@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Executive Console | AgriConnect Philippine Farm-to-Table Platform</title>
+  <meta name="description" content="AgriConnect Executive Management Console. Supervise all buyer transactions, verify farmer PhilGAP accreditations and RSBSA documents, and monitor interconnected user databases.">
+  <link rel="stylesheet" href="assets/app.css">
+  <script src="assets/app.js" defer></script>
+  <link rel="icon" type="image/png" href="assets/favicon.png?v=4">
+  <link rel="shortcut icon" href="favicon.ico?v=4">
+  <link rel="apple-touch-icon" href="assets/favicon.png?v=4">
+  <meta property="og:image" content="assets/logo.png">
+  <style>
+    .admin-tab-btn {
+      padding: 0.65rem 1.15rem;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      color: var(--text-secondary);
+      font-weight: 700;
+      font-size: 0.85rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+    }
+    .admin-tab-btn:hover {
+      background: var(--bg-subtle);
+      color: var(--text-main);
+    }
+    .admin-tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(21, 128, 61, 0.25);
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    .admin-table th {
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.725rem;
+      letter-spacing: 0.05em;
+      padding: 0.85rem 1rem;
+      border-bottom: 1.5px solid var(--border-subtle);
+    }
+    .admin-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: middle;
+      color: var(--text-main);
+    }
+    .admin-table tr:hover td {
+      background: #f8fafc;
+    }
+    .admin-status-pill {
+      font-size: 0.725rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .admin-banner {
+      position: relative;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .admin-banner-bg {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+      filter: brightness(0.75);
+    }
+    .admin-banner-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(20, 83, 45, 0.85) 100%);
+      backdrop-filter: blur(2px);
+    }
+    .admin-banner-content {
+      position: absolute;
+      inset: 0;
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #ffffff;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .pulse-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      animation: pulseGreen 1.8s infinite;
+    }
+    @keyframes pulseGreen {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand-logo" aria-label="AgriConnect Home">
+        <img src="assets/logo.png" alt="AgriConnect Logo" class="brand-logo-img">
+        <span>AgriConnect</span>
+      </a>
+
+      <nav class="header-nav" id="headerNav" aria-label="Main Navigation">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="marketplace.html" class="nav-link">Marketplace</a>
+        <a href="farmers.html" class="nav-link">Farmers</a>
+        <a href="track-orders.html" class="nav-link">Track Orders</a>
+        <a href="admin.html" class="nav-link active" style="color: var(--primary); font-weight: 800;">Admin Console</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="admin.html" class="btn-primary" style="font-size: 0.8rem; padding: 0.45rem 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; background: #0f172a; border-color: #0f172a;" title="Admin Console">
+          <span>👑 Admin Portal</span>
+        </a>
+
+        <div id="userAuthContainer"></div>
+
+        <button class="mobile-menu-btn" onclick="toggleMobileNav()" aria-label="Toggle navigation">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main style="max-width: 1280px; margin: 2rem auto 5rem; padding: 0 1.25rem;">
+
+    <!-- Guest / Non-Admin Access Protection Container -->
+    <div id="adminAuthLockContainer" style="display: none; text-align: center; padding: 4rem 1.5rem; background: #ffffff; border-radius: var(--radius-md); border: 1.5px dashed var(--border-strong); box-shadow: var(--shadow-sm); max-width: 600px; margin: 3rem auto;">
+      <div style="width: 72px; height: 72px; border-radius: 50%; background: #fef2f2; border: 2px solid #fecaca; color: #dc2626; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 2rem;">
+        🔒
+      </div>
+      <span style="font-size: 0.75rem; font-weight: 800; color: #dc2626; text-transform: uppercase; letter-spacing: 0.08em; background: #fee2e2; padding: 0.25rem 0.75rem; border-radius: 9999px; display: inline-block; margin-bottom: 0.75rem;">
+        Administrator Access Only
+      </span>
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">
+        Executive Console Authentication Required
+      </h2>
+      <p style="font-size: 0.925rem; color: var(--text-secondary); max-width: 440px; margin: 0 auto 1.75rem; line-height: 1.55;">
+        This portal is restricted to authorized AgriConnect administrators to inspect all buyer transactions and verify farmer accreditations.
+      </p>
+      <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 1rem; max-width: 420px; margin: 0 auto 1.5rem; text-align: left; font-size: 0.85rem; border: 1px solid var(--border-subtle);">
+        <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">Default Admin Credentials:</div>
+        <div>Email: <code style="color: var(--primary-deep); font-weight: 700;">comiakrystel@gmail.com</code></div>
+        <div>Password: <code style="color: var(--primary-deep); font-weight: 700;">adminkrystel123</code></div>
+      </div>
+      <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+        <a href="auth.html?redirect=admin.html" class="btn-primary" style="padding: 0.7rem 1.5rem; text-decoration: none; font-size: 0.9rem; font-weight: 700;">
+          Log In as Administrator &rarr;
+        </a>
+        <button onclick="autoLoginAsAdmin()" class="btn-secondary" style="padding: 0.7rem 1.25rem; font-size: 0.9rem; font-weight: 600;">
+          ⚡ 1-Click Admin Access
+        </button>
+      </div>
+    </div>
+
+    <!-- Authenticated Admin View -->
+    <div id="adminMainView">
+      
+      <!-- Top Banner Header -->
+      <div class="admin-banner">
+        <img src="assets/dashboard-banner.jpg" alt="AgriConnect Operations" class="admin-banner-bg">
+        <div class="admin-banner-overlay"></div>
+        <div class="admin-banner-content">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+              <span style="background: rgba(220, 38, 38, 0.9); color: #ffffff; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.65rem; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.35rem;">
+                👑 Superadmin Authority
+              </span>
+              <span style="background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.75rem; color: #f0fdf4; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <span class="pulse-dot"></span> Real-Time Systems Operational
+              </span>
+            </div>
+            <h1 style="font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.4); margin: 0;">
+              Executive Management Console
+            </h1>
+            <p style="font-size: 0.9rem; color: #f0fdf4; opacity: 0.95; margin-top: 0.3rem; text-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+              Logged in as <strong id="adminUserDisplayName">Krystel Comia (comiakrystel@gmail.com)</strong> • Full oversight of transactions, farmer verifications & users.
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <button onclick="refreshAdminData()" class="btn-secondary" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.4); backdrop-filter: blur(8px); padding: 0.6rem 1.15rem; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              Refresh Data
+            </button>
+            <a href="dashboard.html" class="btn-secondary" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.4); backdrop-filter: blur(8px); padding: 0.6rem 1.15rem; font-size: 0.85rem; font-weight: 700; text-decoration: none;">
+              Go to Public Portal &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top KPI Metric Cards Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+        
+        <!-- Metric 1: Platform GMV / Total Sales -->
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Platform GMV</span>
+            <span style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800;">
+              ₱
+            </span>
+          </div>
+          <div id="kpiAdminTotalGMV" style="font-size: 1.75rem; font-weight: 800; color: var(--primary-deep);">
+            ₱0.00
+          </div>
+          <div style="font-size: 0.75rem; color: var(--primary); font-weight: 600; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            100% Direct Farmgate Volume
+          </div>
+        </div>
+
+        <!-- Metric 2: Total Transactions -->
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Buyer Transactions</span>
+            <span style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+            </span>
+          </div>
+          <div id="kpiAdminTotalOrders" style="font-size: 1.75rem; font-weight: 800; color: var(--text-main);">
+            0 Orders
+          </div>
+          <div id="kpiAdminOrdersSubtext" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+            0 In Transit • 0 Delivered
+          </div>
+        </div>
+
+        <!-- Metric 3: Farmer Verification Queue -->
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Accreditation Queue</span>
+            <span style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </span>
+          </div>
+          <div id="kpiAdminPendingVerifications" style="font-size: 1.75rem; font-weight: 800; color: #b45309;">
+            0 Pending
+          </div>
+          <div style="font-size: 0.75rem; color: #d97706; font-weight: 600; margin-top: 0.35rem;">
+            Requires DA/PhilGAP review
+          </div>
+        </div>
+
+        <!-- Metric 4: Registered Users -->
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Registered Accounts</span>
+            <span style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: #f1f5f9; color: var(--text-secondary); display: flex; align-items: center; justify-content: center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+          </div>
+          <div id="kpiAdminTotalUsers" style="font-size: 1.75rem; font-weight: 800; color: var(--text-main);">
+            0 Users
+          </div>
+          <div id="kpiAdminUsersSubtext" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+            0 Farmers • 0 Buyers
+          </div>
+        </div>
+
+        <!-- Metric 5: Active Crop Listings -->
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Catalog Crops</span>
+            <span style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center;">
+              🌱
+            </span>
+          </div>
+          <div id="kpiAdminTotalCrops" style="font-size: 1.75rem; font-weight: 800; color: var(--primary-deep);">
+            0 Crops
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+            Published across all farms
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Navigation Tabs Toolbar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; border-bottom: 1.5px solid var(--border-subtle); padding-bottom: 1rem;">
+        
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" role="tablist">
+          <button id="tabBtnTransactions" class="admin-tab-btn active" onclick="switchAdminTab('transactions')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+            <span>Buyer Transactions (<span id="tabCountTransactions">0</span>)</span>
+          </button>
+          
+          <button id="tabBtnFarmers" class="admin-tab-btn" onclick="switchAdminTab('farmers')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Farmer Accreditations (<span id="tabCountFarmers">0</span>)</span>
+          </button>
+
+          <button id="tabBtnUsers" class="admin-tab-btn" onclick="switchAdminTab('users')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>User Accounts Database (<span id="tabCountUsers">0</span>)</span>
+          </button>
+
+          <button id="tabBtnProducts" class="admin-tab-btn" onclick="switchAdminTab('products')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+            <span>Harvest Inventory Catalog (<span id="tabCountProducts">0</span>)</span>
+          </button>
+        </div>
+
+        <!-- Global Search / Filter Input -->
+        <div style="position: relative; min-width: 260px;">
+          <input 
+            type="text" 
+            id="adminGlobalSearch" 
+            oninput="handleAdminSearch(this.value)" 
+            placeholder="Search orders, farmers, buyers..." 
+            style="width: 100%; padding: 0.55rem 0.85rem 0.55rem 2.25rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit; background: #ffffff;"
+          >
+          <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 1: ALL BUYER TRANSACTIONS                        -->
+      <!-- ======================================================== -->
+      <section id="adminSectionTransactions" style="display: block;">
+        
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden;">
+          
+          <!-- Table Header Controls -->
+          <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: #fafafa;">
+            <div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">
+                Master Buyer Transactions Table
+              </h3>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.2rem 0 0 0;">
+                All purchases, cold-chain orders, escrow statuses, and payment settlements across all registered buyers.
+              </p>
+            </div>
+
+            <!-- Sub-filter buttons -->
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <button onclick="filterAdminTransactions('all')" id="txFilterAll" class="btn-primary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">All Orders</button>
+              <button onclick="filterAdminTransactions('pending')" id="txFilterPending" class="btn-secondary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">Pending Harvest</button>
+              <button onclick="filterAdminTransactions('in_transit')" id="txFilterTransit" class="btn-secondary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">In Transit</button>
+              <button onclick="filterAdminTransactions('delivered')" id="txFilterDelivered" class="btn-secondary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">Delivered</button>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Order Reference</th>
+                  <th>Date & Buyer Details</th>
+                  <th>Crops / Items</th>
+                  <th>Farm Origin</th>
+                  <th>Total Amount</th>
+                  <th>Payment Settlement</th>
+                  <th>Fulfillment Status</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminTransactionsTableBody">
+                <!-- Injected dynamically by app.js renderAdminTransactions() -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 2: FARMER ACCREDITATION & REQUIREMENTS           -->
+      <!-- ======================================================== -->
+      <section id="adminSectionFarmers" style="display: none;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0;">
+              Farmer PhilGAP Accreditation & Requirements Authority
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+              Review RSBSA registration numbers, PhilSys IDs, Barangay tenancy clearances, and PhilGAP test documents submitted by local producers.
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+            <button onclick="filterAdminFarmers('all')" id="farmerFilterAll" class="btn-primary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">All Farmers</button>
+            <button onclick="filterAdminFarmers('pending')" id="farmerFilterPending" class="btn-secondary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">Awaiting Review</button>
+            <button onclick="filterAdminFarmers('verified')" id="farmerFilterVerified" class="btn-secondary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">DA Accredited</button>
+          </div>
+        </div>
+
+        <!-- Farmers Cards Grid -->
+        <div id="adminFarmersListContainer" style="display: grid; grid-template-columns: 1fr; gap: 1.25rem;">
+          <!-- Injected dynamically by app.js renderAdminFarmers() -->
+        </div>
+
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 3: USER ACCOUNTS DATABASE (BUYERS & FARMERS)     -->
+      <!-- ======================================================== -->
+      <section id="adminSectionUsers" style="display: none;">
+        
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden;">
+          
+          <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: #fafafa;">
+            <div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">
+                Interconnected User Directory & Account Oversight
+              </h3>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.2rem 0 0 0;">
+                Comprehensive database of all registered producers, wholesale and household buyers, and administrators.
+              </p>
+            </div>
+
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <button onclick="filterAdminUsers('all')" id="userFilterAll" class="btn-primary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">All Accounts</button>
+              <button onclick="filterAdminUsers('farmer')" id="userFilterFarmer" class="btn-secondary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">Farmers Only</button>
+              <button onclick="filterAdminUsers('buyer')" id="userFilterBuyer" class="btn-secondary" style="font-size: 0.775rem; padding: 0.35rem 0.75rem;">Buyers Only</button>
+            </div>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>User Profile</th>
+                  <th>Role</th>
+                  <th>Contact Info</th>
+                  <th>Location</th>
+                  <th>Activity / Engagement</th>
+                  <th>Accreditation / Status</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody">
+                <!-- Injected dynamically by app.js renderAdminUsers() -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECTION 4: HARVEST INVENTORY CATALOG MODERATION          -->
+      <!-- ======================================================== -->
+      <section id="adminSectionProducts" style="display: none;">
+        
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden;">
+          
+          <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: #fafafa;">
+            <div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">
+                Platform Harvest & Crop Catalog Moderation
+              </h3>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.2rem 0 0 0;">
+                Supervise fair farmgate pricing against Department of Agriculture indices and monitor farm inventory stocks.
+              </p>
+            </div>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Crop / Harvest</th>
+                  <th>Category</th>
+                  <th>Farmer Producer</th>
+                  <th>Unit Price</th>
+                  <th>Stock Volume</th>
+                  <th>Availability</th>
+                  <th style="text-align: right;">Moderation Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminProductsTableBody">
+                <!-- Injected dynamically by app.js renderAdminProducts() -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- ADMIN MODAL 1: ORDER TRANSACTION FULL RECEIPT            -->
+  <!-- ======================================================== -->
+  <div id="adminReceiptModal" class="modal-overlay" onclick="if(event.target === this) closeAdminReceiptModal()">
+    <div class="modal-content" style="max-width: 650px; padding: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+        <div>
+          <span style="font-size: 0.725rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
+            Official Platform Transaction Receipt
+          </span>
+          <h3 id="adminReceiptModalTitle" style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0.2rem 0 0 0;">
+            Order AGRI-000000
+          </h3>
+        </div>
+        <button onclick="closeAdminReceiptModal()" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0.25rem;">&times;</button>
+      </div>
+
+      <div id="adminReceiptModalBody" style="font-size: 0.875rem;">
+        <!-- Injected dynamically by openAdminReceiptModal() -->
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: flex-end; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+        <button onclick="window.print()" class="btn-secondary" style="font-size: 0.85rem; padding: 0.55rem 1rem;">
+          🖨️ Print Receipt
+        </button>
+        <button onclick="closeAdminReceiptModal()" class="btn-primary" style="font-size: 0.85rem; padding: 0.55rem 1.25rem;">
+          Close Receipt
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- ADMIN MODAL 2: FARMER ACCREDITATION DOCUMENT INSPECTION  -->
+  <!-- ======================================================== -->
+  <div id="adminDocReviewModal" class="modal-overlay" onclick="if(event.target === this) closeAdminDocReviewModal()">
+    <div class="modal-content" style="max-width: 720px; padding: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+        <div>
+          <span style="font-size: 0.725rem; font-weight: 800; color: #b45309; text-transform: uppercase; letter-spacing: 0.05em;">
+            DA & PhilGAP Accreditation Review
+          </span>
+          <h3 id="adminDocModalFarmerTitle" style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0.2rem 0 0 0;">
+            Farmer Document Review
+          </h3>
+        </div>
+        <button onclick="closeAdminDocReviewModal()" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+      </div>
+
+      <div id="adminDocModalBody" style="font-size: 0.875rem;">
+        <!-- Injected dynamically by openAdminFarmerReviewModal() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+</body>
+</html>
