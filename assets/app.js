@@ -133,13 +133,16 @@ const SEED_DATA = {
   ]
 };
 
+// Active User Session
+const activeUser = JSON.parse(localStorage.getItem('agri_user') || 'null');
+
 // Global App State
 window.AgriState = {
   products: [],
   categories: SEED_DATA.categories,
   farmers: SEED_DATA.farmers,
-  cart: JSON.parse(localStorage.getItem('agri_cart') || '[]'),
-  orders: JSON.parse(localStorage.getItem('agri_orders') || '[]').filter(o => o && o.id !== 'AGRI-849201' && o.id !== 'AGRI-592014'),
+  cart: activeUser ? JSON.parse(localStorage.getItem(`agri_cart_${activeUser.id}`) || localStorage.getItem('agri_cart') || '[]') : [],
+  orders: activeUser ? (JSON.parse(localStorage.getItem(`agri_orders_${activeUser.id}`) || localStorage.getItem('agri_orders') || '[]').filter(o => o && o.id !== 'AGRI-849201' && o.id !== 'AGRI-592014')) : [],
   currentCategory: 'all',
   currentFarmerFilter: null,
   currentLocation: 'all',
@@ -149,16 +152,28 @@ window.AgriState = {
   sortBy: 'newest',
   farmerMarketView: 'my_products',
   currentMode: localStorage.getItem('agri_mode') || 'buyer',
-  user: JSON.parse(localStorage.getItem('agri_user') || 'null')
+  user: activeUser
 };
 
-// Purge any legacy sample orders from storage
-localStorage.setItem('agri_orders', JSON.stringify(window.AgriState.orders));
+// Purge any unauthenticated / orphaned sample data when signed out
+if (!activeUser) {
+  localStorage.removeItem('agri_cart');
+  localStorage.removeItem('agri_orders');
+  localStorage.removeItem('agri_buyer_orders');
+} else {
+  // Sync user-specific keys
+  localStorage.setItem(`agri_orders_${activeUser.id}`, JSON.stringify(window.AgriState.orders));
+  localStorage.setItem(`agri_cart_${activeUser.id}`, JSON.stringify(window.AgriState.cart));
+}
 
 // Clear any lingering session from the removed demo accounts
 if (window.AgriState.user && ['farmer-ramon', 'buyer-juan'].includes(window.AgriState.user.id)) {
   window.AgriState.user = null;
+  window.AgriState.cart = [];
+  window.AgriState.orders = [];
   localStorage.removeItem('agri_user');
+  localStorage.removeItem('agri_cart');
+  localStorage.removeItem('agri_orders');
   localStorage.setItem('agri_mode', 'buyer');
   window.AgriState.currentMode = 'buyer';
 }
@@ -1226,6 +1241,43 @@ function renderOrderTrackingList() {
   const tagEl = document.getElementById('trackPageTag');
   const searchInput = document.getElementById('trackingSearchInput');
 
+  // -----------------------------------------------------------
+  // GUEST / SIGNED-OUT BARRIER: Sign in required to view orders
+  // -----------------------------------------------------------
+  if (!user) {
+    if (titleEl) titleEl.textContent = "Track Your Farm Orders";
+    if (subtitleEl) subtitleEl.textContent = "Sign in or create an account to monitor your direct farmgate orders and cold-chain dispatches in real-time.";
+    if (tagEl) tagEl.textContent = "COLD-CHAIN REAL-TIME MONITORING";
+    if (searchInput) searchInput.placeholder = "Sign in required to search orders";
+
+    container.innerHTML = `
+      <div style="text-align: center; padding: 4.5rem 1.75rem; background: #ffffff; border-radius: var(--radius-md); border: 1.5px dashed var(--border-strong); box-shadow: var(--shadow-sm); max-width: 680px; margin: 0 auto;">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: #f0fdf4; border: 2px solid #bbf7d0; color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+          🔒
+        </div>
+        <span style="font-size: 0.75rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.08em; background: var(--primary-light); padding: 0.25rem 0.75rem; border-radius: 9999px; display: inline-block; margin-bottom: 0.75rem;">
+          Authentication Required
+        </span>
+        <h3 style="font-size: 1.45rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.01em;">
+          Sign In Required to Track Orders
+        </h3>
+        <p style="font-size: 0.925rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto 2rem; line-height: 1.6;">
+          You are currently signed out. Please sign in or register an account to view and track your direct farmgate orders and cold-chain dispatches.
+        </p>
+        <div style="display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap;">
+          <a href="auth.html?redirect=track-orders.html" class="btn-primary" style="padding: 0.75rem 1.6rem; text-decoration: none; font-size: 0.9rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 8px rgba(21,128,61,0.25);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            <span>Log In / Register</span>
+          </a>
+          <a href="marketplace.html" class="btn-secondary" style="padding: 0.75rem 1.4rem; text-decoration: none; font-size: 0.9rem; font-weight: 600;">
+            Browse Marketplace &rarr;
+          </a>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
   if (isFarmer) {
     if (titleEl) titleEl.textContent = "Track Buyers' Orders";
     if (subtitleEl) subtitleEl.textContent = "Monitor real-time fulfillment, cold-chain transit, and remaining arrival times (in days or minutes) before your farm's harvest reaches each buyer.";
@@ -1404,7 +1456,7 @@ function renderOrderTrackingList() {
   }
 
   // -----------------------------------------------------------
-  // BUYER / GUEST VIEW: Track Your Farm Orders
+  // BUYER VIEW: Track Your Farm Orders
   // -----------------------------------------------------------
   const orders = window.AgriState.orders || [];
 
@@ -1427,11 +1479,6 @@ function renderOrderTrackingList() {
           <a href="marketplace.html" class="btn-primary" style="padding: 0.7rem 1.5rem; text-decoration: none; font-size: 0.875rem;">
             Start Your First Purchase &rarr;
           </a>
-          ${!user ? `
-            <a href="auth.html" class="btn-secondary" style="padding: 0.7rem 1.35rem; text-decoration: none; font-size: 0.875rem;">
-              Log In / Register
-            </a>
-          ` : ''}
         </div>
       </div>
     `;
@@ -1501,6 +1548,15 @@ function renderOrderTrackingList() {
 }
 
 function handleTrackSearch() {
+  const user = window.AgriState.user;
+  if (!user) {
+    showToast('Please sign in or create an account to search and track orders.');
+    setTimeout(() => {
+      window.location.href = 'auth.html?redirect=track-orders.html';
+    }, 800);
+    return;
+  }
+
   const input = document.getElementById('trackingSearchInput');
   if (!input) return;
   const query = input.value.trim().toUpperCase();
@@ -1509,7 +1565,6 @@ function handleTrackSearch() {
     return;
   }
 
-  const user = window.AgriState.user;
   const isFarmer = Boolean(user && user.role === 'farmer');
 
   if (isFarmer) {
@@ -1557,7 +1612,7 @@ function handleTrackSearch() {
 function addToCart(productId, quantity = 1, btnElement = null) {
   const user = window.AgriState.user;
   if (!user) {
-    showToast('Please log in to your account before adding items to the cart.');
+    showToast('Please log in or create an account before adding items to your harvest basket.');
     const modal = document.getElementById('productDetailModal');
     if (modal) modal.classList.remove('open');
     setTimeout(() => {
@@ -1643,18 +1698,33 @@ function removeFromCart(productId) {
 }
 
 function saveCart() {
-  localStorage.setItem('agri_cart', JSON.stringify(window.AgriState.cart));
+  const user = window.AgriState.user;
+  if (user && user.id) {
+    localStorage.setItem(`agri_cart_${user.id}`, JSON.stringify(window.AgriState.cart));
+  } else {
+    localStorage.removeItem('agri_cart');
+  }
 }
 
 function updateCartBadge(shouldBump = false) {
   const user = window.AgriState.user;
+  const badges = document.querySelectorAll('.cart-badge');
+
+  if (!user) {
+    badges.forEach(b => {
+      b.textContent = '0';
+      b.style.display = 'none';
+    });
+    return;
+  }
+
   const isFarmer = Boolean(user && user.role === 'farmer');
 
   if (isFarmer) {
     const orders = getFarmerOrders();
     const pendingCount = orders.filter(o => o.status_code === 'pending').length;
-    const badges = document.querySelectorAll('.cart-badge, .farmer-orders-badge');
-    badges.forEach(b => {
+    const farmerBadges = document.querySelectorAll('.cart-badge, .farmer-orders-badge');
+    farmerBadges.forEach(b => {
       b.textContent = pendingCount;
       b.style.display = pendingCount > 0 ? 'inline-flex' : 'none';
       b.style.background = '#d97706';
@@ -1670,7 +1740,6 @@ function updateCartBadge(shouldBump = false) {
     return;
   }
 
-  const badges = document.querySelectorAll('.cart-badge');
   const count = (window.AgriState.cart || []).reduce((sum, item) => sum + item.quantity, 0);
   badges.forEach(b => {
     b.textContent = count;
@@ -2076,9 +2145,54 @@ function renderCartPreview() {
 function renderCartDrawer() {
   const container = document.getElementById('cartItemsList') || document.getElementById('cartItemsContainer');
   const subtotalEl = document.getElementById('cartSubtotal');
+  const deliveryEl = document.getElementById('cartDelivery');
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.getElementById('checkoutBtn');
   if (!container) return;
+
+  const user = window.AgriState.user;
+  const pageRef = (window.location.pathname.split('/').pop() || 'marketplace.html') + (window.location.search || '');
+
+  // -----------------------------------------------------------
+  // GUEST / SIGNED OUT STATE: Sign in required to view basket
+  // -----------------------------------------------------------
+  if (!user) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 3.5rem 1.25rem; color: var(--text-muted);">
+        <div style="width: 56px; height: 56px; margin: 0 auto 1rem; border-radius: 50%; background: #f0fdf4; border: 1.5px solid #bbf7d0; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: var(--primary);">
+          🔒
+        </div>
+        <span style="font-size: 0.72rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.06em; background: var(--primary-light); padding: 0.2rem 0.6rem; border-radius: 9999px; display: inline-block; margin-bottom: 0.6rem;">
+          Sign In Required
+        </span>
+        <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.4rem;">
+          Your Harvest Basket is Locked
+        </h4>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 320px; margin: 0 auto 1.5rem; line-height: 1.5;">
+          Please sign in or create an account to view and manage items in your harvest basket.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; max-width: 260px; margin: 0 auto;">
+          <a href="auth.html?redirect=${encodeURIComponent(pageRef)}" class="btn-primary" style="padding: 0.7rem 1.25rem; font-size: 0.875rem; font-weight: 700; text-decoration: none; text-align: center;">
+            Log In / Register
+          </a>
+          <a href="marketplace.html" onclick="toggleCart(false)" class="btn-secondary" style="padding: 0.65rem 1.25rem; font-size: 0.85rem; text-decoration: none; text-align: center;">
+            Browse Marketplace
+          </a>
+        </div>
+      </div>
+    `;
+    if (subtotalEl) subtotalEl.textContent = '₱0';
+    if (deliveryEl) deliveryEl.textContent = '₱0';
+    if (totalEl) totalEl.textContent = '₱0';
+    const checkoutButtons = document.querySelectorAll('#cartDrawer button.btn-primary, #cartDrawer #checkoutBtn, button[onclick*="openCheckoutModal"], button[onclick*="proceedToCheckout"]');
+    checkoutButtons.forEach(btn => {
+      btn.textContent = 'Log In / Register to Checkout';
+      btn.onclick = () => {
+        window.location.href = `auth.html?redirect=${encodeURIComponent(pageRef)}`;
+      };
+    });
+    return;
+  }
 
   if (window.AgriState.cart.length === 0) {
     container.innerHTML = `
@@ -2088,13 +2202,14 @@ function renderCartDrawer() {
         </div>
         <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">Your cart is empty</h4>
         <p style="font-size: 0.825rem; margin-top: 0.35rem;">Add fresh harvests from the marketplace to proceed.</p>
-        <a href="marketplace.html" onclick="toggleCart(false)" class="btn-primary" style="margin-top: 1.25rem;">
+        <a href="marketplace.html" onclick="toggleCart(false)" class="btn-primary" style="margin-top: 1.25rem; display: inline-block;">
           Browse Marketplace
         </a>
       </div>
     `;
-    if (subtotalEl) subtotalEl.textContent = '₱0.00';
-    if (totalEl) totalEl.textContent = '₱0.00';
+    if (subtotalEl) subtotalEl.textContent = '₱0';
+    if (deliveryEl) deliveryEl.textContent = '₱0';
+    if (totalEl) totalEl.textContent = '₱0';
     if (checkoutBtn) checkoutBtn.disabled = true;
     return;
   }
@@ -2125,50 +2240,18 @@ function renderCartDrawer() {
     `;
   }).join('');
 
-  const isGuest = !window.AgriState.user;
-  const pageRef = (window.location.pathname.split('/').pop() || 'marketplace.html') + (window.location.search || '');
-
-  // Render Guest Account Notice in Cart Drawer
-  if (isGuest) {
-    container.innerHTML += `
-      <div style="background: #fef3c7; border: 1.5px solid #fde68a; border-radius: var(--radius-sm); padding: 0.85rem; margin-top: 1rem; display: flex; gap: 0.65rem; align-items: flex-start; text-align: left;">
-        <span style="font-size: 1.15rem; line-height: 1;">🔒</span>
-        <div>
-          <div style="font-size: 0.825rem; font-weight: 800; color: #92400e; margin-bottom: 0.2rem;">Account Required to Purchase</div>
-          <p style="font-size: 0.775rem; color: #78350f; margin: 0 0 0.55rem; line-height: 1.4;">
-            Demo accounts are no longer used. Please <strong>log in</strong> or <strong>create an account</strong> to provide verified shipping details and place an order.
-          </p>
-          <div style="display: flex; gap: 0.45rem; flex-wrap: wrap;">
-            <a href="auth.html?mode=login&redirect=${encodeURIComponent(pageRef)}" style="font-size: 0.725rem; font-weight: 700; color: #ffffff; background: #b45309; padding: 0.3rem 0.65rem; border-radius: 4px; text-decoration: none;">Log In</a>
-            <a href="auth.html?mode=signup&redirect=${encodeURIComponent(pageRef)}" style="font-size: 0.725rem; font-weight: 700; color: #92400e; background: #ffffff; border: 1px solid #fcd34d; padding: 0.3rem 0.65rem; border-radius: 4px; text-decoration: none;">Create Account</a>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
   const deliveryFee = 95;
   if (subtotalEl) subtotalEl.textContent = `₱${subtotal.toLocaleString()}`;
+  if (deliveryEl) deliveryEl.textContent = `₱${deliveryFee.toLocaleString()}`;
   if (totalEl) totalEl.textContent = `₱${(subtotal + deliveryFee).toLocaleString()}`;
   
   // Update all cart checkout buttons across drawer
   const checkoutButtons = document.querySelectorAll('#cartDrawer button.btn-primary, #cartDrawer #checkoutBtn, button[onclick*="openCheckoutModal"], button[onclick*="proceedToCheckout"]');
   checkoutButtons.forEach(btn => {
     btn.disabled = false;
-    if (isGuest) {
-      btn.textContent = 'Log In / Create Account to Checkout';
-      btn.title = 'Please log in or create an account to make a purchase';
-      btn.onclick = () => {
-        showToast('Please log in or create an account to make a purchase.');
-        setTimeout(() => {
-          window.location.href = `auth.html?redirect=${encodeURIComponent(pageRef)}`;
-        }, 600);
-      };
-    } else {
-      btn.textContent = 'Proceed to Checkout';
-      btn.title = 'Proceed to Checkout';
-      btn.onclick = openCheckoutModal;
-    }
+    btn.textContent = 'Proceed to Checkout';
+    btn.title = 'Proceed to Checkout';
+    btn.onclick = openCheckoutModal;
   });
 }
 
@@ -2339,7 +2422,10 @@ async function submitOrder(e) {
   };
 
   window.AgriState.orders.unshift(newOrder);
-  localStorage.setItem('agri_orders', JSON.stringify(window.AgriState.orders));
+  if (user && user.id) {
+    localStorage.setItem(`agri_orders_${user.id}`, JSON.stringify(window.AgriState.orders));
+    localStorage.setItem(`agri_buyer_orders_${user.id}`, JSON.stringify(window.AgriState.orders));
+  }
   if (typeof addBuyerOrder === 'function') {
     addBuyerOrder(newOrder);
   }
@@ -5020,12 +5106,20 @@ function handleLogin(e) {
   window.AgriState.user = matchedUser;
   localStorage.setItem('agri_user', JSON.stringify(matchedUser));
 
+  // Load user-scoped cart and orders
+  window.AgriState.cart = JSON.parse(localStorage.getItem(`agri_cart_${matchedUser.id}`) || '[]');
+  window.AgriState.orders = JSON.parse(localStorage.getItem(`agri_orders_${matchedUser.id}`) || '[]');
+
   if (matchedUser.role === 'farmer') {
     window.AgriState.currentMode = 'farmer';
     localStorage.setItem('agri_mode', 'farmer');
+  } else {
+    window.AgriState.currentMode = 'buyer';
+    localStorage.setItem('agri_mode', 'buyer');
   }
 
   updateAuthUI();
+  updateCartBadge();
   showToast(`Welcome back, ${matchedUser.full_name}!`);
 
   setTimeout(() => {
@@ -5309,7 +5403,14 @@ function handleRegister(e) {
   window.AgriState.user = newUser;
   localStorage.setItem('agri_user', JSON.stringify(newUser));
 
+  // Initialize empty cart & orders for new user
+  window.AgriState.cart = [];
+  window.AgriState.orders = [];
+  localStorage.setItem(`agri_cart_${newUser.id}`, JSON.stringify([]));
+  localStorage.setItem(`agri_orders_${newUser.id}`, JSON.stringify([]));
+
   updateAuthUI();
+  updateCartBadge();
   showToast(`Account created successfully! Welcome, ${newUser.full_name}.`);
 
   setTimeout(() => {
@@ -5320,19 +5421,40 @@ function handleRegister(e) {
 }
 
 function handleLogout() {
+  const prevUser = window.AgriState.user;
+  if (prevUser && prevUser.id) {
+    if (window.AgriState.cart) {
+      localStorage.setItem(`agri_cart_${prevUser.id}`, JSON.stringify(window.AgriState.cart));
+    }
+    if (window.AgriState.orders) {
+      localStorage.setItem(`agri_orders_${prevUser.id}`, JSON.stringify(window.AgriState.orders));
+    }
+  }
+
   window.AgriState.user = null;
+  window.AgriState.cart = [];
+  window.AgriState.orders = [];
   localStorage.removeItem('agri_user');
+  localStorage.removeItem('agri_cart');
+  localStorage.removeItem('agri_orders');
+  localStorage.removeItem('agri_buyer_orders');
   localStorage.setItem('agri_mode', 'buyer');
   window.AgriState.currentMode = 'buyer';
+
   updateAuthUI();
+  updateCartBadge();
+  if (document.getElementById('ordersListContainer')) {
+    renderOrderTrackingList();
+  }
   showToast('You have been signed out. Reverted to guest state.');
+
   if (window.location.pathname.includes('auth.html')) {
     switchAuthTab('login');
   } else if (window.location.pathname.includes('profile.html')) {
     initProfilePage();
-  } else if (window.location.pathname.includes('dashboard.html') || window.location.pathname.includes('sell-harvest.html')) {
+  } else if (window.location.pathname.includes('dashboard.html') || window.location.pathname.includes('sell-harvest.html') || window.location.pathname.includes('track-orders.html')) {
     setTimeout(() => {
-      window.location.href = 'index.html';
+      window.location.reload();
     }, 400);
   } else {
     setTimeout(() => {
@@ -5595,6 +5717,11 @@ const DEFAULT_FARMER_ORDERS = [
 ];
 
 function getFarmerOrders() {
+  const user = window.AgriState.user;
+  if (!user || user.role !== 'farmer') {
+    return [];
+  }
+
   const saved = localStorage.getItem('agri_farmer_orders');
   let orders = DEFAULT_FARMER_ORDERS;
   if (saved) {
@@ -6046,19 +6173,21 @@ const DEFAULT_BUYER_ORDERS = [
 ];
 
 function getBuyerOrders() {
-  const saved = localStorage.getItem('agri_buyer_orders');
-  let orders = DEFAULT_BUYER_ORDERS;
+  const user = window.AgriState.user;
+  if (!user) {
+    return [];
+  }
+
+  const userKey = `agri_buyer_orders_${user.id}`;
+  const saved = localStorage.getItem(userKey);
+  let orders = [];
   if (saved) {
     try {
       orders = JSON.parse(saved);
     } catch (e) {
-      console.warn('Failed parsing buyer orders, falling back', e);
-      orders = DEFAULT_BUYER_ORDERS;
+      console.warn('Failed parsing buyer orders', e);
+      orders = [];
     }
-  }
-
-  if (!orders || orders.length === 0) {
-    orders = DEFAULT_BUYER_ORDERS;
   }
 
   // Also include any new session orders from AgriState.orders if not yet merged
@@ -6080,7 +6209,11 @@ function getBuyerOrders() {
 }
 
 function saveBuyerOrders(orders) {
-  localStorage.setItem('agri_buyer_orders', JSON.stringify(orders));
+  const user = window.AgriState.user;
+  if (user && user.id) {
+    localStorage.setItem(`agri_buyer_orders_${user.id}`, JSON.stringify(orders));
+    localStorage.setItem(`agri_orders_${user.id}`, JSON.stringify(orders));
+  }
 }
 
 function addBuyerOrder(newOrder) {
@@ -6097,6 +6230,36 @@ let currentDashboardRole = 'buyer';
 
 function initDashboard() {
   const user = window.AgriState.user;
+  if (!user) {
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.innerHTML = `
+        <div style="text-align: center; padding: 5rem 1.5rem; background: #ffffff; border-radius: var(--radius-md); border: 1.5px dashed var(--border-strong); box-shadow: var(--shadow-sm); max-width: 620px; margin: 3rem auto;">
+          <div style="width: 72px; height: 72px; border-radius: 50%; background: #f0fdf4; border: 2px solid #bbf7d0; color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+            🔒
+          </div>
+          <span style="font-size: 0.75rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.08em; background: var(--primary-light); padding: 0.25rem 0.75rem; border-radius: 9999px; display: inline-block; margin-bottom: 0.75rem;">
+            Authentication Required
+          </span>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">
+            Sign In Required to Access Dashboard
+          </h2>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); max-width: 460px; margin: 0 auto 2rem; line-height: 1.6;">
+            Please log in or register an account to access your personalized buyer order history, farmer harvest listings, or wallet balance.
+          </p>
+          <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <a href="auth.html?redirect=dashboard.html" class="btn-primary" style="padding: 0.75rem 1.6rem; text-decoration: none; font-size: 0.9rem; font-weight: 700;">
+              Log In / Register &rarr;
+            </a>
+            <a href="marketplace.html" class="btn-secondary" style="padding: 0.75rem 1.4rem; text-decoration: none; font-size: 0.9rem; font-weight: 600;">
+              Browse Marketplace
+            </a>
+          </div>
+        </div>
+      `;
+    }
+    return;
+  }
   const isFarmer = Boolean(user && user.role === 'farmer');
   currentDashboardRole = isFarmer ? 'farmer' : 'buyer';
   switchDashboardRole(currentDashboardRole);
