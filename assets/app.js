@@ -9303,8 +9303,138 @@ function fillAdminCredentials() {
   }
 }
 
+// -------------------------------------------------------------
+// HISTORICAL SHIPMENT LEDGER (past platform transactions)
+// Self-contained records: every order total is derived from its own line items
+// (qty x price) + flat delivery fee, so sales figures always reconcile.
+// Orders are attributed to the registered buyer account (if one exists), so
+// no fictitious customers are ever created.
+// -------------------------------------------------------------
+const HISTORICAL_SHIPMENT_LEDGER = [
+  { id: 'AGRI-H1001', date: '2026-08-12', farmer_id: 'farmer-ramon', status_code: 'delivered', lines: [
+    { id: 'prod-1', name: 'Baguio Beans', unit: 'kg', price: 95, quantity: 5 },
+    { id: 'prod-2', name: 'Highland Cabbage', unit: 'kg', price: 70, quantity: 10 } ] },
+  { id: 'AGRI-H1002', date: '2026-08-19', farmer_id: 'farmer-nena', status_code: 'delivered', lines: [
+    { id: 'prod-4', name: 'Sinandomeng Rice (50kg Sack)', unit: 'sack', price: 2450, quantity: 2 },
+    { id: 'prod-5', name: 'Dinorado Fragrant Rice', unit: 'kg', price: 62, quantity: 20 } ] },
+  { id: 'AGRI-H1003', date: '2026-08-27', farmer_id: 'farmer-jun', status_code: 'delivered', lines: [
+    { id: 'prod-3', name: 'Guimaras Carabao Mangoes', unit: 'kg', price: 180, quantity: 12 } ] },
+  { id: 'AGRI-H1004', date: '2026-09-03', farmer_id: 'farmer-marites', status_code: 'delivered', lines: [
+    { id: 'prod-6', name: 'Fresh Dagupan Bangus (Milkfish)', unit: 'kg', price: 210, quantity: 6 },
+    { id: 'prod-7', name: 'Live Suahe (White Shrimp)', unit: 'kg', price: 420, quantity: 3 } ] },
+  { id: 'AGRI-H1005', date: '2026-09-10', farmer_id: 'farmer-berting', status_code: 'delivered', lines: [
+    { id: 'prod-12', name: 'Cold-Pressed Virgin Coconut Oil (500ml)', unit: 'bottle', price: 320, quantity: 4 },
+    { id: 'prod-13', name: 'Fresh Buko (Young Coconut)', unit: 'piece', price: 45, quantity: 24 } ] },
+  { id: 'AGRI-H1006', date: '2026-09-16', farmer_id: 'farmer-cora', status_code: 'delivered', lines: [
+    { id: 'prod-8', name: 'Fresh Farm Eggs (30-pc Tray)', unit: 'tray', price: 260, quantity: 3 },
+    { id: 'prod-9', name: 'Free-Range Native Chicken', unit: 'kg', price: 330, quantity: 2 } ] },
+  { id: 'AGRI-H1007', date: '2026-09-22', farmer_id: 'farmer-ramon', status_code: 'delivered', lines: [
+    { id: 'prod-15', name: 'Fresh Benguet Carrots', unit: 'kg', price: 85, quantity: 8 },
+    { id: 'prod-11', name: 'Native Ginger (Luya)', unit: 'kg', price: 120, quantity: 2 } ] },
+  { id: 'AGRI-H1008', date: '2026-09-28', farmer_id: 'farmer-nena', status_code: 'cancelled', lines: [
+    { id: 'prod-10', name: 'Sweet Corn (Mais)', unit: 'piece', price: 20, quantity: 50 } ] },
+  { id: 'AGRI-H1009', date: '2026-10-03', farmer_id: 'farmer-jun', status_code: 'delivered', lines: [
+    { id: 'prod-3', name: 'Guimaras Carabao Mangoes', unit: 'kg', price: 180, quantity: 8 } ] },
+  { id: 'AGRI-H1010', date: '2026-10-06', farmer_id: 'farmer-berting', status_code: 'delivered', lines: [
+    { id: 'prod-14', name: 'Sweet Purple Camote (Sweet Potato)', unit: 'kg', price: 55, quantity: 10 },
+    { id: 'prod-12', name: 'Cold-Pressed Virgin Coconut Oil (500ml)', unit: 'bottle', price: 320, quantity: 2 } ] },
+  { id: 'AGRI-H1011', date: '2026-10-09', farmer_id: 'farmer-marites', status_code: 'in_transit', lines: [
+    { id: 'prod-6', name: 'Fresh Dagupan Bangus (Milkfish)', unit: 'kg', price: 210, quantity: 4 } ] },
+  { id: 'AGRI-H1012', date: '2026-10-10', farmer_id: 'farmer-cora', status_code: 'pending', lines: [
+    { id: 'prod-16', name: 'Fresh Ripe Tomatoes (Kamatis)', unit: 'kg', price: 60, quantity: 10 },
+    { id: 'prod-8', name: 'Fresh Farm Eggs (30-pc Tray)', unit: 'tray', price: 260, quantity: 2 } ] }
+];
+
+const HISTORICAL_STATUS_LABELS = {
+  delivered: 'Delivered & Escrow Settled',
+  in_transit: 'In Cold-Chain Transit',
+  pending: 'Order Confirmed',
+  cancelled: 'Order Cancelled'
+};
+
+// A "sale" is any order that was not cancelled; cancelled orders are refunded and excluded from sales totals.
+function isSaleOrder(o) {
+  if (!o) return false;
+  return !(o.status_code === 'cancelled' || /cancel/i.test(o.status || ''));
+}
+
+// Upserts the historical ledger into the platform order store (idempotent; later admin status edits are preserved).
+function ensureHistoricalShipments() {
+  try {
+    const users = JSON.parse(localStorage.getItem('agri_users') || '[]');
+    const buyer = (Array.isArray(users) ? users : []).find(u =>
+      u && u.id && u.role !== 'farmer' && u.role !== 'admin' && !u.is_admin &&
+      !(u.email && u.email.toLowerCase() === ADMIN_ACCOUNT.email.toLowerCase())
+    );
+    if (!buyer) return;
+
+    const farmers = getStoredFarmers();
+    const newOrders = [];
+    const master = JSON.parse(localStorage.getItem('agri_all_orders') || '[]');
+    const masterIds = new Set((Array.isArray(master) ? master : []).map(o => o && o.id));
+
+    HISTORICAL_SHIPMENT_LEDGER.forEach(h => {
+      if (masterIds.has(h.id)) return;
+      const farmer = farmers.find(f => f.id === h.farmer_id);
+      if (!farmer) return;
+      const items = h.lines.map(l => ({ ...l, farmer_name: farmer.farm_name, farmer_id: farmer.id }));
+      const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const deliveryFee = 95;
+      const total = subtotal + deliveryFee;
+      const d = new Date(h.date + 'T09:00:00');
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const code = h.status_code;
+      const address = [buyer.shipping_address || buyer.address, buyer.shipping_city || buyer.city].filter(Boolean).join(', ') || 'Metro Manila';
+      newOrders.push({
+        id: h.id,
+        is_historical: true,
+        buyer_id: buyer.id,
+        date: dateStr,
+        placed_at: dateStr + ', 09:00 AM',
+        customerName: buyer.full_name,
+        customer_name: buyer.full_name,
+        phone: buyer.phone || '',
+        customer_phone: buyer.phone || '',
+        address: address,
+        delivery_address: address,
+        items: items,
+        subtotal: subtotal,
+        deliveryFee: deliveryFee,
+        total: total,
+        total_amount: total,
+        fulfillment: 'delivery',
+        paymentMethod: 'AgriConnect Balance (Pay Now)',
+        paymentStatus: code === 'delivered' ? 'Paid Direct (Escrow Cleared)' : (code === 'cancelled' ? 'Escrow Refunded to Buyer' : 'Paid - Escrow Held'),
+        status: HISTORICAL_STATUS_LABELS[code],
+        status_code: code,
+        farmer_id: farmer.id,
+        farmer_name: farmer.farm_name,
+        origin: farmer.farm_name + ', ' + farmer.province,
+        originProvince: farmer.province,
+        destination: address
+      });
+    });
+
+    if (newOrders.length === 0) return;
+    localStorage.setItem('agri_all_orders', JSON.stringify([...(Array.isArray(master) ? master : []), ...newOrders]));
+
+    // Mirror into the buyer's own order history so buyer / admin / tracking views agree
+    ['agri_orders_', 'agri_buyer_orders_'].forEach(prefix => {
+      const key = prefix + buyer.id;
+      const own = JSON.parse(localStorage.getItem(key) || '[]');
+      const ownArr = Array.isArray(own) ? own : [];
+      const ownIds = new Set(ownArr.map(o => o && o.id));
+      const merged = [...ownArr, ...newOrders.filter(o => !ownIds.has(o.id))];
+      localStorage.setItem(key, JSON.stringify(merged));
+    });
+  } catch (e) {
+    console.warn('Could not initialise historical shipments:', e);
+  }
+}
+
 // Aggregates all buyer orders from all platform stores
 function getAllPlatformOrders() {
+  ensureHistoricalShipments();
   const orderMap = new Map();
 
   // 1. Check agri_all_orders (master transactions log)
@@ -9380,7 +9510,22 @@ function getAllPlatformOrders() {
 
   // Only genuine buyer orders are listed; no fictitious seeded transactions.
 
-  const ordersArray = Array.from(orderMap.values());
+  const ordersArray = Array.from(orderMap.values()).map(o => {
+    const items = Array.isArray(o.items) ? o.items : [];
+    const itemsSubtotal = items.reduce((sum, i) => sum + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
+    const subtotal = o.subtotal != null ? Number(o.subtotal) : itemsSubtotal;
+    const deliveryFee = o.deliveryFee != null ? Number(o.deliveryFee) : 0;
+    const total = o.total != null ? Number(o.total) : (o.total_amount != null ? Number(o.total_amount) : subtotal + deliveryFee);
+    return {
+      ...o,
+      customerName: o.customerName || o.customer_name,
+      phone: o.phone || o.customer_phone,
+      address: o.address || o.delivery_address,
+      subtotal: subtotal,
+      deliveryFee: deliveryFee,
+      total: total
+    };
+  });
   return ordersArray.sort((a, b) => {
     const timeA = new Date(a.date || a.placed_at || 0).getTime();
     const timeB = new Date(b.date || b.placed_at || 0).getTime();
@@ -9843,7 +9988,8 @@ function filterAdminTransactions(filter) {
     all: document.getElementById('txFilterAll'),
     pending: document.getElementById('txFilterPending'),
     in_transit: document.getElementById('txFilterTransit'),
-    delivered: document.getElementById('txFilterDelivered')
+    delivered: document.getElementById('txFilterDelivered'),
+    cancelled: document.getElementById('txFilterCancelled')
   };
   Object.keys(btns).forEach(k => {
     if (btns[k]) {
@@ -9896,7 +10042,7 @@ function refreshAdminData() {
   const products = window.AgriState?.products || [];
 
   // 1. KPI Calculations
-  const totalGMV = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const totalGMV = orders.filter(isSaleOrder).reduce((sum, o) => sum + (Number(o.total) || 0), 0);
   const kpiGMV = document.getElementById('kpiAdminTotalGMV');
   if (kpiGMV) kpiGMV.textContent = `₱${totalGMV.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -9905,8 +10051,9 @@ function refreshAdminData() {
 
   const inTransitCount = orders.filter(o => o.status_code === 'in_transit' || (o.status && o.status.toLowerCase().includes('transit'))).length;
   const deliveredCount = orders.filter(o => o.status_code === 'delivered' || (o.status && o.status.toLowerCase().includes('delivered'))).length;
+  const cancelledCount = orders.filter(o => !isSaleOrder(o)).length;
   const kpiOrdersSubtext = document.getElementById('kpiAdminOrdersSubtext');
-  if (kpiOrdersSubtext) kpiOrdersSubtext.textContent = `${inTransitCount} In Transit • ${deliveredCount} Delivered`;
+  if (kpiOrdersSubtext) kpiOrdersSubtext.textContent = `${inTransitCount} In Transit • ${deliveredCount} Delivered • ${cancelledCount} Cancelled`;
 
   const pendingFarmersCount = farmers.filter(f => !f.verified).length;
   const kpiPending = document.getElementById('kpiAdminPendingVerifications');
@@ -9963,6 +10110,8 @@ function renderAdminTransactions(searchQuery, statusFilter) {
     orders = orders.filter(o => o.status_code === 'in_transit' || (o.status && o.status.toLowerCase().includes('transit')));
   } else if (filter === 'delivered') {
     orders = orders.filter(o => o.status_code === 'delivered' || (o.status && o.status.toLowerCase().includes('delivered')));
+  } else if (filter === 'cancelled') {
+    orders = orders.filter(o => !isSaleOrder(o));
   }
 
   if (q) {
@@ -9995,7 +10144,8 @@ function renderAdminTransactions(searchQuery, statusFilter) {
     const isDelivered = (order.status_code === 'delivered') || (order.status || '').toLowerCase().includes('delivered');
     const isInTransit = (order.status_code === 'in_transit') || (order.status || '').toLowerCase().includes('transit');
 
-    const statusPillClass = isDelivered 
+    const isCancelled = !isSaleOrder(order);
+    const statusPillClass = isCancelled ? 'background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;' : isDelivered 
       ? 'background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;' 
       : isInTransit 
       ? 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;' 
@@ -10078,7 +10228,7 @@ function renderAdminTransactions(searchQuery, statusFilter) {
             <button onclick="openAdminReceiptModal('${order.id}')" class="btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; font-weight: 700;" title="View Full Receipt">
               🧾 Receipt
             </button>
-            ${!isDelivered ? `
+            ${!isDelivered && !isCancelled ? `
               <button onclick="adminDisburseEscrow('${order.id}')" class="btn-primary" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; font-weight: 700; background: #047857;" title="Disburse Escrow to Farmer">
                 💰 Settle
               </button>
@@ -11131,10 +11281,8 @@ function renderMarketplaceAdminAnalytics() {
   // 1. Calculate Product Sales & Units
   const productSalesMap = new Map();
   
-  // Initialize with catalog items and baseline historical volumes
+  // Every catalog listing starts at zero; all figures come from recorded (non-cancelled) orders only
   products.forEach(p => {
-    // Generate deterministic baseline volume based on rating & price
-    const baselineUnits = Math.round(((p.price < 100 ? 240 : (p.price < 300 ? 120 : 45)) + (Number(p.rating || 4.8) * 15)));
     productSalesMap.set(p.id, {
       id: p.id,
       name: p.name,
@@ -11145,36 +11293,54 @@ function renderMarketplaceAdminAnalytics() {
       image: p.image_url,
       stock: p.quantity || 50,
       unit: p.unit || 'kg',
-      units_sold: baselineUnits,
-      revenue: baselineUnits * (p.price || 0)
+      units_sold: 0,
+      revenue: 0
     });
   });
 
-  // Aggregate live buyer orders
-  orders.forEach(order => {
+  let productRevenueTotal = 0;
+  let shippingTotal = 0;
+  let ordersGMV = 0;
+  orders.filter(isSaleOrder).forEach(order => {
+    ordersGMV += Number(order.total) || 0;
+    shippingTotal += Number(order.deliveryFee) || 0;
     (order.items || []).forEach(item => {
+      const qty = Number(item.quantity || 1);
+      const lineRevenue = qty * (Number(item.price) || 0);
+      productRevenueTotal += lineRevenue;
       const pId = item.id || item.product_id;
+      let rec = null;
       if (pId && productSalesMap.has(pId)) {
-        const record = productSalesMap.get(pId);
-        const qty = Number(item.quantity || 1);
-        record.units_sold += qty;
-        record.revenue += qty * (record.price || item.price || 0);
+        rec = productSalesMap.get(pId);
       } else if (item.name) {
-        // match by name if id differs
-        for (const [id, rec] of productSalesMap.entries()) {
-          if (rec.name.toLowerCase() === item.name.toLowerCase()) {
-            const qty = Number(item.quantity || 1);
-            rec.units_sold += qty;
-            rec.revenue += qty * (rec.price || item.price || 0);
-            break;
-          }
+        for (const r of productSalesMap.values()) {
+          if (r.name.toLowerCase() === item.name.toLowerCase()) { rec = r; break; }
         }
       }
+      if (!rec) {
+        rec = {
+          id: pId || ('item-' + item.name),
+          name: item.name || 'Item',
+          category: item.category_name || 'Produce',
+          farmer_name: item.farmer_name || order.origin || 'Verified Farmer',
+          province: item.province || order.originProvince || 'Luzon',
+          price: Number(item.price) || 0,
+          image: item.image_url || item.image,
+          stock: 0,
+          unit: item.unit || 'kg',
+          units_sold: 0,
+          revenue: 0
+        };
+        productSalesMap.set(rec.id, rec);
+      }
+      rec.units_sold += qty;
+      rec.revenue += lineRevenue;
     });
   });
 
   const productSalesList = Array.from(productSalesMap.values());
-  const totalMarketplaceGMV = productSalesList.reduce((sum, p) => sum + p.revenue, 0);
+  // GMV = sum of non-cancelled order totals (product sales + delivery fees); identical to the Executive Console total
+  const totalMarketplaceGMV = ordersGMV;
   const totalUnitsSold = productSalesList.reduce((sum, p) => sum + p.units_sold, 0);
 
   // 2. Calculate Top Performing Farmers
@@ -11207,11 +11373,11 @@ function renderMarketplaceAdminAnalytics() {
   });
 
   const topFarmersList = Array.from(farmerSalesMap.values()).sort((a, b) => b.total_revenue - a.total_revenue);
-  const topFarmer = topFarmersList[0] || { farmer_name: 'Mang Ramon Dela Cruz', total_revenue: 84200, province: 'Benguet' };
+  const topFarmer = (topFarmersList[0] && topFarmersList[0].total_revenue > 0) ? topFarmersList[0] : { farmer_name: 'No sales yet', total_revenue: 0, province: 'Philippines' };
 
   // 3. Calculate Best-Selling Items
   const bestSellersList = [...productSalesList].sort((a, b) => b.units_sold - a.units_sold);
-  const topItem = bestSellersList[0] || { name: 'Benguet Highland Strawberries', units_sold: 840, unit: 'kg' };
+  const topItem = (bestSellersList[0] && bestSellersList[0].units_sold > 0) ? bestSellersList[0] : { name: 'No sales yet', units_sold: 0, unit: 'units', revenue: 0 };
 
   // Current active tab (default: 'products')
   const activeTab = window.AgriState.adminAnalyticsTab || 'products';
@@ -11257,7 +11423,7 @@ function renderMarketplaceAdminAnalytics() {
           ₱${totalMarketplaceGMV.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
         </div>
         <div style="font-size: 0.725rem; color: #15803d; font-weight: 700; margin-top: 0.25rem;">
-          Direct Farmgate Settlement Volume
+          Products ₱${productRevenueTotal.toLocaleString('en-PH')} + Shipping ₱${shippingTotal.toLocaleString('en-PH')}
         </div>
       </div>
 
