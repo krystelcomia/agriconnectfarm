@@ -244,6 +244,10 @@ async function loadInitialData() {
 }
 
 function normalizeProduct(p) {
+  let photo = p.image_url;
+  if (!photo || photo.includes('photo-1534943441045') || photo.includes('photo-1598170845058-32b9d6a5c317') || photo.includes('photo-1598170845058-32b9d6a5c731') || photo.includes('photo-1596097635121') || photo.includes('photo-1596124579928')) {
+    photo = getProductPhotoUrl(p.name, p.category_id || p.categories?.name);
+  }
   return {
     id: p.id,
     name: p.name,
@@ -253,7 +257,7 @@ function normalizeProduct(p) {
     unit: p.unit || 'kg',
     quantity: p.quantity ?? 50,
     is_available: p.is_available ?? true,
-    image_url: p.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800',
+    image_url: photo,
     farmer_name: p.profiles?.farm_name || p.profiles?.full_name || 'Local Farm',
     farmer_id: p.farmer_id,
     city: p.city || 'Benguet',
@@ -359,7 +363,7 @@ function loadSeedProducts() {
       unit: "kg",
       quantity: 45,
       is_available: true,
-      image_url: "https://images.unsplash.com/photo-1534943441045-104938a140f6?w=800",
+      image_url: "https://images.unsplash.com/photo-1535140728325-a4d3707eee61?w=800",
       farmer_name: "Sarmiento Coastal Catch",
       farmer_id: "farmer-marites",
       city: "Navotas",
@@ -512,7 +516,7 @@ function loadSeedProducts() {
       unit: "kg",
       quantity: 75,
       is_available: true,
-      image_url: "https://images.unsplash.com/photo-1598170845058-32b9d6a5c317?w=800",
+      image_url: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800",
       farmer_name: "Dela Cruz Family Farm",
       farmer_id: "farmer-ramon",
       city: "La Trinidad",
@@ -3438,58 +3442,94 @@ let currentAiRecommendedPrice = 85;
 function getProductPhotoUrl(cropName, categoryId) {
   const name = (cropName || '').toLowerCase();
   if (name.includes('strawberr') || name.includes('fresa')) {
-    return 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=800';
+    return 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=800';
   }
   if (name.includes('bean') || name.includes('habichuelas') || name.includes('baguio')) {
-    return 'https://images.unsplash.com/photo-1551462147-ff29053bfc14?w=800';
+    return 'https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?w=800';
   }
   if (name.includes('cabbage') || name.includes('repolyo')) {
-    return 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800';
+    return 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=800';
   }
   if (name.includes('carrot')) {
     return 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800';
   }
-  if (name.includes('lettuce') || name.includes('romaine') || name.includes('salad')) {
+  if (name.includes('lettuce') || name.includes('romaine') || name.includes('salad') || name.includes('greens') || name.includes('wombok')) {
     return 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800';
   }
-  if (name.includes('rice') || name.includes('bigas') || name.includes('palay') || name.includes('dinorado') || name.includes('grain')) {
+  if (name.includes('rice') || name.includes('bigas') || name.includes('palay') || name.includes('dinorado') || name.includes('sinandomeng') || name.includes('grain')) {
     return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800';
+  }
+  if (name.includes('corn') || name.includes('mais')) {
+    return 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=800';
   }
   if (name.includes('egg') || name.includes('itlog')) {
     return 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=800';
   }
+  if (name.includes('chicken') || name.includes('manok') || name.includes('poultry')) {
+    return 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=800';
+  }
   if (name.includes('mango') || name.includes('mangga')) {
     return 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=800';
+  }
+  if (name.includes('banana') || name.includes('saging') || name.includes('lakatan')) {
+    return 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=800';
+  }
+  if (name.includes('pineapple') || name.includes('pinya')) {
+    return 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=800';
   }
   if (name.includes('tomato') || name.includes('kamatis')) {
     return 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800';
   }
-  if (name.includes('fish') || name.includes('bangus') || name.includes('tilapia') || name.includes('seafood')) {
-    return 'https://images.unsplash.com/photo-1534043464124-3be32fe000c9?w=800';
+  if (name.includes('eggplant') || name.includes('talong')) {
+    return 'https://images.unsplash.com/photo-1615484477778-ca3b77940c25?w=800';
   }
-  if (name.includes('coco') || name.includes('niyog')) {
-    return 'https://images.unsplash.com/photo-1525385133512-2f3bdd039054?w=800';
+  if (name.includes('pepper') || name.includes('sili')) {
+    return 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=800';
   }
-  if (name.includes('herb') || name.includes('spice') || name.includes('ginger') || name.includes('garlic')) {
-    return 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?w=800';
+  if (name.includes('bangus') || name.includes('milkfish')) {
+    return 'https://images.unsplash.com/photo-1535140728325-a4d3707eee61?w=800';
+  }
+  if (name.includes('tilapia')) {
+    return 'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=800';
+  }
+  if (name.includes('fish') || name.includes('seafood') || name.includes('isda')) {
+    return 'https://images.unsplash.com/photo-1535140728325-a4d3707eee61?w=800';
+  }
+  if (name.includes('shrimp') || name.includes('suahe') || name.includes('hipon')) {
+    return 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=800';
+  }
+  if (name.includes('cassava') || name.includes('kamoteng kahoy')) {
+    return 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800';
+  }
+  if (name.includes('camote') || name.includes('sweet potato')) {
+    return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800';
+  }
+  if (name.includes('buko') || name.includes('coconut') || name.includes('niyog')) {
+    return 'https://images.unsplash.com/photo-1580984969071-a8da5656c2fb?w=800';
+  }
+  if (name.includes('vco') || name.includes('oil')) {
+    return 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800';
+  }
+  if (name.includes('herb') || name.includes('spice') || name.includes('ginger') || name.includes('luya') || name.includes('garlic')) {
+    return 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=800';
   }
 
   // Category fallbacks
   switch (categoryId) {
     case 'cat-fruit':
-      return 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=800';
+      return 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=800';
     case 'cat-rice':
       return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800';
     case 'cat-root':
-      return 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800';
+      return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800';
     case 'cat-poultry':
       return 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=800';
     case 'cat-fish':
-      return 'https://images.unsplash.com/photo-1534043464124-3be32fe000c9?w=800';
+      return 'https://images.unsplash.com/photo-1535140728325-a4d3707eee61?w=800';
     case 'cat-coco':
-      return 'https://images.unsplash.com/photo-1525385133512-2f3bdd039054?w=800';
+      return 'https://images.unsplash.com/photo-1580984969071-a8da5656c2fb?w=800';
     case 'cat-herb':
-      return 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?w=800';
+      return 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=800';
     default:
       return 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800';
   }
