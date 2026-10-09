@@ -2252,6 +2252,11 @@ function openCheckoutModal() {
     `;
   }
 
+  // Pre-select Pay Now and initialize balance coverage display
+  const payNowRadio = document.querySelector('#checkoutForm input[name="paymentMethod"][value*="Pay Now"]');
+  if (payNowRadio) payNowRadio.checked = true;
+  handlePaymentMethodChange('Pay Now (AgriConnect Balance)');
+
   modal.classList.add('open');
   lockBodyScroll();
 }
@@ -2276,17 +2281,37 @@ async function submitOrder(e) {
   }
 
   const form = e.target;
+  const formData = new FormData(form);
+  const paymentMethod = formData.get('paymentMethod') || 'Pay Now (AgriConnect Balance)';
+
+  const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+  const fulfillment = formData.get('fulfillment') || 'delivery';
+  const deliveryFee = fulfillment === 'delivery' ? 95 : 0;
+  const total = subtotal + deliveryFee;
+
+  // Check balance if Pay Now is selected
+  if (paymentMethod.includes('Pay Now') || paymentMethod.includes('AgriConnect Balance')) {
+    const curBal = getBuyerBalance();
+    if (curBal < total) {
+      const shortfall = total - curBal;
+      showToast(`⚠️ Insufficient balance! Please deposit ₱${shortfall.toLocaleString()} to complete with Pay Now.`);
+      openDepositModal(shortfall);
+      return;
+    }
+  }
+
   const submitBtn = form.querySelector('button[type="submit"]');
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Processing Order...';
   }
 
-  const formData = new FormData(form);
   const orderId = 'AGRI-' + Math.floor(100000 + Math.random() * 900000);
-  const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-  const fulfillment = formData.get('fulfillment') || 'delivery';
-  const deliveryFee = fulfillment === 'delivery' ? 95 : 0;
+
+  // Auto-deduct from Buyer Purchase Balance if Pay Now selected
+  if (paymentMethod.includes('Pay Now') || paymentMethod.includes('AgriConnect Balance')) {
+    deductBuyerBalance(total, orderId, `Multi-Farmer Order #${orderId} (${window.AgriState.cart.length} items)`);
+  }
 
   const newOrder = {
     id: orderId,
@@ -2294,12 +2319,13 @@ async function submitOrder(e) {
     items: [...window.AgriState.cart],
     subtotal: subtotal,
     deliveryFee: deliveryFee,
-    total: subtotal + deliveryFee,
+    total: total,
     fulfillment: fulfillment,
-    customerName: formData.get('fullName'),
-    phone: formData.get('phone'),
-    address: formData.get('address') + ', ' + formData.get('city') + ', ' + formData.get('province'),
-    paymentMethod: formData.get('paymentMethod'),
+    customerName: formData.get('fullName') || formData.get('customerName') || user.full_name || 'Verified Buyer',
+    phone: formData.get('phone') || user.phone || '09271836734',
+    address: (formData.get('address') || user.shipping_address || 'Delivery Address') + ', ' + (formData.get('city') || user.shipping_city || 'Metro Manila'),
+    paymentMethod: (paymentMethod.includes('Pay Now') || paymentMethod.includes('AgriConnect Balance')) ? 'AgriConnect Balance (Pay Now)' : paymentMethod,
+    paymentStatus: (paymentMethod.includes('Pay Now') || paymentMethod.includes('AgriConnect Balance')) ? 'Paid Direct (Instant Auto-Deduction)' : 'Pending Settlement',
     status: 'Order Confirmed',
     status_code: 'to_deliver',
     progressStep: 1,
@@ -2307,7 +2333,7 @@ async function submitOrder(e) {
     temperature: 'Cold-Chain Dispatching',
     origin: window.AgriState.cart[0]?.farmer_name || 'Philippine Farm Hub',
     originProvince: 'Direct Farm Partner',
-    destination: formData.get('address') + ', ' + formData.get('city'),
+    destination: (formData.get('address') || user.shipping_address || 'Delivery Address') + ', ' + (formData.get('city') || user.shipping_city || 'Metro Manila'),
     driverName: 'Assigning Cold-Chain Express Van',
     driverPhone: 'Logistics Hotline: +63 917 842 1092'
   };
@@ -2331,8 +2357,11 @@ async function submitOrder(e) {
 
 function showOrderSuccessModal(order) {
   const modal = document.getElementById('orderSuccessModal');
-  const body = document.getElementById('orderSuccessBody');
+  const body = document.getElementById('orderSuccessBody') || document.getElementById('orderSuccessContent') || (modal ? modal.querySelector('.modal-content') : null);
   if (!modal || !body) return;
+
+  const isPayNow = order.paymentMethod && (order.paymentMethod.includes('Pay Now') || order.paymentMethod.includes('AgriConnect Balance'));
+  const remainingBal = getBuyerBalance();
 
   body.innerHTML = `
     <div style="text-align: center; padding: 0.5rem 0;">
@@ -2350,6 +2379,18 @@ function showOrderSuccessModal(order) {
           <strong style="color: var(--primary-deep); font-family: monospace;">${order.id}</strong>
         </div>
         <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+          <span style="color: var(--text-muted);">Payment Method:</span>
+          <span style="color: ${isPayNow ? '#15803d' : 'var(--text-main)'}; font-weight: 700;">
+            ${isPayNow ? '💳 AgriConnect Balance (Pay Now)' : order.paymentMethod}
+          </span>
+        </div>
+        ${isPayNow ? `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem; background: #f0fdf4; padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid #bbf7d0;">
+          <span style="color: #166534; font-size: 0.8rem;">Remaining Buyer Balance:</span>
+          <strong style="color: #15803d; font-size: 0.85rem;">₱${remainingBal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+        </div>
+        ` : ''}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
           <span style="color: var(--text-muted);">Destination:</span>
           <span>${order.address}</span>
         </div>
@@ -2360,7 +2401,7 @@ function showOrderSuccessModal(order) {
       </div>
 
       <div style="display: flex; gap: 0.5rem;">
-        <a href="track-orders.html" class="btn-primary" style="flex: 1; text-align: center; justify-content: center;">
+        <a href="track-orders.html" class="btn-primary" style="flex: 1; text-align: center; justify-content: center; text-decoration: none;">
           Open Order Tracker
         </a>
         <button onclick="closeSuccessModal();" class="btn-secondary">
@@ -2710,6 +2751,376 @@ function saveFarmerEWallets(wallets) {
   localStorage.setItem('agri_farmer_ewallets', JSON.stringify(wallets));
 }
 
+// ============================================================================
+// BUYER WALLET, DEPOSIT FUNDS & AUTOMATIC PAY NOW CONTROLLER
+// ============================================================================
+
+function getBuyerWalletStorageKey(userId) {
+  const user = window.AgriState.user;
+  const uid = userId || (user ? (user.id || user.email || 'buyer_default') : 'buyer_default');
+  return `agri_buyer_wallet_${uid}`;
+}
+
+function getBuyerLedgerStorageKey(userId) {
+  const user = window.AgriState.user;
+  const uid = userId || (user ? (user.id || user.email || 'buyer_default') : 'buyer_default');
+  return `agri_buyer_ledger_${uid}`;
+}
+
+function getBuyerBalance(userId) {
+  const key = getBuyerWalletStorageKey(userId);
+  const saved = localStorage.getItem(key);
+  if (saved !== null) {
+    const parsed = Number(saved);
+    if (!isNaN(parsed)) return parsed;
+  }
+  // Default pre-funded purchase balance for active buyers
+  const defaultBalance = 3500;
+  localStorage.setItem(key, defaultBalance);
+  return defaultBalance;
+}
+
+function setBuyerBalance(amount, userId) {
+  const key = getBuyerWalletStorageKey(userId);
+  const val = Math.max(0, Number(amount) || 0);
+  localStorage.setItem(key, val);
+  if (window.AgriState.user) {
+    window.AgriState.user.wallet_balance = val;
+    localStorage.setItem('agri_user', JSON.stringify(window.AgriState.user));
+  }
+  updateAllWalletDisplays();
+  return val;
+}
+
+function getBuyerWalletLedger(userId) {
+  const key = getBuyerLedgerStorageKey(userId);
+  const saved = localStorage.getItem(key);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch (e) {
+      console.warn('Failed parsing wallet ledger:', e);
+    }
+  }
+
+  const initialTx = [
+    {
+      id: 'TX-DEP-9942',
+      type: 'deposit',
+      amount: 5000,
+      date: 'Oct 8, 2026',
+      method: 'GCash Instant Top-Up',
+      desc: 'Pre-funded purchase balance deposit',
+      status: 'Credited'
+    },
+    {
+      id: 'TX-PAY-8831',
+      type: 'payment',
+      amount: 1500,
+      date: 'Oct 9, 2026',
+      method: 'Auto-Deduction (Pay Now)',
+      desc: 'Order #AGRI-482019 • Benguet Highland Cabbage & Carrots',
+      status: 'Settled'
+    }
+  ];
+  localStorage.setItem(key, JSON.stringify(initialTx));
+  return initialTx;
+}
+
+function saveBuyerWalletLedger(txList, userId) {
+  const key = getBuyerLedgerStorageKey(userId);
+  localStorage.setItem(key, JSON.stringify(txList));
+}
+
+function depositBuyerFunds(amount, method = 'GCash (Instant Top-Up)', reference = '') {
+  const curBal = getBuyerBalance();
+  const depositNum = Number(amount) || 0;
+  const newBal = curBal + depositNum;
+  setBuyerBalance(newBal);
+
+  const txList = getBuyerWalletLedger();
+  const txId = 'TX-DEP-' + Math.floor(1000 + Math.random() * 9000);
+  const today = new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  txList.unshift({
+    id: txId,
+    type: 'deposit',
+    amount: depositNum,
+    date: today,
+    method: method,
+    desc: reference ? `Deposit (${reference})` : `Deposit via ${method}`,
+    status: 'Credited'
+  });
+
+  saveBuyerWalletLedger(txList);
+  updateAllWalletDisplays();
+  return newBal;
+}
+
+function deductBuyerBalance(amount, orderId, desc = '') {
+  const curBal = getBuyerBalance();
+  const deductNum = Number(amount) || 0;
+  const newBal = Math.max(0, curBal - deductNum);
+  setBuyerBalance(newBal);
+
+  const txList = getBuyerWalletLedger();
+  const txId = 'TX-PAY-' + Math.floor(1000 + Math.random() * 9000);
+  const today = new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  txList.unshift({
+    id: txId,
+    type: 'payment',
+    amount: deductNum,
+    date: today,
+    method: 'Auto-Deduction (Pay Now)',
+    desc: desc || `Multi-Farmer Order #${orderId}`,
+    status: 'Settled'
+  });
+
+  saveBuyerWalletLedger(txList);
+  updateAllWalletDisplays();
+  return newBal;
+}
+
+function updateAllWalletDisplays() {
+  const bal = getBuyerBalance();
+  const formatted = `₱${bal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  // Profile page displays
+  const profileBalEl = document.getElementById('buyerWalletBalanceDisplay');
+  if (profileBalEl) profileBalEl.textContent = formatted;
+
+  const ribbonVal4 = document.getElementById('profileInfoTier');
+  const user = window.AgriState.user;
+  const isFarmer = Boolean(user && user.role === 'farmer');
+  if (!isFarmer && ribbonVal4) {
+    ribbonVal4.textContent = formatted;
+  }
+
+  // Dashboard page displays
+  const dashBalEl = document.getElementById('statBuyerWalletBalance');
+  if (dashBalEl) dashBalEl.textContent = formatted;
+
+  // Checkout modal displays
+  const checkoutBalEl = document.getElementById('checkoutWalletBalanceVal');
+  if (checkoutBalEl) checkoutBalEl.textContent = formatted;
+
+  renderBuyerWalletLedger();
+  refreshCheckoutPayNowCoverage();
+}
+
+function renderBuyerWalletLedger() {
+  const container = document.getElementById('buyerWalletLedgerContainer');
+  if (!container) return;
+
+  const ledger = getBuyerWalletLedger();
+  if (ledger.length === 0) {
+    container.innerHTML = `
+      <div style="background: var(--bg-subtle); border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); padding: 1.25rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+        No deposit or purchase activity recorded yet.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = ledger.slice(0, 6).map(tx => {
+    const isDeposit = tx.type === 'deposit';
+    return `
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <div style="width: 34px; height: 34px; border-radius: 8px; background: ${isDeposit ? '#dcfce7' : '#eff6ff'}; color: ${isDeposit ? '#15803d' : '#1d4ed8'}; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; flex-shrink: 0;">
+            ${isDeposit ? '📥' : '🛒'}
+          </div>
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">${tx.desc || (isDeposit ? 'Deposit Funds' : 'Pay Now Purchase')}</div>
+            <div style="font-size: 0.725rem; color: var(--text-muted);">${tx.date} • ${tx.method} ${tx.id ? `• ${tx.id}` : ''}</div>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <strong style="font-size: 0.95rem; color: ${isDeposit ? '#15803d' : '#1e293b'}; font-weight: 800;">
+            ${isDeposit ? '+' : '-'}₱${Number(tx.amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </strong>
+          <span style="display: block; font-size: 0.675rem; color: ${isDeposit ? '#166534' : '#64748b'}; font-weight: 700;">
+            ${tx.status || (isDeposit ? 'Credited' : 'Settled')}
+          </span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openDepositModal(amountOrShortfall) {
+  const user = window.AgriState.user;
+  const page = window.location.pathname.split('/').pop() || 'profile.html';
+  const search = window.location.search || '';
+  const pageRef = page + search;
+
+  if (!user) {
+    showToast('Please log in or create an account to deposit purchase funds.');
+    setTimeout(() => {
+      window.location.href = `auth.html?redirect=${encodeURIComponent(pageRef)}`;
+    }, 700);
+    return;
+  }
+
+  const modal = document.getElementById('depositFundsModal');
+  if (!modal) return;
+
+  const amountInput = document.getElementById('depositAmountInput');
+  const alertEl = document.getElementById('depositCheckoutAlert');
+  const alertTextEl = document.getElementById('depositCheckoutAlertText');
+
+  if (amountOrShortfall && Number(amountOrShortfall) > 0) {
+    const num = Math.ceil(Number(amountOrShortfall));
+    if (amountInput) amountInput.value = num;
+    if (alertEl && alertTextEl) {
+      alertEl.style.display = 'flex';
+      alertTextEl.innerHTML = `Your current order requires a deposit of at least <strong>₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> to complete checkout with <strong>Pay Now</strong>.`;
+    }
+  } else {
+    if (amountInput && !amountInput.value) amountInput.value = '1000';
+    if (alertEl) alertEl.style.display = 'none';
+  }
+
+  modal.classList.add('open');
+  lockBodyScroll();
+}
+
+function openDepositModalForCheckoutShortfall() {
+  const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+  const delivery = 95;
+  const total = subtotal + delivery;
+  const curBal = getBuyerBalance();
+  const shortfall = Math.max(0, total - curBal);
+  openDepositModal(shortfall);
+}
+
+function closeDepositModal() {
+  const modal = document.getElementById('depositFundsModal');
+  if (modal) modal.classList.remove('open');
+  const alertEl = document.getElementById('depositCheckoutAlert');
+  if (alertEl) alertEl.style.display = 'none';
+  unlockBodyScroll();
+}
+
+function setDepositAmountPreset(val) {
+  const input = document.getElementById('depositAmountInput');
+  if (input) input.value = val;
+}
+
+function handleDepositSubmit(e) {
+  if (e) e.preventDefault();
+  const amountInput = document.getElementById('depositAmountInput');
+  const methodSelect = document.getElementById('depositMethodSelect');
+  const refInput = document.getElementById('depositReferenceInput');
+
+  const amount = Number(amountInput?.value) || 0;
+  if (amount < 50) {
+    showToast('Minimum deposit amount is ₱50.00');
+    return;
+  }
+
+  const method = methodSelect?.value || 'GCash (Instant Top-Up)';
+  const ref = refInput?.value?.trim() || '';
+
+  const newBal = depositBuyerFunds(amount, method, ref);
+  closeDepositModal();
+
+  showToast(`✓ Successfully deposited ₱${amount.toLocaleString()} via ${method}! New Balance: ₱${newBal.toLocaleString()}`);
+
+  refreshCheckoutPayNowCoverage();
+}
+
+function refreshCheckoutPayNowCoverage() {
+  const subtotal = window.AgriState.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+  const delivery = 95;
+  const total = subtotal + delivery;
+  const bal = getBuyerBalance();
+
+  const balDisplay = document.getElementById('checkoutWalletBalanceVal');
+  if (balDisplay) balDisplay.textContent = `₱${bal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const coverageStatus = document.getElementById('checkoutBalanceCoverageStatus');
+  const prompt = document.getElementById('checkoutDepositRequiredPrompt');
+  const shortfallSpan = document.getElementById('checkoutShortfallAmount');
+  const submitBtn = document.querySelector('#checkoutForm button[type="submit"]');
+
+  const selectedMethod = document.querySelector('#checkoutForm input[name="paymentMethod"]:checked')?.value || 'Pay Now (AgriConnect Balance)';
+
+  if (selectedMethod.includes('Pay Now') || selectedMethod.includes('AgriConnect Balance')) {
+    if (bal >= total) {
+      if (coverageStatus) {
+        coverageStatus.style.display = 'block';
+        coverageStatus.style.color = '#15803d';
+        coverageStatus.innerHTML = `✓ Sufficient Balance • Remaining balance after payment: <strong>₱${(bal - total).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>`;
+      }
+      if (prompt) prompt.style.display = 'none';
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `💳 Pay Now & Schedule Morning Dispatch (₱${total.toLocaleString()})`;
+      }
+    } else {
+      const shortfall = total - bal;
+      if (coverageStatus) coverageStatus.style.display = 'none';
+      if (prompt) {
+        prompt.style.display = 'block';
+        if (shortfallSpan) shortfallSpan.textContent = `₱${shortfall.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `Deposit Required to Complete Pay Now (Short by ₱${shortfall.toLocaleString()})`;
+      }
+    }
+  } else {
+    if (prompt) prompt.style.display = 'none';
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Confirm Order & Schedule Farm Dispatch';
+    }
+  }
+}
+
+function handlePaymentMethodChange(val) {
+  const walletPanel = document.getElementById('checkoutWalletBalancePanel');
+  const payNowLabel = document.getElementById('paymentOptionPayNow');
+
+  if (val.includes('Pay Now') || val.includes('AgriConnect Balance')) {
+    if (walletPanel) walletPanel.style.display = 'block';
+    if (payNowLabel) {
+      payNowLabel.style.borderColor = 'var(--primary)';
+      payNowLabel.style.background = '#f0fdf4';
+    }
+    refreshCheckoutPayNowCoverage();
+  } else {
+    if (walletPanel) walletPanel.style.display = 'none';
+    if (payNowLabel) {
+      payNowLabel.style.borderColor = 'var(--border-strong)';
+      payNowLabel.style.background = '#ffffff';
+    }
+    const submitBtn = document.querySelector('#checkoutForm button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Confirm Order & Schedule Farm Dispatch';
+    }
+  }
+}
+
+// Global window bindings for wallet modal & Pay Now interactions
+window.getBuyerBalance = getBuyerBalance;
+window.setBuyerBalance = setBuyerBalance;
+window.depositBuyerFunds = depositBuyerFunds;
+window.deductBuyerBalance = deductBuyerBalance;
+window.openDepositModal = openDepositModal;
+window.closeDepositModal = closeDepositModal;
+window.setDepositAmountPreset = setDepositAmountPreset;
+window.handleDepositSubmit = handleDepositSubmit;
+window.openDepositModalForCheckoutShortfall = openDepositModalForCheckoutShortfall;
+window.refreshCheckoutPayNowCoverage = refreshCheckoutPayNowCoverage;
+window.handlePaymentMethodChange = handlePaymentMethodChange;
+window.updateAllWalletDisplays = updateAllWalletDisplays;
+
+
 function initProfilePage() {
   const user = window.AgriState.user;
   const guestContainer = document.getElementById('profileGuestContainer');
@@ -2890,12 +3301,14 @@ function initProfilePage() {
   const reqSection = document.getElementById('profileRequirementsSection');
   const shipmentSection = document.getElementById('buyerShipmentSection');
   const farmerEWalletsSec = document.getElementById('farmerEWalletsSection');
+  const buyerWalletSec = document.getElementById('buyerWalletSection');
   const buyerPurchasesSec = document.getElementById('buyerPurchasesSection');
 
   if (isFarmer) {
     if (reqSection) reqSection.style.display = 'block';
     if (shipmentSection) shipmentSection.style.display = 'none';
     if (farmerEWalletsSec) farmerEWalletsSec.style.display = 'block';
+    if (buyerWalletSec) buyerWalletSec.style.display = 'none';
     if (buyerPurchasesSec) buyerPurchasesSec.style.display = 'none';
     renderFarmerRequirements();
     renderFarmerEWallets();
@@ -2903,6 +3316,7 @@ function initProfilePage() {
     if (reqSection) reqSection.style.display = 'none';
     if (shipmentSection) shipmentSection.style.display = 'block';
     if (farmerEWalletsSec) farmerEWalletsSec.style.display = 'none';
+    if (buyerWalletSec) buyerWalletSec.style.display = 'block';
     if (buyerPurchasesSec) buyerPurchasesSec.style.display = 'block';
 
     // Populate Buyer Product Shipment Details
@@ -2940,9 +3354,10 @@ function initProfilePage() {
 
     const shipPayment = document.getElementById('shipmentPaymentPref');
     if (shipPayment) {
-      shipPayment.textContent = user.payment_preference || 'Cash on Delivery (COD) or Direct GCash / Maya QR Scan';
+      shipPayment.textContent = user.payment_preference || 'AgriConnect Balance (Pay Now) or Direct GCash / COD';
     }
 
+    updateAllWalletDisplays();
     renderBuyerPurchases();
   }
 
@@ -2976,9 +3391,9 @@ function initProfilePage() {
   const ribbonLabel4 = document.getElementById('profileRibbonTierLabel');
   const ribbonVal4 = document.getElementById('profileInfoTier');
   const ribbonSub4 = document.getElementById('profileRibbonTierSub');
-  if (ribbonLabel4) ribbonLabel4.textContent = isFarmer ? 'Producer Role & Tier' : 'Buyer Account Status';
-  if (ribbonVal4) ribbonVal4.textContent = isFarmer ? (user.role_tier || 'Tier-1 Direct Farmgate') : 'Verified Direct Buyer';
-  if (ribbonSub4) ribbonSub4.textContent = isFarmer ? 'Accredited Supplier' : 'No E-Wallet Linkage Required';
+  if (ribbonLabel4) ribbonLabel4.textContent = isFarmer ? 'Producer Role & Tier' : 'Buyer Purchase Balance';
+  if (ribbonVal4) ribbonVal4.textContent = isFarmer ? (user.role_tier || 'Tier-1 Direct Farmgate') : `₱${getBuyerBalance().toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (ribbonSub4) ribbonSub4.textContent = isFarmer ? 'Accredited Supplier' : 'Pre-funded • Pay Now Active';
 
   // Populate View details
   const defaultAddress = user.shipping_address || user.address || (isFarmer
@@ -5810,6 +6225,7 @@ function renderBuyerOrders(filter = currentBuyerOrderFilter) {
   const statPastOrders = document.getElementById('statBuyerPastOrders');
   const statTotalSpend = document.getElementById('statBuyerTotalSpend');
   const statSaved = document.getElementById('statBuyerSaved');
+  const statWalletBal = document.getElementById('statBuyerWalletBalance');
 
   if (statToDeliver) {
     statToDeliver.textContent = `${toDeliverOrders.length} Shipment${toDeliverOrders.length === 1 ? '' : 's'}`;
@@ -5824,6 +6240,9 @@ function renderBuyerOrders(filter = currentBuyerOrderFilter) {
   const estimatedSaved = Math.round(totalSpend * 0.33);
   if (statSaved) {
     statSaved.textContent = `₱${estimatedSaved.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  if (statWalletBal) {
+    statWalletBal.textContent = `₱${getBuyerBalance().toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   // Filter orders
