@@ -244,7 +244,56 @@ window.AgriState = {
   user: activeUser
 };
 
-// Purge any unauthenticated / orphaned sample data when signed out
+// Purge any unauthenticated / orphaned sample data when signed out, and clean up mock orders & wallets
+(function purgeLegacyDemoData() {
+  const mockOrderIds = new Set([
+    'ORD-8491', 'ORD-8495', 'ORD-8512', 'ORD-8320', 'ORD-8210', 'ORD-8192',
+    'AGRI-742918', 'AGRI-918342', 'AGRI-582014', 'AGRI-419022', 'AGRI-849201', 'AGRI-592014'
+  ]);
+
+  // Clean agri_farmer_orders
+  try {
+    const raw = localStorage.getItem('agri_farmer_orders');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const cleaned = parsed.filter(o => o && !mockOrderIds.has(o.id) && !String(o.id || '').startsWith('ORD-8'));
+        localStorage.setItem('agri_farmer_orders', JSON.stringify(cleaned));
+      }
+    }
+  } catch (e) {}
+
+  // Clean agri_orders and agri_buyer_orders
+  ['agri_orders', 'agri_buyer_orders'].forEach(k => {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter(o => o && !mockOrderIds.has(o.id));
+          localStorage.setItem(k, JSON.stringify(cleaned));
+        }
+      }
+    } catch (e) {}
+  });
+
+  // Clean legacy global agri_farmer_ewallets if containing Ramon Dela Cruz demo wallets
+  try {
+    const rawWallets = localStorage.getItem('agri_farmer_ewallets');
+    if (rawWallets) {
+      const parsedWallets = JSON.parse(rawWallets);
+      if (Array.isArray(parsedWallets)) {
+        const cleanedWallets = parsedWallets.filter(w => w && w.account_name !== 'Ramon Dela Cruz' && !String(w.id || '').startsWith('ew-gcash-1') && !String(w.id || '').startsWith('ew-landbank-1'));
+        if (cleanedWallets.length === 0) {
+          localStorage.removeItem('agri_farmer_ewallets');
+        } else {
+          localStorage.setItem('agri_farmer_ewallets', JSON.stringify(cleanedWallets));
+        }
+      }
+    }
+  } catch (e) {}
+})();
+
 if (!activeUser) {
   localStorage.removeItem('agri_cart');
   localStorage.removeItem('agri_orders');
@@ -816,10 +865,9 @@ function isUserOwnProduct(product) {
   const user = window.AgriState.user;
   if (!user || user.role !== 'farmer') return false;
 
-  // 1. Check direct farmer_id match or demo alias
-  if (product.farmer_id) {
-    if (product.farmer_id === user.id) return true;
-    if (user.id === 'farmer-ramon' && (product.farmer_id === 'farmer-ramon' || product.farmer_id === '11111111-1111-4111-8111-111111111111')) return true;
+  // 1. Check direct farmer_id match
+  if (product.farmer_id && product.farmer_id === user.id) {
+    return true;
   }
 
   // 2. Check farm name
@@ -834,11 +882,6 @@ function isUserOwnProduct(product) {
     const uName = user.full_name.toLowerCase().trim();
     const pFarm = product.farmer_name.toLowerCase().trim();
     if (pFarm.includes(uName)) return true;
-  }
-
-  // 4. Default farmer fallback for Ramon Dela Cruz demo
-  if (user.id === 'farmer-ramon' && product.farmer_name && product.farmer_name.toLowerCase().includes('dela cruz')) {
-    return true;
   }
 
   return false;
@@ -2545,8 +2588,8 @@ async function submitOrder(e) {
           fId = prod.farmer_id;
           fName = prod.farmer_name || fName;
         } else {
-          fId = 'farmer-ramon';
-          fName = 'Dela Cruz Family Farm';
+          fId = 'producer-partner';
+          fName = item.farmer_name || 'Direct Farm Partner';
         }
       }
 
@@ -2942,15 +2985,21 @@ const DEFAULT_FARMER_REQUIREMENTS = [
   }
 ];
 
-function getStoredFarmerRequirements() {
-  const stored = localStorage.getItem('agri_farmer_requirements');
+function getStoredFarmerRequirements(userId) {
+  const user = window.AgriState.user;
+  const uid = userId || (user ? (user.id || user.email || 'farmer_default') : 'farmer_default');
+  const key = `agri_farmer_requirements_${uid}`;
+  const stored = localStorage.getItem(key) || localStorage.getItem('agri_farmer_requirements');
   if (stored) {
     try { return JSON.parse(stored); } catch (e) {}
   }
   return DEFAULT_FARMER_REQUIREMENTS;
 }
 
-function saveFarmerRequirements(reqs) {
+function saveFarmerRequirements(reqs, userId) {
+  const user = window.AgriState.user;
+  const uid = userId || (user ? (user.id || user.email || 'farmer_default') : 'farmer_default');
+  localStorage.setItem(`agri_farmer_requirements_${uid}`, JSON.stringify(reqs));
   localStorage.setItem('agri_farmer_requirements', JSON.stringify(reqs));
 }
 
@@ -3015,41 +3064,30 @@ function generateRealisticQrSvg(label, number) {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
-// Default E-Wallets
-const DEFAULT_FARMER_EWALLETS = [
-  {
-    id: 'ew-gcash-1',
-    provider: 'gcash',
-    bank_name: 'GCash Wallet',
-    badge_bg: '#0284c7',
-    badge_letter: 'G',
-    account_name: 'Ramon Dela Cruz',
-    account_number: '0917-842-1092',
-    is_primary: true,
-    qr_code: generateRealisticQrSvg('GCash', '0917-842-1092')
-  },
-  {
-    id: 'ew-landbank-1',
-    provider: 'landbank',
-    bank_name: 'Land Bank of the Philippines',
-    badge_bg: '#15803d',
-    badge_letter: 'L',
-    account_name: 'Ramon Dela Cruz',
-    account_number: '1842-9901-4821',
-    is_primary: false,
-    qr_code: null
-  }
-];
+// Default E-Wallets (clean zero-state for new farmer accounts)
+const DEFAULT_FARMER_EWALLETS = [];
 
-function getStoredFarmerEWallets() {
-  const stored = localStorage.getItem('agri_farmer_ewallets');
+function getFarmerEWalletStorageKey(userId) {
+  const user = window.AgriState.user;
+  const uid = userId || (user ? (user.id || user.email || 'farmer_default') : 'farmer_default');
+  return `agri_farmer_ewallets_${uid}`;
+}
+
+function getStoredFarmerEWallets(userId) {
+  const key = getFarmerEWalletStorageKey(userId);
+  const stored = localStorage.getItem(key);
   if (stored) {
-    try { return JSON.parse(stored); } catch (e) {}
+    try { 
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
   }
   return DEFAULT_FARMER_EWALLETS;
 }
 
-function saveFarmerEWallets(wallets) {
+function saveFarmerEWallets(wallets, userId) {
+  const key = getFarmerEWalletStorageKey(userId);
+  localStorage.setItem(key, JSON.stringify(wallets));
   localStorage.setItem('agri_farmer_ewallets', JSON.stringify(wallets));
 }
 
@@ -3076,8 +3114,8 @@ function getBuyerBalance(userId) {
     const parsed = Number(saved);
     if (!isNaN(parsed)) return parsed;
   }
-  // Default pre-funded purchase balance for active buyers
-  const defaultBalance = 3500;
+  // Default clean zero balance for new buyers
+  const defaultBalance = 0;
   localStorage.setItem(key, defaultBalance);
   return defaultBalance;
 }
@@ -3100,34 +3138,12 @@ function getBuyerWalletLedger(userId) {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     } catch (e) {
       console.warn('Failed parsing wallet ledger:', e);
     }
   }
-
-  const initialTx = [
-    {
-      id: 'TX-DEP-9942',
-      type: 'deposit',
-      amount: 5000,
-      date: 'Oct 8, 2026',
-      method: 'GCash Instant Top-Up',
-      desc: 'Pre-funded purchase balance deposit',
-      status: 'Credited'
-    },
-    {
-      id: 'TX-PAY-8831',
-      type: 'payment',
-      amount: 1500,
-      date: 'Oct 9, 2026',
-      method: 'Auto-Deduction (Pay Now)',
-      desc: 'Order #AGRI-482019 • Benguet Highland Cabbage & Carrots',
-      status: 'Settled'
-    }
-  ];
-  localStorage.setItem(key, JSON.stringify(initialTx));
-  return initialTx;
+  return [];
 }
 
 function saveBuyerWalletLedger(txList, userId) {
@@ -4075,12 +4091,12 @@ function saveFarmerProfile(e) {
   const welcomeFarmerName = document.getElementById('welcomeFarmerName');
   if (welcomeFarmerName) welcomeFarmerName.textContent = user.full_name;
   const welcomeFarmerFarm = document.getElementById('welcomeFarmerFarm');
-  if (welcomeFarmerFarm) welcomeFarmerFarm.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • Benguet`;
+  if (welcomeFarmerFarm) welcomeFarmerFarm.textContent = `${user.farm_name || 'Verified Farm'} • ${user.province || 'Philippines'}`;
 
   const farmerGreeting = document.getElementById('farmerGreeting');
   if (farmerGreeting) farmerGreeting.textContent = `Kumusta, ${user.full_name}!`;
   const farmerFarmDetails = document.getElementById('farmerFarmDetails');
-  if (farmerFarmDetails) farmerFarmDetails.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.address ? user.address.split(',').slice(0, 3).join(',') : 'Sitio Pungayan, La Trinidad, Benguet'}`;
+  if (farmerFarmDetails) farmerFarmDetails.textContent = `${user.farm_name || 'Verified Farm'} • ${user.address ? user.address.split(',').slice(0, 3).join(',') : (user.province || 'Philippines')}`;
 
   // Update views
   initProfilePage();
@@ -4270,6 +4286,27 @@ function renderFarmerEWallets() {
   if (!grid) return;
 
   const wallets = getStoredFarmerEWallets();
+  if (wallets.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1/-1; background: #ffffff; border-radius: var(--radius-sm); padding: 2.25rem 1.5rem; border: 1.5px dashed var(--border-strong); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--text-muted);">
+          💳
+        </div>
+        <div>
+          <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">No Payout Channels Linked</h4>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 440px; margin: 0 auto; line-height: 1.5;">
+            Link your GCash, Maya, LandBank, or other bank account to receive direct payments and disbursements from buyers with 0% middleman fees.
+          </p>
+        </div>
+        <button type="button" onclick="openAddEWalletModal()" class="btn-primary" style="margin-top: 0.5rem; font-size: 0.85rem; padding: 0.55rem 1.25rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Your First Bank / E-Wallet
+        </button>
+      </div>
+    `;
+    return;
+  }
+
   grid.innerHTML = wallets.map(w => {
     const hasQr = Boolean(w.qr_code);
     const isCustom = !w.id.startsWith('ew-gcash') && !w.id.startsWith('ew-landbank');
@@ -4293,7 +4330,7 @@ function renderFarmerEWallets() {
                 </span>
               </div>
             </div>
-            ${w.is_primary ? `<span style="font-size: 0.7rem; background: #dcfce7; color: #166534; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px;">Primary</span>` : (isCustom ? `<button type="button" onclick="deleteFarmerEWallet('${w.id}')" title="Remove Wallet" style="background: none; border: none; color: #ef4444; font-size: 0.9rem; cursor: pointer; padding: 0.2rem;">🗑</button>` : '')}
+            ${w.is_primary ? `<span style="font-size: 0.7rem; background: #dcfce7; color: #166534; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px;">Primary</span>` : `<button type="button" onclick="deleteFarmerEWallet('${w.id}')" title="Remove Wallet" style="background: none; border: none; color: #ef4444; font-size: 0.9rem; cursor: pointer; padding: 0.2rem;">🗑</button>`}
           </div>
 
           <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text-secondary); background: var(--bg-subtle); padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); margin-bottom: 0.75rem;">
@@ -4346,6 +4383,12 @@ function openAddEWalletModal() {
   const form = document.getElementById('addEWalletForm');
   if (form) form.reset();
 
+  const user = window.AgriState.user;
+  const nameInput = document.getElementById('newWalletAccountName');
+  if (nameInput && user && user.full_name) {
+    nameInput.value = user.full_name;
+  }
+
   const previewCont = document.getElementById('newWalletQrPreviewContainer');
   const placeholder = document.getElementById('newWalletQrPlaceholder');
   if (previewCont) previewCont.style.display = 'none';
@@ -4385,8 +4428,10 @@ function saveNewEWallet(e) {
   const nameInput = document.getElementById('newWalletAccountName');
   const numInput = document.getElementById('newWalletAccountNumber');
 
+  const user = window.AgriState.user;
+  const defaultHolder = (user && user.full_name) ? user.full_name : 'Account Holder';
   const provider = providerSelect ? providerSelect.value : 'other';
-  const accountName = nameInput ? nameInput.value.trim() : 'Ramon Dela Cruz';
+  const accountName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : defaultHolder;
   const accountNumber = numInput ? numInput.value.trim() : '';
 
   let bankName = 'Other E-Wallet';
@@ -4441,6 +4486,8 @@ function saveNewEWallet(e) {
   }
 
   const qrCodeData = stagedNewWalletQr || generateRealisticQrSvg(bankName, accountNumber);
+  const wallets = getStoredFarmerEWallets();
+  const isFirst = wallets.length === 0;
 
   const newWallet = {
     id: `ew-${Date.now()}`,
@@ -4450,11 +4497,10 @@ function saveNewEWallet(e) {
     badge_letter: badgeLetter,
     account_name: accountName,
     account_number: accountNumber,
-    is_primary: false,
+    is_primary: isFirst,
     qr_code: qrCodeData
   };
 
-  const wallets = getStoredFarmerEWallets();
   wallets.push(newWallet);
   saveFarmerEWallets(wallets);
 
@@ -4760,7 +4806,11 @@ function initSellHarvestPage() {
   if (user) {
     const previewFarmer = document.getElementById('previewFarmerName');
     if (previewFarmer) {
-      previewFarmer.textContent = user.farm_name || user.full_name || 'Dela Cruz Family Farm';
+      previewFarmer.textContent = user.farm_name || user.full_name || 'Your Farm / Producer';
+    }
+    const previewLoc = document.getElementById('previewFarmerLocation');
+    if (previewLoc) {
+      previewLoc.textContent = user.city || user.province || 'Local Hub';
     }
   }
 
@@ -5088,10 +5138,10 @@ function handlePageHarvestSubmit(e) {
     hub_location: hubLocation,
     is_available: true,
     image_url: stagedCustomProductImage || (document.getElementById('pageProductImageUrl')?.value?.trim()) || getProductPhotoUrl(cropName, categoryVal),
-    farmer_name: (user && (user.farm_name || user.full_name)) || 'Dela Cruz Family Farm',
-    farmer_id: (user && user.id) || 'farmer-ramon',
-    city: (user && user.city) || 'La Trinidad',
-    province: (user && user.province) || 'Benguet',
+    farmer_name: (user && (user.farm_name || user.full_name)) || 'Local Farm Producer',
+    farmer_id: (user && user.id) || ('farmer-' + Date.now()),
+    city: (user && user.city) || 'Local Hub',
+    province: (user && user.province) || 'Philippines',
     description: desc,
     rating: '5.0',
     reviews_count: 1,
@@ -6009,113 +6059,7 @@ function updateAuthUI() {
 // -------------------------------------------------------------
 // 10. FARMER DASHBOARD CONTROLLER
 // -------------------------------------------------------------
-const DEFAULT_FARMER_ORDERS = [
-  {
-    id: "ORD-8491",
-    customer_name: "Maria Santos",
-    customer_phone: "0917-552-3901",
-    delivery_address: "Quezon City, Metro Manila",
-    items: [
-      { name: "Baguio Beans", quantity: 10, unit: "kg", price: 95 },
-      { name: "Highland Cabbage", quantity: 15, unit: "kg", price: 70 }
-    ],
-    total_amount: 2000,
-    status: "In Transit",
-    status_code: "in_transit",
-    remaining_time: "45 minutes",
-    eta: "Today, 11:15 AM",
-    temp_c: "3.8°C Temperature Verified",
-    placed_at: "Today, 06:30 AM",
-    delivery_method: "AgriConnect Direct Refrigerated Van"
-  },
-  {
-    id: "ORD-8495",
-    customer_name: "Chef Paolo Reyes (Bistro Lokal)",
-    customer_phone: "0920-881-2244",
-    delivery_address: "BGC, Taguig City",
-    items: [
-      { name: "Baguio Beans", quantity: 25, unit: "kg", price: 95 }
-    ],
-    total_amount: 2375,
-    status: "Pending Harvest",
-    status_code: "pending",
-    remaining_time: "3 hours 20 minutes",
-    eta: "Today, 02:30 PM",
-    temp_c: "4.1°C Cold Store Verified",
-    placed_at: "Today, 08:15 AM",
-    delivery_method: "Direct Farmgate Bulk Pickup"
-  },
-  {
-    id: "ORD-8512",
-    customer_name: "Sari-Sari Community Mart",
-    customer_phone: "0915-992-1088",
-    delivery_address: "Marikina City, Metro Manila",
-    items: [
-      { name: "Benguet Strawberries", quantity: 12, unit: "punnets", price: 180 },
-      { name: "Highland Cabbage", quantity: 30, unit: "kg", price: 70 }
-    ],
-    total_amount: 4260,
-    status: "Scheduled Dispatch",
-    status_code: "pending",
-    remaining_time: "1 day",
-    eta: "Tomorrow, 09:30 AM",
-    temp_c: "3.5°C Chilled Prep",
-    placed_at: "Today, 09:40 AM",
-    delivery_method: "AgriConnect Next-Day Express"
-  },
-  {
-    id: "ORD-8320",
-    customer_name: "Elena Bautista",
-    customer_phone: "0918-332-9011",
-    delivery_address: "Pasig City, Metro Manila",
-    items: [
-      { name: "Highland Cabbage", quantity: 20, unit: "kg", price: 70 }
-    ],
-    total_amount: 1400,
-    status: "Delivered",
-    status_code: "delivered",
-    remaining_time: "0 mins (Delivered)",
-    eta: "Delivered Yesterday, 02:40 PM",
-    temp_c: "Safe Cold-Chain Verified",
-    placed_at: "Yesterday, 02:40 PM",
-    delivery_method: "AgriConnect Express"
-  },
-  {
-    id: "ORD-8210",
-    customer_name: "Green Grocers Coop",
-    customer_phone: "0919-441-8930",
-    delivery_address: "Makati City",
-    items: [
-      { name: "Baguio Beans", quantity: 50, unit: "kg", price: 95 },
-      { name: "Highland Cabbage", quantity: 40, unit: "kg", price: 70 }
-    ],
-    total_amount: 7550,
-    status: "Delivered",
-    status_code: "delivered",
-    remaining_time: "0 mins (Delivered)",
-    eta: "Delivered Sep 3, 2026",
-    temp_c: "Safe Cold-Chain Verified",
-    placed_at: "Sep 3, 2026",
-    delivery_method: "Bulk Cold Logistics"
-  },
-  {
-    id: "ORD-8192",
-    customer_name: "Roberto Gonzales",
-    customer_phone: "0927-112-4455",
-    delivery_address: "San Juan City",
-    items: [
-      { name: "Baguio Beans", quantity: 8, unit: "kg", price: 95 }
-    ],
-    total_amount: 760,
-    status: "Delivered",
-    status_code: "delivered",
-    remaining_time: "0 mins (Delivered)",
-    eta: "Delivered Sep 2, 2026",
-    temp_c: "Safe Cold-Chain Verified",
-    placed_at: "Sep 2, 2026",
-    delivery_method: "Standard Farm Dispatch"
-  }
-];
+const DEFAULT_FARMER_ORDERS = [];
 
 function getFarmerOrders() {
   const user = window.AgriState.user;
@@ -6128,14 +6072,13 @@ function getFarmerOrders() {
   if (saved) {
     try {
       allOrders = JSON.parse(saved);
+      if (!Array.isArray(allOrders)) allOrders = [];
     } catch (e) {
       console.warn('Failed parsing farmer orders', e);
       allOrders = [];
     }
   } else {
-    // Seed default farmer orders for demo/testing
-    allOrders = [...DEFAULT_FARMER_ORDERS];
-    localStorage.setItem('agri_farmer_orders', JSON.stringify(allOrders));
+    allOrders = [];
   }
 
   // Filter orders strictly for the active logged-in farmer
@@ -6166,11 +6109,6 @@ function getFarmerOrders() {
         return p && isUserOwnProduct(p);
       });
       if (hasMatchingItem) return true;
-    }
-
-    // 5. If Ramon Dela Cruz is logged in, include Ramon's default orders
-    if (user.id === 'farmer-ramon' && (!o.farmer_id || o.farmer_id === 'farmer-ramon' || (o.farmer_name || '').toLowerCase().includes('dela cruz'))) {
-      return true;
     }
 
     return false;
@@ -6254,11 +6192,103 @@ function renderFarmerOrders(filter = currentFarmerOrderFilter) {
   const statPending = document.getElementById('statPendingOrders');
   const statDelivered = document.getElementById('statDeliveredItems');
   const payoutValEl = document.getElementById('farmerPayoutBalanceVal');
+  const statActiveListings = document.getElementById('statActiveListings');
 
   if (statTotalSales) statTotalSales.textContent = `₱${totalSalesAmount.toLocaleString()}`;
   if (statPending) statPending.textContent = `${pendingOrders.length} Order${pendingOrders.length === 1 ? '' : 's'}`;
   if (statDelivered) statDelivered.textContent = `${deliveredOrders.length} Completed`;
   if (payoutValEl) payoutValEl.textContent = `₱${deliveredPayoutAmount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const ownProds = (window.AgriState && window.AgriState.products) ? window.AgriState.products.filter(p => isUserOwnProduct(p)) : [];
+  if (statActiveListings) {
+    statActiveListings.textContent = `${ownProds.length} Product${ownProds.length === 1 ? '' : 's'}`;
+  }
+
+  // Render Sales Summary & Crop Performance container
+  const salesSummaryContainer = document.getElementById('farmerSalesSummaryContainer');
+  if (salesSummaryContainer) {
+    if (orders.length === 0) {
+      salesSummaryContainer.innerHTML = `
+        <div style="text-align: center; padding: 2rem 1rem; background: var(--bg-subtle); border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); color: var(--text-muted);">
+          <div style="font-size: 1.5rem; margin-bottom: 0.35rem;">📊</div>
+          <div style="font-size: 0.875rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem;">No sales recorded yet</div>
+          <div style="font-size: 0.775rem; color: var(--text-secondary);">When buyers place orders for your harvests, your crop revenue analytics will appear here.</div>
+        </div>
+      `;
+    } else {
+      const cropMap = new Map();
+      orders.forEach(o => {
+        (o.items || []).forEach(item => {
+          const key = item.name;
+          const current = cropMap.get(key) || { name: key, totalQty: 0, unit: item.unit || 'kg', totalAmount: 0 };
+          current.totalQty += (Number(item.quantity) || 0);
+          current.totalAmount += ((Number(item.price) || 0) * (Number(item.quantity) || 1));
+          cropMap.set(key, current);
+        });
+      });
+      const cropList = Array.from(cropMap.values());
+      salesSummaryContainer.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+          ${cropList.map(crop => {
+            const pct = totalSalesAmount > 0 ? Math.min(100, Math.round((crop.totalAmount / totalSalesAmount) * 100)) : 0;
+            return `
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.25rem;">
+                  <strong style="color: var(--text-main);">${crop.name} (${crop.totalQty} ${crop.unit})</strong>
+                  <span style="font-weight: 700; color: var(--primary-deep);">₱${crop.totalAmount.toLocaleString()} (${pct}%)</span>
+                </div>
+                <div style="height: 6px; background: #e2e8f0; border-radius: 9999px; overflow: hidden;">
+                  <div style="width: ${pct}%; height: 100%; background: var(--primary); border-radius: 9999px;"></div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+  }
+
+  // Render Connected Payout Channel container
+  const payoutChannelContainer = document.getElementById('farmerPayoutChannelContainer');
+  if (payoutChannelContainer) {
+    const wallets = getStoredFarmerEWallets();
+    const primaryWallet = wallets.find(w => w.is_primary) || wallets[0];
+    if (primaryWallet) {
+      const badgeBg = primaryWallet.badge_bg || '#0284c7';
+      const badgeLetter = (primaryWallet.bank_name || 'E')[0];
+      payoutChannelContainer.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 38px; height: 38px; border-radius: 8px; background: ${badgeBg}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; flex-shrink: 0;">
+              ${badgeLetter}
+            </div>
+            <div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">${primaryWallet.bank_name}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${primaryWallet.account_number} • ${primaryWallet.account_name}</div>
+            </div>
+          </div>
+          <span style="font-size: 0.7rem; font-weight: 700; background: #dcfce7; color: #166534; padding: 0.2rem 0.5rem; border-radius: 9999px;">Primary</span>
+        </div>
+      `;
+    } else {
+      payoutChannelContainer.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <div style="width: 38px; height: 38px; border-radius: 8px; background: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+              💳
+            </div>
+            <div>
+              <div style="font-size: 0.825rem; font-weight: 700; color: var(--text-main);">No Payout Channel Linked</div>
+              <div style="font-size: 0.725rem; color: var(--text-muted);">Link GCash or Bank to receive disbursements</div>
+            </div>
+          </div>
+          <a href="profile.html#farmerEWalletsSection" class="btn-secondary" style="font-size: 0.725rem; padding: 0.3rem 0.6rem; text-decoration: none; white-space: nowrap;">
+            + Connect
+          </a>
+        </div>
+      `;
+    }
+  }
 
   let filtered = orders;
   if (filter === 'pending') {
@@ -6523,164 +6553,7 @@ function editFarmerProductPrice(productId) {
 // 11. UNIFIED DASHBOARD CONTROLLER (BUYER & FARMER PORTALS)
 // -------------------------------------------------------------
 
-const DEFAULT_BUYER_ORDERS = [
-  {
-    id: 'AGRI-742918',
-    date: 'Today, 8:15 AM',
-    status: 'In Transit',
-    status_code: 'to_deliver',
-    eta: 'Today, ~2:30 PM (Cold-Chain Van #4)',
-    fulfillment: 'delivery',
-    temperature: '4.2°C (Optimal Cold-Chain)',
-    origin: 'Dela Cruz Family Farm',
-    originProvince: 'La Trinidad, Benguet',
-    destination: 'Unit 802, Pioneer Woodlands, Mandaluyong, Metro Manila',
-    driverName: 'Kuya Arnel Bautista',
-    driverPhone: '0918-555-3211',
-    paymentMethod: 'GCash (Paid)',
-    progressStep: 3,
-    items: [
-      {
-        id: 'prod-benguet-lettuce',
-        name: 'Benguet Romaine Lettuce',
-        price: 95,
-        unit: 'kg',
-        quantity: 2,
-        farmer_name: 'Mang Ramon Dela Cruz',
-        image_url: 'https://images.unsplash.com/photo-1556801712-76c8eb07bbc9?w=400'
-      },
-      {
-        id: 'prod-benguet-carrots',
-        name: 'Fresh Benguet Carrots',
-        price: 75,
-        unit: 'kg',
-        quantity: 3,
-        farmer_name: 'Mang Ramon Dela Cruz',
-        image_url: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400'
-      },
-      {
-        id: 'prod-baguio-strawberries',
-        name: 'Sweet Baguio Strawberries',
-        price: 280,
-        unit: 'kg',
-        quantity: 1,
-        farmer_name: 'Mang Ramon Dela Cruz',
-        image_url: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400'
-      }
-    ],
-    subtotal: 695,
-    deliveryFee: 95,
-    total: 790
-  },
-  {
-    id: 'AGRI-918342',
-    date: 'Yesterday, 4:20 PM',
-    status: 'Harvested & Packing',
-    status_code: 'to_deliver',
-    eta: 'Tomorrow, Morning Dispatch (6:00 AM - 10:00 AM)',
-    fulfillment: 'delivery',
-    temperature: 'Ambient Ventilated Storage',
-    origin: 'Santos Rice & Organic Grains',
-    originProvince: 'Muñoz, Nueva Ecija',
-    destination: 'Unit 802, Pioneer Woodlands, Mandaluyong, Metro Manila',
-    driverName: 'Scheduled with Central Luzon Courier Hub',
-    driverPhone: '0920-888-4102',
-    paymentMethod: 'Cash on Delivery',
-    progressStep: 2,
-    items: [
-      {
-        id: 'prod-dinorado-rice',
-        name: 'Premium Dinorado Organic Rice',
-        price: 2450,
-        unit: 'sack',
-        quantity: 1,
-        farmer_name: 'Tatay Ernesto Santos',
-        image_url: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400'
-      }
-    ],
-    subtotal: 2450,
-    deliveryFee: 150,
-    total: 2600
-  },
-  {
-    id: 'AGRI-582014',
-    date: 'Aug 28, 2026',
-    status: 'Delivered',
-    status_code: 'past',
-    deliveredDate: 'Aug 29, 2026, 11:15 AM',
-    fulfillment: 'delivery',
-    temperature: 'Cold-Chain Complete (Fresh Handover)',
-    origin: 'Bukidnon Mountain Harvest',
-    originProvince: 'Impasugong, Bukidnon',
-    destination: 'Unit 802, Pioneer Woodlands, Mandaluyong, Metro Manila',
-    driverName: 'Kuya Ronald Esguerra',
-    driverPhone: '0919-444-8822',
-    paymentMethod: 'GCash (Paid)',
-    progressStep: 4,
-    items: [
-      {
-        id: 'prod-sweet-papaya',
-        name: 'Sweet Red Solo Papaya',
-        price: 65,
-        unit: 'kg',
-        quantity: 5,
-        farmer_name: 'Grace Tan-Bukidnon',
-        image_url: 'https://images.unsplash.com/photo-1617112848923-cc2234396a8d?w=400'
-      },
-      {
-        id: 'prod-freerange-eggs',
-        name: 'Native Free-Range Farm Eggs',
-        price: 260,
-        unit: 'tray',
-        quantity: 2,
-        farmer_name: 'Grace Tan-Bukidnon',
-        image_url: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400'
-      }
-    ],
-    subtotal: 845,
-    deliveryFee: 95,
-    total: 940
-  },
-  {
-    id: 'AGRI-419022',
-    date: 'Aug 15, 2026',
-    status: 'Delivered',
-    status_code: 'past',
-    deliveredDate: 'Aug 16, 2026, 3:45 PM',
-    fulfillment: 'delivery',
-    temperature: 'Cold-Chain Complete (Fresh Handover)',
-    origin: 'Dela Cruz Family Farm',
-    originProvince: 'La Trinidad, Benguet',
-    destination: 'Unit 802, Pioneer Woodlands, Mandaluyong, Metro Manila',
-    driverName: 'Kuya Arnel Bautista',
-    driverPhone: '0918-555-3211',
-    paymentMethod: 'Maya (Paid)',
-    progressStep: 4,
-    items: [
-      {
-        id: 'prod-highland-cabbage',
-        name: 'Fresh Highland Cabbage',
-        price: 55,
-        unit: 'kg',
-        quantity: 4,
-        farmer_name: 'Mang Ramon Dela Cruz',
-        image_url: 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=400'
-      },
-      {
-        id: 'prod-baguio-beans',
-        name: 'Baguio Beans (Snap Beans)',
-        price: 85,
-        unit: 'kg',
-        quantity: 2,
-        farmer_name: 'Mang Ramon Dela Cruz',
-        image_url: 'https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?w=400'
-      }
-    ],
-    subtotal: 390,
-    deliveryFee: 95,
-    total: 485
-  }
-];
+const DEFAULT_BUYER_ORDERS = [];
 
 function getBuyerOrders() {
   const user = window.AgriState.user;
@@ -6838,9 +6711,9 @@ function renderBuyerDashboard() {
       avatarBadge.textContent = initials || 'JD';
     }
   } else {
-    if (greetingEl) greetingEl.textContent = 'Kumusta, Juan Dela Cruz!';
+    if (greetingEl) greetingEl.textContent = 'Kumusta, Direct Buyer!';
     if (locationEl) locationEl.textContent = 'Metro Manila Delivery Hub • Direct Sourcing from Benguet & Nueva Ecija';
-    if (avatarBadge) avatarBadge.textContent = 'JD';
+    if (avatarBadge) avatarBadge.textContent = 'DB';
   }
 
   renderBuyerOrders(currentBuyerOrderFilter);
@@ -7347,7 +7220,7 @@ function initFarmerDashboard() {
       greetingEl.textContent = `Kumusta, ${user.full_name}!`;
     }
     if (farmDetailsEl) {
-      farmDetailsEl.textContent = `${user.farm_name || 'Dela Cruz Family Farm'} • ${user.province || 'Benguet, Philippines'}`;
+      farmDetailsEl.textContent = `${user.farm_name || 'Verified Farm'} • ${user.province || 'Philippines'}`;
     }
     if (avatarEl && user.avatar) {
       avatarEl.src = user.avatar;
