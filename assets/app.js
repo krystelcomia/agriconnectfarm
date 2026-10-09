@@ -6892,6 +6892,10 @@ function startAiVideoGeneration(adData, durationDays, price, farmName, tier) {
   const adSection = document.getElementById('sponsoredTopAdSection');
   if (adSection) {
     adSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    setTimeout(() => {
+      window.location.href = 'index.html#sponsoredTopAdSection';
+    }, 1200);
   }
 }
 
