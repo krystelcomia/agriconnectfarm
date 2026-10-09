@@ -1678,21 +1678,68 @@ function updateCartBadge(shouldBump = false) {
   });
 }
 
+// -------------------------------------------------------------
+// CART & DRAWER SCROLL-LOCK CONTROLLER
+// -------------------------------------------------------------
+let activeDrawerScrollY = 0;
+
+function lockBodyScroll() {
+  if (document.body.classList.contains('cart-open')) return;
+  activeDrawerScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+  document.body.dataset.cartScrollY = activeDrawerScrollY.toString();
+  document.documentElement.classList.add('cart-open');
+  document.body.classList.add('cart-open');
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${activeDrawerScrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
+  document.documentElement.style.overscrollBehavior = 'none';
+}
+
+function unlockBodyScroll() {
+  const cartDrawer = document.getElementById('cartDrawer');
+  const farmerDrawer = document.getElementById('farmerOrdersDrawer');
+  const checkoutModal = document.getElementById('checkoutModal');
+  const isCartOpen = cartDrawer && cartDrawer.classList.contains('open');
+  const isFarmerOpen = farmerDrawer && farmerDrawer.classList.contains('open');
+  const isCheckoutOpen = checkoutModal && checkoutModal.classList.contains('open');
+  if (isCartOpen || isFarmerOpen || isCheckoutOpen) return;
+
+  if (!document.body.classList.contains('cart-open')) return;
+  const savedY = parseInt(document.body.dataset.cartScrollY || activeDrawerScrollY || '0', 10);
+  document.documentElement.classList.remove('cart-open');
+  document.body.classList.remove('cart-open');
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
+  document.documentElement.style.overscrollBehavior = '';
+  window.scrollTo(0, savedY);
+}
+
 function toggleCart(open = true) {
   const drawer = document.getElementById('cartDrawer');
   const backdrop = document.getElementById('cartBackdrop') || document.getElementById('drawerBackdrop');
   if (!drawer) return;
 
-  // Close preview popover when drawer toggles
-  document.querySelectorAll('.cart-preview-popover.is-visible').forEach(p => p.classList.remove('is-visible'));
+  // Clean up any stray popovers
+  document.querySelectorAll('.cart-preview-popover').forEach(p => p.remove());
 
   if (open) {
     renderCartDrawer();
     drawer.classList.add('open');
     if (backdrop) backdrop.classList.add('open');
+    lockBodyScroll();
   } else {
     drawer.classList.remove('open');
     if (backdrop) backdrop.classList.remove('open');
+    unlockBodyScroll();
   }
 }
 
@@ -1720,16 +1767,18 @@ function toggleFarmerOrdersDrawer(open = true) {
     document.body.appendChild(drawer);
   }
 
-  // Close preview popovers
-  document.querySelectorAll('.cart-preview-popover.is-visible').forEach(p => p.classList.remove('is-visible'));
+  // Clean up any stray popovers
+  document.querySelectorAll('.cart-preview-popover').forEach(p => p.remove());
 
   if (open) {
     renderFarmerOrdersDrawer(currentFarmerDrawerFilter);
     drawer.classList.add('open');
     if (backdrop) backdrop.classList.add('open');
+    lockBodyScroll();
   } else {
     drawer.classList.remove('open');
     if (backdrop) backdrop.classList.remove('open');
+    unlockBodyScroll();
   }
 }
 
@@ -1984,221 +2033,18 @@ function closeFarmerReceiptModal() {
 }
 
 function initCartPreview() {
-  const cartBtns = document.querySelectorAll('button[aria-label="View Cart"], button[aria-label="Manage Farmer Orders"], button[onclick*="toggleCart"], button[onclick*="toggleFarmerOrdersDrawer"]');
-  if (!cartBtns || cartBtns.length === 0) return;
-
-  cartBtns.forEach(btn => {
-    let wrapper = btn.closest('.cart-button-wrap');
-    if (!wrapper) {
-      wrapper = document.createElement('div');
-      wrapper.className = 'cart-button-wrap';
-      btn.parentNode.insertBefore(wrapper, btn);
-      wrapper.appendChild(btn);
+  // Clean up any legacy cart preview popovers to prevent hanging redundancy
+  document.querySelectorAll('.cart-preview-popover').forEach(p => p.remove());
+  document.querySelectorAll('.cart-button-wrap').forEach(w => {
+    while (w.firstChild) {
+      w.parentNode.insertBefore(w.firstChild, w);
     }
-
-    let popover = wrapper.querySelector('.cart-preview-popover');
-    if (!popover) {
-      popover = document.createElement('div');
-      popover.className = 'cart-preview-popover';
-      popover.setAttribute('role', 'region');
-      popover.setAttribute('aria-label', 'Shopping Basket Preview');
-      wrapper.appendChild(popover);
-    }
-
-    let hideTimer = null;
-    const show = () => {
-      if (hideTimer) {
-        clearTimeout(hideTimer);
-        hideTimer = null;
-      }
-      renderCartPreview();
-      popover.classList.add('is-visible');
-    };
-
-    const scheduleHide = () => {
-      if (hideTimer) clearTimeout(hideTimer);
-      hideTimer = setTimeout(() => {
-        popover.classList.remove('is-visible');
-      }, 200);
-    };
-
-    wrapper.addEventListener('mouseenter', show);
-    wrapper.addEventListener('mouseleave', scheduleHide);
-    wrapper.addEventListener('focusin', show);
-    wrapper.addEventListener('focusout', (e) => {
-      if (!wrapper.contains(e.relatedTarget)) {
-        scheduleHide();
-      }
-    });
-
-    btn.addEventListener('click', () => {
-      popover.classList.remove('is-visible');
-    });
+    w.remove();
   });
-
-  renderCartPreview();
 }
 
 function renderCartPreview() {
-  const popovers = document.querySelectorAll('.cart-preview-popover');
-  if (!popovers || popovers.length === 0) return;
-
-  const user = window.AgriState.user;
-  const isFarmer = Boolean(user && user.role === 'farmer');
-
-  if (isFarmer) {
-    const orders = getFarmerOrders();
-    const pendingOrders = orders.filter(o => o.status_code === 'pending');
-
-    popovers.forEach(popover => {
-      popover.innerHTML = `
-        <div class="cart-preview-header" style="background: linear-gradient(135deg, #14532d 0%, #166534 100%); color: #ffffff; padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-              <path d="m9 14 2 2 4-4"/>
-            </svg>
-            <div>
-              <div style="font-weight: 800; font-size: 0.875rem; color: #ffffff; line-height: 1.1;">Farmer Received Orders</div>
-              <div style="font-size: 0.7rem; color: #86efac; opacity: 0.9;">${user.farm_name || 'Dela Cruz Family Farm'}</div>
-            </div>
-          </div>
-          <span style="font-size: 0.7rem; font-weight: 800; background: #fef3c7; color: #b45309; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid #fde68a;">
-            ${pendingOrders.length} Pending
-          </span>
-        </div>
-
-        <div class="cart-preview-items" style="max-height: 310px; overflow-y: auto; padding: 0.65rem 0.85rem; display: flex; flex-direction: column; gap: 0.65rem;">
-          ${orders.length === 0 ? `
-            <div style="text-align: center; padding: 1.5rem 1rem; color: var(--text-muted); font-size: 0.85rem;">
-              No received orders yet.
-            </div>
-          ` : orders.slice(0, 4).map(o => `
-            <div style="background: var(--bg-page); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.65rem 0.75rem; display: flex; flex-direction: column; gap: 0.35rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 800; font-size: 0.825rem; color: var(--text-main); font-family: monospace;">${o.id}</span>
-                <span style="font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px; ${o.status_code === 'pending' ? 'background: #fef3c7; color: #b45309; border: 1px solid #fde68a;' : 'background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;'}">
-                  ${o.status_code === 'pending' ? '⏳ Pending Harvest' : '✓ Delivered & Paid'}
-                </span>
-              </div>
-              <div style="font-size: 0.775rem; color: var(--text-secondary); line-height: 1.25;">
-                Buyer: <strong>${o.customer_name}</strong> • <span style="color: var(--text-muted);">${o.delivery_address}</span>
-              </div>
-              <div style="font-size: 0.725rem; color: var(--text-muted);">
-                ${o.items.map(i => `${i.quantity} ${i.unit} ${i.name}`).join(', ')}
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border-subtle); padding-top: 0.35rem; margin-top: 0.15rem;">
-                <span style="font-weight: 800; font-size: 0.85rem; color: var(--primary-deep);">₱${o.total_amount.toLocaleString()}</span>
-                <div style="display: flex; gap: 0.35rem;">
-                  ${o.status_code === 'pending' ? `
-                    <button onclick="updateFarmerOrderStatus('${o.id}', 'delivered'); event.stopPropagation();" class="btn-primary" style="font-size: 0.68rem; padding: 0.22rem 0.55rem; border-radius: 4px; font-weight: 700;">
-                      ✓ Mark Delivered
-                    </button>
-                  ` : `
-                    <span style="font-size: 0.7rem; color: #166534; font-weight: 800;">✓ Payout Escrowed</span>
-                  `}
-                  <button onclick="openFarmerOrderDetailsModal('${o.id}'); event.stopPropagation();" class="btn-secondary" style="font-size: 0.68rem; padding: 0.22rem 0.55rem; border-radius: 4px;">
-                    Slip / Details
-                  </button>
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-
-        <div style="padding: 0.75rem 1rem; border-top: 1px solid var(--border-subtle); background: #ffffff; display: flex; gap: 0.5rem;">
-          <button onclick="toggleFarmerOrdersDrawer(true)" class="btn-primary" style="flex: 1; font-size: 0.775rem; padding: 0.5rem 0.65rem; text-align: center; font-weight: 700;">
-            Manage All Orders (${orders.length}) &rarr;
-          </button>
-          <a href="dashboard.html" class="btn-secondary" style="font-size: 0.775rem; padding: 0.5rem 0.75rem; text-decoration: none; text-align: center; font-weight: 700;">
-            Dashboard
-          </a>
-        </div>
-      `;
-    });
-    return;
-  }
-
-  const cart = window.AgriState.cart || [];
-  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-  popovers.forEach(popover => {
-    if (cart.length === 0) {
-      popover.innerHTML = `
-        <div class="cart-preview-header">
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            ${ICONS.package}
-            <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">Shopping Basket</span>
-          </div>
-          <span style="font-size: 0.75rem; color: var(--text-muted); background: var(--bg-subtle); padding: 0.15rem 0.5rem; border-radius: 9999px;">0 items</span>
-        </div>
-        <div class="cart-preview-items" style="text-align: center; padding: 2rem 1rem;">
-          <div style="width: 42px; height: 42px; margin: 0 auto 0.5rem; border-radius: 50%; background: #f0fdf4; display: flex; align-items: center; justify-content: center; color: var(--primary);">
-            ${ICONS.package}
-          </div>
-          <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">Your basket is empty</div>
-          <p style="font-size: 0.775rem; color: var(--text-muted); margin: 0.25rem 0 0.85rem;">Add fresh harvests directly from local farmers.</p>
-          <a href="marketplace.html" class="btn-primary" style="font-size: 0.775rem; padding: 0.35rem 0.85rem; text-decoration: none; display: inline-block;">
-            Browse Marketplace
-          </a>
-        </div>
-      `;
-      return;
-    }
-
-    const itemsHtml = cart.map(item => {
-      const lineTotal = item.price * item.quantity;
-      return `
-        <div style="display: flex; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border-subtle); align-items: center;">
-          <img src="${item.image_url}" alt="${item.name}" style="width: 44px; height: 44px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0; border: 1px solid var(--border-subtle);">
-          <div style="flex: 1; min-width: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.35rem;">
-              <h6 style="font-size: 0.825rem; font-weight: 700; margin: 0; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</h6>
-              <button onclick="removeFromCart('${item.id}'); event.stopPropagation();" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0 0.2rem; font-size: 0.85rem; line-height: 1;" title="Remove">✕</button>
-            </div>
-            <div style="font-size: 0.725rem; color: var(--text-muted); margin-bottom: 0.2rem;">${item.farmer_name || 'Direct Farm'}</div>
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.775rem;">
-              <span style="color: var(--text-secondary); font-weight: 500;">${item.quantity} ${item.unit} × ₱${item.price.toLocaleString()}</span>
-              <strong style="color: var(--primary-deep); font-weight: 700;">₱${lineTotal.toLocaleString()}</strong>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    popover.innerHTML = `
-      <div class="cart-preview-header">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-          ${ICONS.package}
-          <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">Shopping Basket</span>
-        </div>
-        <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary-deep); background: #dcfce7; padding: 0.15rem 0.55rem; border-radius: 9999px;">
-          ${itemCount} ${itemCount === 1 ? 'item' : 'items'}
-        </span>
-      </div>
-
-      <div class="cart-preview-items">
-        ${itemsHtml}
-      </div>
-
-      <div class="cart-preview-footer">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <span style="font-size: 0.825rem; color: var(--text-secondary); font-weight: 600;">Subtotal</span>
-          <strong style="font-size: 1.05rem; font-weight: 800; color: var(--primary-deep);">₱${subtotal.toLocaleString()}</strong>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-          <button onclick="toggleCart(true); const p = this.closest('.cart-preview-popover'); if(p) p.classList.remove('is-visible');" class="btn-secondary" style="width: 100%; font-size: 0.78rem; padding: 0.45rem 0.5rem; text-align: center;">
-            View Full Basket
-          </button>
-          <button onclick="openCheckoutModal(); const p = this.closest('.cart-preview-popover'); if(p) p.classList.remove('is-visible');" class="btn-primary" style="width: 100%; font-size: 0.78rem; padding: 0.45rem 0.5rem; text-align: center;">
-            Checkout
-          </button>
-        </div>
-      </div>
-    `;
-  });
+  // Safe no-op: popover preview eliminated so cart is strictly accessible on icon click
 }
 
 function renderCartDrawer() {
@@ -2216,7 +2062,7 @@ function renderCartDrawer() {
         </div>
         <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">Your cart is empty</h4>
         <p style="font-size: 0.825rem; margin-top: 0.35rem;">Add fresh harvests from the marketplace to proceed.</p>
-        <a href="marketplace.html" class="btn-primary" style="margin-top: 1.25rem;">
+        <a href="marketplace.html" onclick="toggleCart(false)" class="btn-primary" style="margin-top: 1.25rem;">
           Browse Marketplace
         </a>
       </div>
@@ -2319,11 +2165,13 @@ function openCheckoutModal() {
   }
 
   modal.classList.add('open');
+  lockBodyScroll();
 }
 
 function closeCheckoutModal() {
   const modal = document.getElementById('checkoutModal');
   if (modal) modal.classList.remove('open');
+  unlockBodyScroll();
 }
 
 async function submitOrder(e) {
@@ -4073,6 +3921,37 @@ function initUIListeners() {
       renderProducts();
     });
   }
+
+  // Prevent background swiping up/down on mobile and wheel scrolling on desktop when cart is open
+  document.addEventListener('touchmove', (e) => {
+    if (!document.body.classList.contains('cart-open')) return;
+    const scrollable = e.target.closest('#cartItemsList, #farmerOrdersItemsList, [data-drawer-scroll="true"]');
+    if (!scrollable) {
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener('wheel', (e) => {
+    if (!document.body.classList.contains('cart-open')) return;
+    const scrollable = e.target.closest('#cartItemsList, #farmerOrdersItemsList, [data-drawer-scroll="true"]');
+    if (!scrollable) {
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
+
+  // Escape key closes open cart / farmer drawer
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const cartDrawer = document.getElementById('cartDrawer');
+      if (cartDrawer && cartDrawer.classList.contains('open')) {
+        toggleCart(false);
+      }
+      const farmerDrawer = document.getElementById('farmerOrdersDrawer');
+      if (farmerDrawer && farmerDrawer.classList.contains('open')) {
+        toggleFarmerOrdersDrawer(false);
+      }
+    }
+  });
 }
 
 // -------------------------------------------------------------
