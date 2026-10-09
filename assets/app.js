@@ -2764,28 +2764,42 @@ function initProfilePage() {
   // Hero section badges & titles
   const dashBreadcrumb = document.getElementById('profileBreadcrumbDashboard');
   if (dashBreadcrumb) {
-    dashBreadcrumb.textContent = isFarmer ? 'Farmer Dashboard' : 'Marketplace';
+    dashBreadcrumb.textContent = isFarmer ? 'Producer Dashboard' : 'Marketplace';
     dashBreadcrumb.href = isFarmer ? 'dashboard.html' : 'marketplace.html';
   }
 
   const pageHeading = document.getElementById('profilePageHeading');
   if (pageHeading) {
     pageHeading.textContent = isFarmer
-      ? 'Highland Farmer & Farmgate Producer Profile'
-      : 'Buyer Account & Product Shipment Profile';
+      ? 'Producer Profile & Farm Verification'
+      : 'Buyer Profile & Account Details';
   }
 
   const pageSubheading = document.getElementById('profilePageSubheading');
   if (pageSubheading) {
     pageSubheading.textContent = isFarmer
-      ? 'Accredited direct-farmgate supplier credentials, harvest logistics, and verified Department of Agriculture compliance.'
-      : 'Manage your destination delivery address, recipient contacts, and cold-chain drop-off preferences for farm-to-door dispatches.';
+      ? 'Complete farm identity, Department of Agriculture accreditation, geo-tagging, and direct payment channels.'
+      : 'Manage your destination delivery address, recipient contacts, product shipment preferences, and purchase history.';
+  }
+
+  // Top action buttons: Hide farmer-only actions for buyer
+  const dashBtn = document.getElementById('profileDashboardActionBtn');
+  if (dashBtn) {
+    dashBtn.style.display = isFarmer ? 'inline-flex' : 'none';
   }
 
   const actionBtn = document.getElementById('profileActionBtn');
   if (actionBtn) {
-    actionBtn.textContent = isFarmer ? 'Farmer Dashboard' : 'Browse Marketplace';
-    actionBtn.href = isFarmer ? 'dashboard.html' : 'marketplace.html';
+    if (isFarmer) {
+      actionBtn.style.display = 'inline-flex';
+      actionBtn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Sell Harvest
+      `;
+      actionBtn.href = 'sell-harvest.html';
+    } else {
+      actionBtn.style.display = 'none';
+    }
   }
 
   const roleBadge = document.getElementById('profileRoleBadge');
@@ -2820,11 +2834,12 @@ function initProfilePage() {
   const card1Subtitle = document.getElementById('profileCard1Subtitle');
   if (card1Subtitle) card1Subtitle.textContent = isFarmer ? "Verified producer credentials registered on AgriConnect" : "Verified consumer credentials registered on AgriConnect";
 
-  const coopLabel = document.getElementById('profileInfoCoopLabel');
-  if (coopLabel) coopLabel.textContent = isFarmer ? "Cooperative / Farmer Association" : "Sourcing Program / Affiliation";
+  // Hide farmer-specific fields in Card 1 for buyers
+  const coopWrap = document.getElementById('profileInfoCoopWrapper');
+  if (coopWrap) coopWrap.style.display = isFarmer ? 'block' : 'none';
 
-  const expLabel = document.getElementById('profileInfoExpLabel');
-  if (expLabel) expLabel.textContent = isFarmer ? "Farming Experience" : "Account Status & Tenure";
+  const expWrap = document.getElementById('profileInfoExpWrapper');
+  if (expWrap) expWrap.style.display = isFarmer ? 'block' : 'none';
 
   const statusEl = document.getElementById('profileInfoStatus');
   if (statusEl) {
@@ -2833,10 +2848,10 @@ function initProfilePage() {
 
   // Card 2: Location & Hub
   const card2Title = document.getElementById('profileCard2Title');
-  if (card2Title) card2Title.textContent = isFarmer ? "Exact Farm Location & Geo-Tag" : "Delivery Logistics & Regional Hub";
+  if (card2Title) card2Title.textContent = isFarmer ? "Exact Farm Location & Geo-Tag" : "Delivery Logistics & Destination Address";
 
   const card2Subtitle = document.getElementById('profileCard2Subtitle');
-  if (card2Subtitle) card2Subtitle.textContent = isFarmer ? "Coordinates and cold-chain consolidation hub for pickups" : "Cold-chain transit zone and courier drop-off terminal";
+  if (card2Subtitle) card2Subtitle.textContent = isFarmer ? "Coordinates and cold-chain consolidation hub for pickups" : "Delivery coordinates and assigned regional logistics hub";
 
   const card2AddrLabel = document.getElementById('profileCard2AddrLabel');
   if (card2AddrLabel) card2AddrLabel.textContent = isFarmer ? "Registered Farm Address" : "Registered Destination Address";
@@ -2844,24 +2859,25 @@ function initProfilePage() {
   const card2CoordsLabel = document.getElementById('profileCard2CoordsLabel');
   if (card2CoordsLabel) card2CoordsLabel.textContent = isFarmer ? "GPS Coordinates" : "Delivery GPS Coordinates";
 
-  const card2AreaLabel = document.getElementById('profileCard2AreaLabel');
-  if (card2AreaLabel) card2AreaLabel.textContent = isFarmer ? "Farm Area & Topography" : "Logistics Delivery Zone";
+  // Hide farm area and elevation for buyers
+  const areaWrap = document.getElementById('profileCard2AreaWrap');
+  if (areaWrap) areaWrap.style.display = isFarmer ? 'block' : 'none';
 
-  const card2ElevLabel = document.getElementById('profileCard2ElevLabel');
-  if (card2ElevLabel) card2ElevLabel.textContent = isFarmer ? "Farm Elevation" : "Regional Transit Elevation";
+  const elevWrap = document.getElementById('profileCard2ElevWrap');
+  if (elevWrap) elevWrap.style.display = isFarmer ? 'block' : 'none';
 
   const card2HubLabel = document.getElementById('profileCard2HubLabel');
   if (card2HubLabel) card2HubLabel.textContent = isFarmer ? "Cold-Chain Consolidation Hub" : "Assigned Logistics Consolidation Depot";
 
   // Card 3: Specializations & Protocols
   const card3Title = document.getElementById('profileCard3Title');
-  if (card3Title) card3Title.textContent = isFarmer ? "Harvest Specializations & Quality Protocols" : "Produce Sourcing Preferences & Direct Assurance";
+  if (card3Title) card3Title.textContent = isFarmer ? "Harvest Specializations & Quality Protocols" : "Fresh Produce Preferences & Direct Assurance";
 
   const card3Subtitle = document.getElementById('profileCard3Subtitle');
-  if (card3Subtitle) card3Subtitle.textContent = isFarmer ? "Primary crops cultivated and farm-to-table assurance" : "Preferred harvest varieties and cold-chain handling assurance";
+  if (card3Subtitle) card3Subtitle.textContent = isFarmer ? "Primary crops cultivated and farm-to-table assurance" : "Preferred fresh harvest varieties and cold-chain handling assurance";
 
   const card3BadgesLabel = document.getElementById('profileCard3BadgesLabel');
-  if (card3BadgesLabel) card3BadgesLabel.textContent = isFarmer ? "Primary Harvest Specializations" : "Preferred Fresh Harvest Varieties";
+  if (card3BadgesLabel) card3BadgesLabel.textContent = isFarmer ? "Primary Harvest Specializations" : "Preferred Fresh Harvest Selections";
 
   const card3Guarantee = document.getElementById('profileCard3Guarantee');
   if (card3Guarantee) {
