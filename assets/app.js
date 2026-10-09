@@ -397,14 +397,33 @@ async function loadInitialData() {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
         window.AgriState.products = data.map(normalizeProduct);
-        return;
+      } else {
+        loadSeedProducts();
       }
+    } else {
+      loadSeedProducts();
     }
   } catch (e) {
     console.warn('Using cached agricultural catalog:', e);
+    loadSeedProducts();
   }
 
-  loadSeedProducts();
+  // Ensure all custom listings are ALWAYS merged into window.AgriState.products
+  try {
+    const customListings = JSON.parse(localStorage.getItem('agri_custom_products') || '[]');
+    if (Array.isArray(customListings) && customListings.length > 0) {
+      customListings.forEach(customProd => {
+        const existingIdx = window.AgriState.products.findIndex(p => p.id === customProd.id);
+        if (existingIdx >= 0) {
+          window.AgriState.products[existingIdx] = customProd;
+        } else {
+          window.AgriState.products.unshift(customProd);
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('Could not parse custom products in loadInitialData:', e);
+  }
 }
 
 function normalizeProduct(p) {
@@ -868,23 +887,31 @@ function isUserOwnProduct(product) {
   const user = window.AgriState.user;
   if (!user || user.role !== 'farmer') return false;
 
-  // 1. Check direct farmer_id match
-  if (product.farmer_id && product.farmer_id === user.id) {
+  // 1. Direct ID checks (exact, prefixed, or user_id)
+  if (product.farmer_id && (product.farmer_id === user.id || product.farmer_id === `farmer-${user.id}` || user.id === `farmer-${product.farmer_id}`)) {
+    return true;
+  }
+  if (product.farmer_user_id && (product.farmer_user_id === user.id || product.farmer_user_id === `farmer-${user.id}`)) {
     return true;
   }
 
-  // 2. Check farm name
+  // 2. Direct Email check
+  if (product.farmer_email && user.email && product.farmer_email.toLowerCase() === user.email.toLowerCase()) {
+    return true;
+  }
+
+  // 3. Farm name comparison
   if (user.farm_name && product.farmer_name) {
     const uFarm = user.farm_name.toLowerCase().trim();
     const pFarm = product.farmer_name.toLowerCase().trim();
     if (uFarm === pFarm || pFarm.includes(uFarm) || uFarm.includes(pFarm)) return true;
   }
 
-  // 3. Check full name in farmer_name
+  // 4. Full name comparison
   if (user.full_name && product.farmer_name) {
     const uName = user.full_name.toLowerCase().trim();
     const pFarm = product.farmer_name.toLowerCase().trim();
-    if (pFarm.includes(uName)) return true;
+    if (pFarm.includes(uName) || uName.includes(pFarm)) return true;
   }
 
   return false;
@@ -5131,8 +5158,8 @@ function handlePageHarvestSubmit(e) {
   const unit = unitSelect ? unitSelect.value : 'kg';
   const variety = varietyInput ? varietyInput.value.trim() : '';
   const harvestStatus = statusSelect ? statusSelect.value : 'fresh';
-  const harvestDate = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
-  const hubLocation = hubInput ? hubInput.value.trim() : 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad';
+  const harvestDate = dateInput && dateInput.value ? dateInput.value : new Date().toISOString().split('T')[0];
+  const hubLocation = hubInput && hubInput.value.trim() ? hubInput.value.trim() : 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad';
   const desc = descInput && descInput.value.trim() ? descInput.value.trim() : 'Fresh seasonal harvest direct from our farm fields.';
 
   const user = window.AgriState.user;
@@ -5153,8 +5180,10 @@ function handlePageHarvestSubmit(e) {
     image_url: stagedCustomProductImage || (document.getElementById('pageProductImageUrl')?.value?.trim()) || getProductPhotoUrl(cropName, categoryVal),
     farmer_name: (user && (user.farm_name || user.full_name)) || 'Local Farm Producer',
     farmer_id: (user && user.id) || ('farmer-' + Date.now()),
-    city: (user && user.city) || 'Local Hub',
-    province: (user && user.province) || 'Philippines',
+    farmer_user_id: user ? user.id : null,
+    farmer_email: user ? (user.email || '') : '',
+    city: (user && (user.city || user.province)) || 'Benguet',
+    province: (user && user.province) || 'Benguet',
     description: desc,
     rating: '5.0',
     reviews_count: 1,
@@ -5185,21 +5214,26 @@ function handlePageHarvestSubmit(e) {
   // Update Sell Harvest Active Catalog List
   renderSellHarvestActiveListings();
 
-  // Show Success Modal
+  if (typeof refreshAdminData === 'function' && document.getElementById('adminMainView')) {
+    refreshAdminData();
+  }
+
+  // Always show clear, prominent Toast notification
+  showToast(`✓ Successfully added! "${newProd.name}" is now visible in your farm products and the marketplace.`);
+
+  // Show Success Modal if on sell-harvest page
   const successModal = document.getElementById('harvestPublishSuccessModal');
   const successTitle = document.getElementById('successCropTitle');
   const successDetails = document.getElementById('successCropDetails');
 
   if (successModal) {
-    if (successTitle) successTitle.textContent = `${newProd.name} Listed!`;
+    if (successTitle) successTitle.textContent = `${newProd.name} Successfully Added!`;
     if (successDetails) {
       successDetails.innerHTML = `
-        Your batch of <strong>${newProd.quantity} ${newProd.unit}</strong> at <strong>₱${newProd.price.toLocaleString()}/${newProd.unit}</strong> is now officially published in the AgriConnect direct-to-consumer catalog.
+        Your harvest batch of <strong>${newProd.quantity} ${newProd.unit}</strong> at <strong>₱${newProd.price.toLocaleString()}/${newProd.unit}</strong> has been successfully added to your farm listings and is now live on the marketplace where buyers can view and purchase it!
       `;
     }
     successModal.classList.add('open');
-  } else {
-    showToast(`Harvest listing "${newProd.name}" published successfully!`);
   }
 
   // Close legacy modal if open
