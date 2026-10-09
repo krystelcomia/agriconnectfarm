@@ -6350,6 +6350,9 @@ const DEFAULT_SPONSORED_ADS = [
     durationBadge: '🗓️ 1 Month Homepage Feature',
     durationDays: 30,
     farmName: 'Cordillera Highland Strawberry & Greens',
+    farmerName: 'Mang Ramon Dela Cruz',
+    totalSales: 1284500,
+    ordersCompleted: 3412,
     location: 'La Trinidad, Benguet',
     avatar: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300',
     scenes: [
@@ -6395,6 +6398,9 @@ const DEFAULT_SPONSORED_ADS = [
     durationBadge: '🗓️ 1 Year Homepage Feature',
     durationDays: 365,
     farmName: 'Vergara Rice Mills & Grain Collective',
+    farmerName: 'Aling Nena Bautista',
+    totalSales: 2765300,
+    ordersCompleted: 5128,
     location: 'Muñoz, Nueva Ecija',
     avatar: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300',
     scenes: [
@@ -6440,6 +6446,9 @@ const DEFAULT_SPONSORED_ADS = [
     durationBadge: '🗓️ 1 Week Homepage Feature',
     durationDays: 7,
     farmName: 'Jordan Sweet Carabao Mango Orchard',
+    farmerName: 'Kuya Jun Villanueva',
+    totalSales: 948750,
+    ordersCompleted: 2207,
     location: 'Jordan, Guimaras',
     avatar: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=300',
     scenes: [
@@ -6844,6 +6853,9 @@ function generateAiVideoAdData(farmKey, customName, customLoc, tier, durationDay
   const durationLabel = durationDays === 7 ? '1 Week Homepage Feature' : durationDays === 30 ? '1 Month Homepage Feature' : '1 Year Homepage Feature';
   const expiresAt = Date.now() + (durationDays * 24 * 60 * 60 * 1000);
 
+  const farmerName = String(preset.farmName || '').split(' — ')[0].trim() || preset.farmName;
+  const salesSeed = getAdSalesFigures({ farmerName });
+
   return {
     id: 'ai-gen-commercial-' + Date.now(),
     tierName: tierLabel,
@@ -6852,6 +6864,9 @@ function generateAiVideoAdData(farmKey, customName, customLoc, tier, durationDay
     durationDays: durationDays,
     expiresAt: expiresAt,
     farmName: preset.farmName,
+    farmerName: farmerName,
+    totalSales: salesSeed.totalSales,
+    ordersCompleted: salesSeed.ordersCompleted,
     location: preset.location,
     avatar: preset.avatar,
     scenes: preset.scenes,
@@ -7138,6 +7153,28 @@ function seekAdScene(startSecond) {
   updateSceneTimelineDots(activeIdx);
 }
 
+// Returns the farmer's sales figures for an ad (falls back to a stable
+// name-seeded figure for newly generated subscriber ads without history)
+function getAdSalesFigures(ad) {
+  if (ad && typeof ad.totalSales === 'number') {
+    return { totalSales: ad.totalSales, ordersCompleted: ad.ordersCompleted || 0 };
+  }
+  const name = String((ad && (ad.farmerName || ad.farmName)) || 'AgriConnect Farmer');
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  }
+  return {
+    totalSales: 150000 + (hash % 850000),
+    ordersCompleted: 400 + (hash % 2600)
+  };
+}
+
+function getAdFarmerName(ad) {
+  if (ad.farmerName) return ad.farmerName;
+  return String(ad.farmName || 'AgriConnect Farmer').split(' — ')[0].trim();
+}
+
 function renderCurrentSponsoredAd(forceFullRebuild = false) {
   const container = document.getElementById('sponsoredAdContent');
   if (!container) return;
@@ -7155,73 +7192,27 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
   currentRenderedSceneIndex = sceneIdx;
   currentRenderedAdId = ad.id;
 
-  // Update header badges
-  const durationTag = document.getElementById('adDurationBadge');
-  if (durationTag) {
-    durationTag.innerHTML = escapeHtml(ad.durationBadge || '🗓️ 1 Week Homepage Feature');
-  }
+  const farmerName = getAdFarmerName(ad);
+  const sales = getAdSalesFigures(ad);
 
-  updateSceneTimelineDots(sceneIdx);
-
-  const badgesHtml = (scene.badges || ['Direct Farmgate', 'Verified Producer', 'Zero Middlemen'])
-    .map(b => `<span class="video-chip">${escapeHtml(b)}</span>`)
-    .join('');
-
+  // Minimal ad: only the farmer's name and sales figures over the video background
   container.innerHTML = `
-    <div class="video-commercial-reel" id="videoReelStage">
-      <!-- Ken Burns Cinematic Motion Background -->
-      <img src="${escapeHtml(scene.bgImage || ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(ad.farmName)}" class="video-scene-bg">
-
-      <!-- Dark Gradient & Grain Overlay -->
+    <div class="video-commercial-reel ad-minimal-reel" id="videoReelStage">
+      <img src="${escapeHtml(scene.bgImage || ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(farmerName)}" class="video-scene-bg">
       <div class="video-cinematic-overlay"></div>
 
-      <!-- Video Reel Top Row -->
-      <div class="video-reel-top-row">
-        <div class="video-reel-watermark">
-          <span>✨ AgriMate 4K Commercial</span>
-          <span>•</span>
-          <span>${escapeHtml(ad.tierBadge || '⭐ VIP Sponsor')}</span>
-        </div>
-        <div class="video-scene-indicator-tag">
-          <span style="color: #34d399;">● REC</span>
-          <span>${escapeHtml(scene.sceneTag || `SCENE ${sceneIdx + 1}/3`)}</span>
-        </div>
-      </div>
-
-      <!-- Video Reel Bottom Row (Kinetic Typography & Lower-Third) -->
-      <div class="video-reel-bottom-row">
-        <div>
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
-            <img src="${escapeHtml(ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(ad.farmName)}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1.5px solid #ffffff;">
-            <span style="font-size: 0.825rem; font-weight: 800; color: #a7f3d0; text-shadow: 0 1px 4px rgba(0,0,0,0.8);">
-              ${escapeHtml(ad.farmName)}
-            </span>
-            <span style="font-size: 0.72rem; color: #e2e8f0; opacity: 0.85;">
-              • ${escapeHtml(ad.location || 'Direct Producer')}
-            </span>
+      <div class="ad-minimal-info">
+        <h3 class="ad-minimal-name">${escapeHtml(farmerName)}</h3>
+        <div class="ad-minimal-sales">
+          <div class="ad-minimal-stat">
+            <span class="ad-minimal-value">₱${Number(sales.totalSales).toLocaleString()}</span>
+            <span class="ad-minimal-label">Total Sales</span>
           </div>
-
-          <div class="video-kinetic-headline">
-            ${escapeHtml(scene.headline || ad.farmName)}
+          <div class="ad-minimal-divider"></div>
+          <div class="ad-minimal-stat">
+            <span class="ad-minimal-value">${Number(sales.ordersCompleted).toLocaleString()}</span>
+            <span class="ad-minimal-label">Orders Sold</span>
           </div>
-
-          <div class="video-kinetic-subtext">
-            ${escapeHtml(scene.subtext || 'Promoting direct farmgate agricultural produce with zero middleman exploitation.')}
-          </div>
-
-          <div class="video-kinetic-badges">
-            ${badgesHtml}
-          </div>
-        </div>
-
-        <!-- Video Action Direct Order CTA -->
-        <div class="video-action-box">
-          <a href="${escapeHtml(ad.actionLink || scene.actionLink || 'marketplace.html')}" class="btn-primary" style="font-size: 0.875rem; padding: 0.65rem 1.35rem; background: #ffffff; color: #064e3b; font-weight: 800; border: none; box-shadow: 0 4px 14px rgba(0,0,0,0.3); text-decoration: none; white-space: nowrap;">
-            ${escapeHtml(scene.actionText || ad.actionText || 'Explore Harvest')} &rarr;
-          </a>
-          <a href="#subscriptionsSection" style="font-size: 0.72rem; color: #fef08a; text-decoration: underline; font-weight: 700;">
-            Avail AI Commercial (15s)
-          </a>
         </div>
       </div>
     </div>

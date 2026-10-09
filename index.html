@@ -148,60 +148,7 @@
           <div id="adTimerProgressBar" class="sponsored-ad-timer-bar"></div>
         </div>
 
-        <!-- Commercial Header & Meta Controls -->
-        <div class="sponsored-ad-header">
-          <div class="sponsored-badge-wrap">
-            <span class="sponsored-pill" id="adBadgePill">
-              <span class="ai-sparkle-icon">✨</span>
-              <span>AI-Generated Commercial (15s)</span>
-            </span>
-            <span id="adTimerDisplay" class="sponsored-live-timer">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>15s remaining</span>
-            </span>
-            <span id="adDurationBadge" class="sponsored-duration-tag">
-              🗓️ 1 Week Homepage Feature
-            </span>
-          </div>
-
-          <!-- Video Player Controls -->
-          <div class="sponsored-ad-controls">
-            <!-- Sound Audio Toggle -->
-            <button type="button" id="adSoundBtn" onclick="toggleAdAudioSound()" class="ad-ctrl-btn" title="Toggle Commercial Audio (Mute / Sound On)">
-              <span id="adSoundIcon">🔇</span>
-              <span class="audio-wave-bars">
-                <span class="wave-bar"></span>
-                <span class="wave-bar"></span>
-                <span class="wave-bar"></span>
-              </span>
-            </button>
-
-            <!-- Play / Pause -->
-            <button type="button" id="adPauseBtn" onclick="togglePauseAdShowcase()" class="ad-ctrl-btn" title="Play / Pause Commercial">
-              <span id="adPauseIcon">⏸️</span>
-            </button>
-
-            <!-- Scene Timeline Jumpers -->
-            <div class="scene-timeline-dots" title="Commercial Scenes (0-5s Terroir, 5-10s Harvest, 10-15s Order)">
-              <button type="button" class="scene-dot active" onclick="seekAdScene(0)" title="Scene 1: Farm Terroir (0-5s)">1</button>
-              <button type="button" class="scene-dot" onclick="seekAdScene(5)" title="Scene 2: Fresh Harvest (5-10s)">2</button>
-              <button type="button" class="scene-dot" onclick="seekAdScene(10)" title="Scene 3: Direct Order (10-15s)">3</button>
-            </div>
-
-            <!-- Ad Cyclers -->
-            <button type="button" onclick="prevSponsoredAd()" class="ad-ctrl-btn" title="Previous Commercial Video">
-              ‹
-            </button>
-            <button type="button" onclick="nextSponsoredAd()" class="ad-ctrl-btn" title="Next Commercial Video">
-              ›
-            </button>
-            <a href="#subscriptionsSection" class="ad-ctrl-btn feature-cta-pill" style="text-decoration: none;">
-              🚀 Feature Your Farm with AI Video
-            </a>
-          </div>
-        </div>
-
-        <!-- Dynamic 15-Second Video Reel Screen Body -->
+        <!-- Dynamic 15-Second Video Reel Screen Body (Farmer Name + Sales Only) -->
         <div id="sponsoredAdContent" class="sponsored-ad-body">
           <!-- Populated dynamically by app.js renderCurrentSponsoredAd() -->
         </div>

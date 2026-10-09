@@ -1938,6 +1938,83 @@ body.is-farmer .sell-harvest-btn.sell-harvest-mobile-btn {
   align-items: flex-end;
 }
 
+/* Minimal Ad: Farmer Name + Sales Figures Only */
+.ad-minimal-reel {
+  justify-content: center;
+  align-items: center;
+  min-height: 240px;
+}
+
+.ad-minimal-info {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  animation: adMinimalFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes adMinimalFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ad-minimal-name {
+  font-size: clamp(1.6rem, 3.6vw, 2.5rem);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.1rem;
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.75);
+}
+
+.ad-minimal-sales {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.75rem;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 0.9rem 1.75rem;
+}
+
+.ad-minimal-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.ad-minimal-value {
+  font-size: clamp(1.35rem, 2.8vw, 1.9rem);
+  font-weight: 800;
+  color: #fde047;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.ad-minimal-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #d1fae5;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ad-minimal-divider {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+@media (max-width: 480px) {
+  .ad-minimal-sales {
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
 /* AI Generation Queue Studio Card */
 .ai-studio-gen-card {
   background: linear-gradient(135deg, rgba(6, 78, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
