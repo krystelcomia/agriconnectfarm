@@ -6426,7 +6426,7 @@ function updateAuthUI() {
   if (user && user.full_name) {
     const initials = user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
     const isProfilePage = window.location.pathname.includes('profile.html');
-    const roleBadgeText = isAdmin ? '👑 Superadmin' : (user.role === 'farmer' ? 'Farmer' : 'Buyer');
+    const roleBadgeText = isAdmin ? '👑 Admin' : (user.role === 'farmer' ? 'Farmer' : 'Buyer');
     const roleBadgeColor = isAdmin ? '#dc2626' : 'var(--primary)';
     const profileLink = isAdmin ? 'admin.html' : 'profile.html';
 
@@ -9504,19 +9504,26 @@ function getAllPlatformOrders() {
   });
 }
 
-// Master Unified User Accounts Aggregator
-function getAllPlatformUsers() {
+// Master Unified User Accounts Aggregator (Excludes system admin by default for customer/producer metrics)
+function getAllPlatformUsers(includeAdmin = false) {
   const userMap = new Map();
 
-  // 1. Seed Admin
-  userMap.set(ADMIN_ACCOUNT.id, { ...ADMIN_ACCOUNT });
+  // 1. Seed Admin only if explicitly requested
+  if (includeAdmin) {
+    userMap.set(ADMIN_ACCOUNT.id, { ...ADMIN_ACCOUNT });
+  }
 
-  // 2. agri_users
+  // 2. agri_users (excluding admin accounts)
   try {
     const users = JSON.parse(localStorage.getItem('agri_users') || '[]');
     if (Array.isArray(users)) {
       users.forEach(u => {
-        if (u && u.id) userMap.set(u.id, { ...u });
+        if (u && u.id) {
+          const isAdmin = u.role === 'admin' || u.is_admin || (u.email && u.email.toLowerCase() === ADMIN_ACCOUNT.email.toLowerCase());
+          if (includeAdmin || !isAdmin) {
+            userMap.set(u.id, { ...u });
+          }
+        }
       });
     }
   } catch (e) {}
@@ -9892,7 +9899,7 @@ function initAdminDashboard() {
 
   const userDisplayName = document.getElementById('adminUserDisplayName');
   if (userDisplayName) {
-    userDisplayName.textContent = `${user.full_name} (${user.email}) • Superadmin`;
+    userDisplayName.textContent = `${user.full_name} (${user.email}) • Admin`;
   }
 
   refreshAdminData();
@@ -10026,8 +10033,10 @@ function refreshAdminData() {
 
   const farmerCount = users.filter(u => u.role === 'farmer').length;
   const buyerCount = users.filter(u => u.role === 'buyer' || !u.role).length;
+  const farmerText = farmerCount === 1 ? '1 Farmer' : `${farmerCount} Farmers`;
+  const buyerText = buyerCount === 1 ? '1 Buyer' : `${buyerCount} Buyers`;
   const kpiUsersSubtext = document.getElementById('kpiAdminUsersSubtext');
-  if (kpiUsersSubtext) kpiUsersSubtext.textContent = `${farmerCount} Farmers • ${buyerCount} Buyers`;
+  if (kpiUsersSubtext) kpiUsersSubtext.textContent = `${farmerText} • ${buyerText}`;
 
   const kpiCrops = document.getElementById('kpiAdminTotalCrops');
   if (kpiCrops) kpiCrops.textContent = `${products.length} Crops`;
@@ -10347,11 +10356,11 @@ function renderAdminUsers(searchQuery, roleFilter) {
   }
 
   tbody.innerHTML = users.map(user => {
-    const isSuperAdmin = user.role === 'admin' || user.is_admin;
+    const isAdmin = user.role === 'admin' || user.is_admin;
     const isFarmer = user.role === 'farmer';
 
-    const rolePill = isSuperAdmin
-      ? '<span style="background: #fee2e2; color: #dc2626; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid #fecaca;">👑 Superadmin</span>'
+    const rolePill = isAdmin
+      ? '<span style="background: #fee2e2; color: #dc2626; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid #fecaca;">👑 Admin</span>'
       : isFarmer
       ? '<span style="background: #dcfce7; color: #15803d; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid #bbf7d0;">🌾 Farmer Producer</span>'
       : '<span style="background: #e0f2fe; color: #0369a1; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 9999px; border: 1px solid #bae6fd;">🛒 Verified Buyer</span>';

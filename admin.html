@@ -116,6 +116,30 @@
       70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
     }
+    .admin-refresh-icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.45);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .admin-refresh-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.35);
+      border-color: rgba(255, 255, 255, 0.75);
+      transform: rotate(90deg) scale(1.08);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    }
+    .admin-refresh-icon-btn:active {
+      transform: rotate(180deg) scale(0.95);
+    }
   </style>
 </head>
 <body>
@@ -185,7 +209,7 @@
           <div>
             <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
               <span style="background: rgba(220, 38, 38, 0.9); color: #ffffff; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.65rem; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.35rem;">
-                👑 Superadmin Authority
+                👑 Admin Authority
               </span>
               <span style="background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.75rem; color: #f0fdf4; display: inline-flex; align-items: center; gap: 0.4rem;">
                 <span class="pulse-dot"></span> Real-Time Systems Operational
@@ -195,18 +219,16 @@
               Executive Management Console
             </h1>
             <p style="font-size: 0.9rem; color: #f0fdf4; opacity: 0.95; margin-top: 0.3rem; text-shadow: 0 1px 4px rgba(0,0,0,0.3);">
-              Logged in as <strong id="adminUserDisplayName">Krystel Comia (comiakrystel@gmail.com)</strong> • Full oversight of transactions, farmer verifications & users.
+              Logged in as <strong id="adminUserDisplayName">Krystel Comia (comiakrystel@gmail.com) • Admin</strong> • Full oversight of transactions, farmer verifications & users.
             </p>
           </div>
 
-          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-            <button onclick="refreshAdminData()" class="btn-secondary" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.4); backdrop-filter: blur(8px); padding: 0.6rem 1.15rem; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-              Refresh Data
+          <div style="display: flex; align-items: center;">
+            <button onclick="refreshAdminData()" id="adminRefreshBtn" title="Refresh Dashboard Data" aria-label="Refresh Data" class="admin-refresh-icon-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
             </button>
-            <a href="dashboard.html" class="btn-secondary" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.4); backdrop-filter: blur(8px); padding: 0.6rem 1.15rem; font-size: 0.85rem; font-weight: 700; text-decoration: none;">
-              Go to Public Portal &rarr;
-            </a>
           </div>
         </div>
       </div>
