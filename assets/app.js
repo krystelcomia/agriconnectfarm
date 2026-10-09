@@ -240,6 +240,8 @@ window.AgriState = {
   inStockOnly: false,
   sortBy: 'newest',
   farmerMarketView: 'my_products',
+  adminTrackFilter: 'all',
+  adminSubFilter: 'all',
   currentMode: localStorage.getItem('agri_mode') || 'buyer',
   user: activeUser
 };
@@ -381,6 +383,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (document.getElementById('adminMainView') || document.getElementById('adminTransactionsTableBody') || document.getElementById('adminAuthLockContainer')) {
     initAdminDashboard();
+  }
+  if (document.getElementById('adminSubMainView') || document.getElementById('adminSubLockContainer')) {
+    initSubscriptionPage();
   }
 });
 
@@ -929,10 +934,11 @@ function renderProducts() {
   if (!container) return;
 
   const user = window.AgriState.user;
-  const isFarmer = Boolean(user && user.role === 'farmer');
+  const isAdmin = Boolean(user && (user.role === 'admin' || user.is_admin || user.email === 'comiakrystel@gmail.com'));
+  const isFarmer = Boolean(user && user.role === 'farmer' && !isAdmin);
   const isViewingMyProducts = isFarmer && (window.AgriState.farmerMarketView !== 'all');
 
-  // Dynamic Marketplace / My Products Header for Farmer
+  // Dynamic Marketplace / Analytics / My Products Header
   const subtitleEl = document.getElementById('marketplaceSubtitle');
   const titleEl = document.getElementById('marketplaceTitle');
   const descEl = document.getElementById('marketplaceDescription');
@@ -941,11 +947,22 @@ function renderProducts() {
   const btnAllMarket = document.getElementById('btnViewAllMarket');
   const farmerOwnCount = document.getElementById('farmerOwnCount');
   const farmerTotalCount = document.getElementById('farmerTotalCount');
+  const adminAnalyticsPanel = document.getElementById('adminMarketplaceAnalyticsPanel');
 
   const ownProductsList = window.AgriState.products.filter(p => isUserOwnProduct(p));
 
   if (farmerControls) {
-    if (isFarmer) {
+    if (isAdmin) {
+      farmerControls.style.display = 'none';
+      if (subtitleEl) subtitleEl.textContent = 'Platform Commercial Oversight & Product Analytics';
+      if (titleEl) titleEl.textContent = 'Marketplace Dashboard & Analytics';
+      if (descEl) descEl.textContent = 'Supervise real-time sales per product, top-performing farmers, best-selling items, and manage live agricultural catalog inventory.';
+      if (adminAnalyticsPanel) {
+        adminAnalyticsPanel.style.display = 'block';
+        renderMarketplaceAdminAnalytics();
+      }
+    } else if (isFarmer) {
+      if (adminAnalyticsPanel) adminAnalyticsPanel.style.display = 'none';
       farmerControls.style.display = 'flex';
       if (farmerOwnCount) farmerOwnCount.textContent = ownProductsList.length;
       if (farmerTotalCount) farmerTotalCount.textContent = window.AgriState.products.length;
@@ -980,6 +997,7 @@ function renderProducts() {
         }
       }
     } else {
+      if (adminAnalyticsPanel) adminAnalyticsPanel.style.display = 'none';
       farmerControls.style.display = 'none';
       if (subtitleEl) subtitleEl.textContent = 'Philippine Agricultural Catalog';
       if (titleEl) titleEl.textContent = 'Direct Farmgate Product';
@@ -1408,18 +1426,21 @@ function renderOrderTrackingList() {
   if (!container) return;
 
   const user = window.AgriState.user;
-  const isFarmer = Boolean(user && user.role === 'farmer');
+  const isAdmin = Boolean(user && (user.role === 'admin' || user.is_admin || user.email === 'comiakrystel@gmail.com'));
+  const isFarmer = Boolean(user && user.role === 'farmer' && !isAdmin);
 
   // Update Page Headers & Search Placeholder based on Role
   const titleEl = document.getElementById('trackPageTitle');
   const subtitleEl = document.getElementById('trackPageSubtitle');
   const tagEl = document.getElementById('trackPageTag');
   const searchInput = document.getElementById('trackingSearchInput');
+  const adminTrackToolbar = document.getElementById('adminTrackFiltersToolbar');
 
   // -----------------------------------------------------------
   // GUEST / SIGNED-OUT BARRIER: Sign in required to view orders
   // -----------------------------------------------------------
   if (!user) {
+    if (adminTrackToolbar) adminTrackToolbar.style.display = 'none';
     if (titleEl) titleEl.textContent = "Track Your Farm Orders";
     if (subtitleEl) subtitleEl.textContent = "Sign in or create an account to monitor your direct farmgate orders and cold-chain dispatches in real-time.";
     if (tagEl) tagEl.textContent = "COLD-CHAIN REAL-TIME MONITORING";
@@ -1451,6 +1472,235 @@ function renderOrderTrackingList() {
       </div>
     `;
     return;
+  }
+
+  // -----------------------------------------------------------
+  // ADMIN VIEW: Platform-Wide Shipping Supervision & Filters
+  // -----------------------------------------------------------
+  if (isAdmin) {
+    if (adminTrackToolbar) adminTrackToolbar.style.display = 'flex';
+    if (titleEl) titleEl.textContent = "Supervise Platform Orders & Shipping Status";
+    if (subtitleEl) subtitleEl.textContent = "Monitor real-time cold-chain dispatches, carrier routes, and shipping statuses across all transactions on the AgriConnect platform.";
+    if (tagEl) tagEl.textContent = "👑 PLATFORM LOGISTICS & SHIPPING SUPERVISION";
+    if (searchInput) searchInput.placeholder = "Search by Order ID, Buyer Name, Farmer, Crop, or Province...";
+
+    const allPlatformOrders = getAllPlatformOrders();
+    const currentTrackFilter = window.AgriState.adminTrackFilter || 'all';
+
+    // Counts for filter tabs
+    const countPending = allPlatformOrders.filter(o => {
+      const s = (o.status_code || o.status || '').toLowerCase();
+      return s === 'pending' || s === 'to_deliver' || s === 'processing' || s.includes('pending') || s.includes('confirm') || s.includes('harvest');
+    }).length;
+
+    const countInTransit = allPlatformOrders.filter(o => {
+      const s = (o.status_code || o.status || '').toLowerCase();
+      return s === 'in_transit' || s.includes('transit');
+    }).length;
+
+    const countDelivered = allPlatformOrders.filter(o => {
+      const s = (o.status_code || o.status || '').toLowerCase();
+      return s === 'delivered' || s.includes('delivered');
+    }).length;
+
+    const countCancelled = allPlatformOrders.filter(o => {
+      const s = (o.status_code || o.status || '').toLowerCase();
+      return s === 'cancelled' || s.includes('cancel');
+    }).length;
+
+    // Update filter count labels
+    const elCountAll = document.getElementById('trackCountAll');
+    const elCountPending = document.getElementById('trackCountPending');
+    const elCountInTransit = document.getElementById('trackCountInTransit');
+    const elCountDelivered = document.getElementById('trackCountDelivered');
+    const elCountCancelled = document.getElementById('trackCountCancelled');
+
+    if (elCountAll) elCountAll.textContent = allPlatformOrders.length;
+    if (elCountPending) elCountPending.textContent = countPending;
+    if (elCountInTransit) elCountInTransit.textContent = countInTransit;
+    if (elCountDelivered) elCountDelivered.textContent = countDelivered;
+    if (elCountCancelled) elCountCancelled.textContent = countCancelled;
+
+    // Filter list
+    let filteredOrders = allPlatformOrders.filter(o => {
+      const s = (o.status_code || o.status || '').toLowerCase();
+      if (currentTrackFilter === 'pending') {
+        return s === 'pending' || s === 'to_deliver' || s === 'processing' || s.includes('pending') || s.includes('confirm') || s.includes('harvest');
+      } else if (currentTrackFilter === 'in_transit') {
+        return s === 'in_transit' || s.includes('transit');
+      } else if (currentTrackFilter === 'delivered') {
+        return s === 'delivered' || s.includes('delivered');
+      } else if (currentTrackFilter === 'cancelled') {
+        return s === 'cancelled' || s.includes('cancel');
+      }
+      return true;
+    });
+
+    // Check search input query
+    const searchQuery = (searchInput ? searchInput.value : '').trim().toLowerCase();
+    if (searchQuery) {
+      filteredOrders = filteredOrders.filter(o => {
+        const idMatch = (o.id || '').toLowerCase().includes(searchQuery);
+        const buyerMatch = (o.customer_name || o.customerName || '').toLowerCase().includes(searchQuery);
+        const farmerMatch = (o.farmer_name || o.origin || '').toLowerCase().includes(searchQuery);
+        const addrMatch = (o.delivery_address || o.address || '').toLowerCase().includes(searchQuery);
+        const itemsMatch = (o.items || []).some(i => (i.name || '').toLowerCase().includes(searchQuery));
+        return idMatch || buyerMatch || farmerMatch || addrMatch || itemsMatch;
+      });
+    }
+
+    if (filteredOrders.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 4rem 1.5rem; background: #ffffff; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+          <div style="width: 64px; height: 64px; border-radius: 9999px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 1.8rem;">
+            🔍
+          </div>
+          <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.4rem;">
+            No Platform Orders Found
+          </h3>
+          <p style="font-size: 0.925rem; color: var(--text-secondary); max-width: 480px; margin: 0 auto 1.5rem; line-height: 1.6;">
+            No transactions match the selected filter "<strong>${currentTrackFilter.toUpperCase()}</strong>".
+          </p>
+          <button onclick="setAdminTrackFilter('all')" class="btn-primary" style="padding: 0.6rem 1.25rem; font-size: 0.85rem;">
+            View All Platform Orders (${allPlatformOrders.length})
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = filteredOrders.map(order => {
+      const s = (order.status_code || order.status || '').toLowerCase();
+      const isDelivered = s === 'delivered' || s.includes('delivered');
+      const isInTransit = s === 'in_transit' || s.includes('transit');
+      const isCancelled = s === 'cancelled' || s.includes('cancel');
+      const isPending = !isDelivered && !isInTransit && !isCancelled;
+
+      const step = isDelivered ? 4 : (isInTransit ? 3 : (isCancelled ? 0 : 2));
+      const buyerName = order.customer_name || order.customerName || 'AgriConnect Buyer';
+      const buyerPhone = order.customer_phone || order.phone || '+63 927 183 6734';
+      const buyerAddr = order.delivery_address || order.address || 'Metro Manila';
+      const farmerOrigin = order.farmer_name || order.origin || 'Benguet Organic Farm Hub';
+      const totalAmt = order.total || order.total_amount || 0;
+      const orderDate = order.placed_at || order.date || 'Today';
+
+      return `
+        <div id="order-${order.id}" style="background: #ffffff; border: 1.5px solid ${isCancelled ? '#fecaca' : (isDelivered ? '#bbf7d0' : (isInTransit ? '#fde68a' : 'var(--border-subtle)'))}; border-radius: var(--radius-md); padding: 1.6rem; margin-bottom: 1.75rem; box-shadow: var(--shadow-sm); transition: all 0.2s ease;">
+          
+          <!-- Top Row: Order ID, Date, Amount, Status Badge -->
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.85rem; margin-bottom: 1rem; gap: 0.5rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.7rem; color: #ffffff; background: #0f172a; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.04em;">👑 PLATFORM TRANSACTION</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Placed: ${orderDate}</span>
+              </div>
+              <h4 style="font-size: 1.3rem; font-weight: 800; color: var(--primary-deep); font-family: monospace; margin: 0.25rem 0 0;">${order.id}</h4>
+            </div>
+
+            <div style="text-align: right;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Transaction Amount:</div>
+              <div style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); font-family: monospace;">
+                ₱${totalAmt.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+          </div>
+
+          <!-- Stepper Visualizer -->
+          ${!isCancelled ? `
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 1rem 0 1.25rem; text-align: center;">
+              <div>
+                <div style="width: 30px; height: 30px; border-radius: 9999px; background: #15803d; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; margin: 0 auto 0.3rem;">1</div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: #15803d;">Confirmed</span>
+              </div>
+              <div>
+                <div style="width: 30px; height: 30px; border-radius: 9999px; background: ${step >= 2 ? '#15803d' : 'var(--bg-subtle)'}; color: ${step >= 2 ? '#ffffff' : 'var(--text-light)'}; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; margin: 0 auto 0.3rem;">2</div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: ${step >= 2 ? '#15803d' : 'var(--text-muted)'};">Harvested</span>
+              </div>
+              <div>
+                <div style="width: 30px; height: 30px; border-radius: 9999px; background: ${step >= 3 ? '#15803d' : 'var(--bg-subtle)'}; color: ${step >= 3 ? '#ffffff' : 'var(--text-light)'}; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; margin: 0 auto 0.3rem;">3</div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: ${step >= 3 ? '#15803d' : 'var(--text-muted)'};">In Transit</span>
+              </div>
+              <div>
+                <div style="width: 30px; height: 30px; border-radius: 9999px; background: ${step >= 4 ? '#15803d' : 'var(--bg-subtle)'}; color: ${step >= 4 ? '#ffffff' : 'var(--text-light)'}; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; margin: 0 auto 0.3rem;">4</div>
+                <span style="font-size: 0.75rem; font-weight: 700; color: ${step >= 4 ? '#15803d' : 'var(--text-muted)'};">Delivered</span>
+              </div>
+            </div>
+          ` : `
+            <div style="background: #fee2e2; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.25rem; color: #dc2626; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+              <span>✗</span> Order Cancelled / Refunded in Escrow
+            </div>
+          `}
+
+          <!-- Grid: Buyer vs Producer vs Logistics Details -->
+          <div style="background: var(--bg-page); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem 1.15rem; margin-bottom: 1.25rem; font-size: 0.85rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+              <div style="font-size: 0.725rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Buyer Customer</div>
+              <div style="font-weight: 800; color: var(--text-main); margin-top: 0.15rem;">${buyerName}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.1rem;">📞 ${buyerPhone}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">📍 ${buyerAddr}</div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.725rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Farm Origin & Producer</div>
+              <div style="font-weight: 800; color: var(--primary-deep); margin-top: 0.15rem;">${farmerOrigin}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.1rem;">🌱 Direct Harvest Payout</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">Route: ${farmerOrigin} &rarr; ${buyerAddr}</div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.725rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Cold-Chain Sensor & Transit</div>
+              <div style="font-weight: 700; color: #15803d; margin-top: 0.15rem; display: flex; align-items: center; gap: 0.35rem;">
+                ❄️ 4.2°C Cold-Chain Optimal
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.1rem;">
+                🚚 ${order.delivery_method || order.fulfillment || 'AgriConnect Refrigerated Dispatch'}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">Payment: ${order.paymentMethod || order.payment_method || 'Verified Online Settlement'}</div>
+            </div>
+          </div>
+
+          <!-- Items Ordered Summary -->
+          <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 1.25rem;">
+            <div style="font-size: 0.725rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.35rem;">Items Included in Consignment:</div>
+            <div style="font-size: 0.85rem; color: var(--text-main); font-weight: 600;">
+              ${(order.items || []).map(i => `<span style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); padding: 0.2rem 0.55rem; border-radius: 4px; display: inline-block; margin: 0.15rem 0.25rem 0.15rem 0;"><strong>${i.quantity} ${i.unit || 'unit'}</strong> × ${i.name} (${i.price ? `₱${i.price}` : ''})</span>`).join('')}
+            </div>
+          </div>
+
+          <!-- Admin Interactive Status Controller -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 0.85rem; background: #fafafa; margin: 0 -1.6rem -1.6rem; padding: 0.85rem 1.6rem; border-bottom-left-radius: var(--radius-md); border-bottom-right-radius: var(--radius-md);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Admin Shipping Control:</span>
+              <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                <button onclick="adminUpdateOrderStatus('${order.id}', 'pending')" class="btn-secondary" style="font-size: 0.725rem; padding: 0.3rem 0.6rem; ${isPending ? 'background: #fef3c7; color: #b45309; border-color: #fde68a; font-weight: 800;' : ''}">
+                  ⏳ Pending
+                </button>
+                <button onclick="adminUpdateOrderStatus('${order.id}', 'in_transit')" class="btn-secondary" style="font-size: 0.725rem; padding: 0.3rem 0.6rem; ${isInTransit ? 'background: #e0f2fe; color: #0284c7; border-color: #bae6fd; font-weight: 800;' : ''}">
+                  🚚 In Transit
+                </button>
+                <button onclick="adminUpdateOrderStatus('${order.id}', 'delivered')" class="btn-secondary" style="font-size: 0.725rem; padding: 0.3rem 0.6rem; ${isDelivered ? 'background: #dcfce7; color: #15803d; border-color: #bbf7d0; font-weight: 800;' : ''}">
+                  ✓ Delivered
+                </button>
+                <button onclick="adminUpdateOrderStatus('${order.id}', 'cancelled')" class="btn-secondary" style="font-size: 0.725rem; padding: 0.3rem 0.6rem; ${isCancelled ? 'background: #fee2e2; color: #dc2626; border-color: #fecaca; font-weight: 800;' : ''}">
+                  ✗ Cancelled
+                </button>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <span style="font-size: 0.725rem; color: var(--text-muted);">Current:</span>
+              <span style="font-size: 0.8rem; font-weight: 800; color: ${isDelivered ? '#15803d' : (isInTransit ? '#0284c7' : (isCancelled ? '#dc2626' : '#b45309'))};">
+                ${isDelivered ? '✓ Delivered' : (isInTransit ? '🚚 In Transit' : (isCancelled ? '✗ Cancelled' : '⏳ Pending Harvest/Dispatch'))}
+              </span>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }).join('');
+    return;
+  } else {
+    if (adminTrackToolbar) adminTrackToolbar.style.display = 'none';
   }
 
   if (isFarmer) {
@@ -6098,6 +6348,32 @@ function updateAuthUI() {
     }
   });
 
+  // Replace "How It Works" navbar link with "Subscription Status" if logged in as Admin
+  const howItWorksNavLinks = document.querySelectorAll('a[href="how-it-works.html"], a[href="how-it-works.html#"], a[href="subscriptions.html"], a[href="subscriptions.html#"]');
+  howItWorksNavLinks.forEach(link => {
+    if (link.classList.contains('nav-link')) {
+      if (isAdmin) {
+        link.href = "subscriptions.html";
+        link.textContent = "Subscription Status";
+        link.setAttribute('title', "Monitor Farmer Subscriptions, Earnings & Expirations");
+        if (window.location.pathname.includes('subscriptions.html')) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      } else {
+        link.href = "how-it-works.html";
+        link.textContent = "How It Works";
+        link.setAttribute('title', "How AgriConnect Works");
+        if (window.location.pathname.includes('how-it-works.html')) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      }
+    }
+  });
+
   // Update "Marketplace" navbar link to "My Products" if logged in as farmer
   const marketplaceNavLinks = document.querySelectorAll('a[href="marketplace.html"], a[href="marketplace.html#"]');
   marketplaceNavLinks.forEach(link => {
@@ -6111,7 +6387,7 @@ function updateAuthUI() {
   const trackNavLinks = document.querySelectorAll('a[href="track-orders.html"], a[href="track-orders.html#"]');
   trackNavLinks.forEach(link => {
     if (link.classList.contains('nav-link')) {
-      link.textContent = isFarmer ? "Track Buyers' Orders" : "Track Orders";
+      link.textContent = isAdmin ? "Track Orders" : (isFarmer ? "Track Buyers' Orders" : "Track Orders");
     }
   });
 
@@ -9075,18 +9351,21 @@ function getAllPlatformOrders() {
           orderMap.set(key, {
             id: key,
             date: fo.placed_at || new Date().toLocaleDateString('en-PH'),
-            customerName: fo.customer_name || 'Verified Buyer',
-            phone: fo.customer_phone || '+63 927 183 6734',
-            address: fo.delivery_address || 'Delivery Address, Metro Manila',
+            placed_at: fo.placed_at || 'Oct 9, 2026',
+            customer_name: fo.customer_name || 'Verified Buyer',
+            customer_phone: fo.customer_phone || '+63 927 183 6734',
+            delivery_address: fo.delivery_address || 'Delivery Address, Metro Manila',
             items: fo.items || [],
             subtotal: fo.total_amount || 0,
             deliveryFee: 95,
             total: (fo.total_amount || 0) + 95,
+            total_amount: (fo.total_amount || 0) + 95,
             fulfillment: 'delivery',
             paymentMethod: fo.payment_method || 'AgriConnect Balance (Pay Now)',
             paymentStatus: fo.payment_status || 'Paid Direct (Instant Auto-Deduction)',
             status: fo.status || 'Order Confirmed',
-            status_code: fo.status_code || 'to_deliver',
+            status_code: fo.status_code || 'pending',
+            farmer_name: fo.farmer_name || 'Benguet Organic Farm Hub',
             origin: fo.farmer_name || 'Benguet Organic Farm Hub',
             originProvince: 'Benguet',
             destination: fo.delivery_address || 'Metro Manila'
@@ -9095,6 +9374,124 @@ function getAllPlatformOrders() {
       });
     }
   } catch (e) {}
+
+  // 5. Seed default platform transactions covering all status states (Pending, In Transit, Delivered, Cancelled)
+  const seedPlatformOrders = [
+    {
+      id: 'ORD-9821',
+      date: 'Oct 10, 2026',
+      placed_at: 'Oct 10, 2026, 07:15 AM',
+      customer_name: 'Julia Barretto',
+      customer_phone: '+63 917 842 9012',
+      delivery_address: 'Bel-Air Village, Makati City, Metro Manila',
+      items: [
+        { name: 'Benguet Highland Strawberries', quantity: 3, unit: 'kg', price: 250 },
+        { name: 'Crisp Baguio Lettuce', quantity: 2, unit: 'kg', price: 140 }
+      ],
+      total: 1125,
+      total_amount: 1125,
+      paymentMethod: 'AgriConnect Balance (Pay Now)',
+      paymentStatus: 'Direct Settled (Escrow Cleared)',
+      status: 'In Cold-Chain Transit',
+      status_code: 'in_transit',
+      farmer_name: 'Mang Ramon Dela Cruz',
+      origin: 'Dela Cruz Family Farm, Benguet',
+      delivery_method: 'Refrigerated Cold-Chain Van (Route #4)',
+      eta: 'Today, 11:30 AM'
+    },
+    {
+      id: 'ORD-9784',
+      date: 'Oct 10, 2026',
+      placed_at: 'Oct 10, 2026, 06:40 AM',
+      customer_name: 'Marco Antonio',
+      customer_phone: '+63 922 419 8830',
+      delivery_address: 'Corinthian Gardens, Quezon City, Metro Manila',
+      items: [
+        { name: 'Nueva Ecija Premium Dinorado Rice (25kg)', quantity: 2, unit: 'sacks', price: 1350 }
+      ],
+      total: 2795,
+      total_amount: 2795,
+      paymentMethod: 'GCash Instant Settlement',
+      paymentStatus: 'Direct Settled (Escrow Cleared)',
+      status: 'Harvested & Packing',
+      status_code: 'pending',
+      farmer_name: 'Aling Nena Bautista',
+      origin: 'Bautista Rice Fields, Nueva Ecija',
+      delivery_method: 'Direct Farm Dispatch Truck',
+      eta: 'Tomorrow, 09:00 AM'
+    },
+    {
+      id: 'ORD-9650',
+      date: 'Oct 9, 2026',
+      placed_at: 'Oct 9, 2026, 04:20 PM',
+      customer_name: 'Chef Regina Cruz',
+      customer_phone: '+63 918 552 1144',
+      delivery_address: 'Bonifacio Global City, Taguig, Metro Manila',
+      items: [
+        { name: 'Guimaras Sweet Carabao Mangoes', quantity: 5, unit: 'kg', price: 180 },
+        { name: 'Fresh Navotas Bangus (Milkfish)', quantity: 4, unit: 'kg', price: 190 }
+      ],
+      total: 1755,
+      total_amount: 1755,
+      paymentMethod: 'Landbank Agri-Pay',
+      paymentStatus: 'Direct Settled (Escrow Cleared)',
+      status: 'Delivered to Buyer',
+      status_code: 'delivered',
+      farmer_name: 'Kuya Jun Villanueva & Ate Marites',
+      origin: 'Guimaras & Navotas Coastal Dispatch',
+      delivery_method: 'Cold-Chain Express Delivery',
+      eta: 'Delivered Oct 9, 07:15 PM'
+    },
+    {
+      id: 'ORD-9512',
+      date: 'Oct 9, 2026',
+      placed_at: 'Oct 9, 2026, 01:10 PM',
+      customer_name: 'David Reyes',
+      customer_phone: '+63 920 184 7729',
+      delivery_address: 'Alabang Hills, Muntinlupa City, Metro Manila',
+      items: [
+        { name: 'Quezon Virgin Coconut Oil (500ml)', quantity: 2, unit: 'bottles', price: 280 }
+      ],
+      total: 655,
+      total_amount: 655,
+      paymentMethod: 'GCash Instant Settlement',
+      paymentStatus: 'Escrow Refunded to Buyer',
+      status: 'Order Cancelled',
+      status_code: 'cancelled',
+      farmer_name: 'Tatay Berting Lopez',
+      origin: 'Lopez Coconut & Root Farm, Quezon',
+      delivery_method: 'Standard Farm Dispatch',
+      eta: 'Cancelled by Buyer'
+    },
+    {
+      id: 'ORD-9430',
+      date: 'Oct 8, 2026',
+      placed_at: 'Oct 8, 2026, 09:30 AM',
+      customer_name: 'Camilla Gomez',
+      customer_phone: '+63 917 339 5012',
+      delivery_address: 'Greenhills West, San Juan City, Metro Manila',
+      items: [
+        { name: 'Fresh Free-Range Farm Eggs (Tray of 30)', quantity: 3, unit: 'trays', price: 260 },
+        { name: 'Tagaytay Fresh Organic Kale', quantity: 2, unit: 'bunches', price: 95 }
+      ],
+      total: 1065,
+      total_amount: 1065,
+      paymentMethod: 'Maya Direct Settlement',
+      paymentStatus: 'Direct Settled (Escrow Cleared)',
+      status: 'Delivered to Buyer',
+      status_code: 'delivered',
+      farmer_name: 'Cora Valdez & Maria Santos',
+      origin: 'Batangas & Cavite Farm Gate',
+      delivery_method: 'AgriConnect Cold-Chain Van',
+      eta: 'Delivered Oct 8, 02:45 PM'
+    }
+  ];
+
+  seedPlatformOrders.forEach(seed => {
+    if (!orderMap.has(seed.id)) {
+      orderMap.set(seed.id, seed);
+    }
+  });
 
   const ordersArray = Array.from(orderMap.values());
   return ordersArray.sort((a, b) => {
@@ -10331,6 +10728,1054 @@ function closeAdminDocReviewModal() {
   const modal = document.getElementById('adminDocReviewModal');
   if (modal) modal.classList.remove('open');
 }
+
+// =============================================================================
+// 6. ADMIN EXECUTIVE SUBSCRIPTION STATUS & AD MANAGEMENT CONTROLLER
+// =============================================================================
+
+function getAllFarmerSubscriptions() {
+  const subMap = new Map();
+
+  // 1. Check custom / saved subscriptions in localStorage
+  try {
+    const storedSubs = JSON.parse(localStorage.getItem('agri_farmer_subscriptions') || '[]');
+    if (Array.isArray(storedSubs)) {
+      storedSubs.forEach(s => {
+        if (s && s.id) subMap.set(s.id, { ...s });
+      });
+    }
+  } catch (e) {}
+
+  // 2. Base platform participating farmer subscriptions
+  const baseSubscriptions = [
+    {
+      id: 'SUB-2026-001',
+      farmer_id: 'farmer-ramon',
+      farmer_name: 'Mang Ramon Dela Cruz',
+      farm_name: 'Dela Cruz Family Farm',
+      province: 'Benguet',
+      city: 'La Trinidad',
+      avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=400',
+      plan_id: 'monthly',
+      plan_name: 'Monthly Pro (AI Video Ad)',
+      plan_cost: 700,
+      period_days: 30,
+      start_date: '2026-09-12',
+      end_date: '2026-10-12', // 2 days remaining (Expiring soon)
+      impressions: 14280,
+      clicks: 1890,
+      reminded: false
+    },
+    {
+      id: 'SUB-2026-002',
+      farmer_id: 'farmer-nena',
+      farmer_name: 'Aling Nena Bautista',
+      farm_name: 'Bautista Rice Fields',
+      province: 'Nueva Ecija',
+      city: 'Cabanatuan',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
+      plan_id: 'annual',
+      plan_name: 'Annual VIP (Priority Commercials)',
+      plan_cost: 5000,
+      period_days: 365,
+      start_date: '2026-01-15',
+      end_date: '2027-01-15', // Active
+      impressions: 89400,
+      clicks: 11240,
+      reminded: false
+    },
+    {
+      id: 'SUB-2026-003',
+      farmer_id: 'farmer-jun',
+      farmer_name: 'Kuya Jun Villanueva',
+      farm_name: 'Villanueva Mango Orchard',
+      province: 'Guimaras',
+      city: 'Jordan',
+      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      plan_id: 'weekly',
+      plan_name: 'Weekly Boost',
+      plan_cost: 200,
+      period_days: 7,
+      start_date: '2026-10-02',
+      end_date: '2026-10-09', // Expired
+      impressions: 4820,
+      clicks: 640,
+      reminded: false
+    },
+    {
+      id: 'SUB-2026-004',
+      farmer_id: 'farmer-marites',
+      farmer_name: 'Ate Marites Sarmiento',
+      farm_name: 'Sarmiento Coastal Catch',
+      province: 'Metro Manila',
+      city: 'Navotas',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
+      plan_id: 'monthly',
+      plan_name: 'Monthly Pro (AI Video Ad)',
+      plan_cost: 700,
+      period_days: 30,
+      start_date: '2026-09-11',
+      end_date: '2026-10-11', // 1 day remaining (Expiring soon)
+      impressions: 16840,
+      clicks: 2190,
+      reminded: false
+    },
+    {
+      id: 'SUB-2026-005',
+      farmer_id: 'farmer-berting',
+      farmer_name: 'Tatay Berting Lopez',
+      farm_name: 'Lopez Coconut & Root Farm',
+      province: 'Quezon',
+      city: 'Lucena',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+      plan_id: 'monthly',
+      plan_name: 'Monthly Pro (AI Video Ad)',
+      plan_cost: 700,
+      period_days: 30,
+      start_date: '2026-09-25',
+      end_date: '2026-10-25', // 15 days remaining (Active)
+      impressions: 9420,
+      clicks: 1350,
+      reminded: false
+    },
+    {
+      id: 'SUB-2026-006',
+      farmer_id: 'farmer-maria-santos',
+      farmer_name: 'Maria Santos',
+      farm_name: 'Santos Organic Greens',
+      province: 'Cavite',
+      city: 'Tagaytay',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      plan_id: 'weekly',
+      plan_name: 'Weekly Boost',
+      plan_cost: 200,
+      period_days: 7,
+      start_date: '2026-10-07',
+      end_date: '2026-10-14', // 4 days remaining (Active)
+      impressions: 3950,
+      clicks: 580,
+      reminded: false
+    },
+    {
+      id: 'SUB-2026-007',
+      farmer_id: 'farmer-felipe-dizon',
+      farmer_name: 'Felipe Dizon',
+      farm_name: 'Dizon Citrus & Mango Grove',
+      province: 'Pampanga',
+      city: 'San Fernando',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+      plan_id: 'monthly',
+      plan_name: 'Monthly Pro (AI Video Ad)',
+      plan_cost: 700,
+      period_days: 30,
+      start_date: '2026-09-13',
+      end_date: '2026-10-13', // 3 days remaining (Expiring soon)
+      impressions: 11900,
+      clicks: 1620,
+      reminded: false
+    },
+    {
+      id: 'SUB-2026-008',
+      farmer_id: 'farmer-cora-valdez',
+      farmer_name: 'Cora Valdez',
+      farm_name: 'Valdez Poultry & Egg Station',
+      province: 'Batangas',
+      city: 'Lipa',
+      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400',
+      plan_id: 'annual',
+      plan_name: 'Annual VIP (Priority Commercials)',
+      plan_cost: 5000,
+      period_days: 365,
+      start_date: '2026-02-01',
+      end_date: '2027-02-01', // Active
+      impressions: 68400,
+      clicks: 8900,
+      reminded: false
+    },
+    {
+      id: 'SUB-2026-009',
+      farmer_id: 'farmer-juan-dimagiba',
+      farmer_name: 'Juan Dimagiba',
+      farm_name: 'Dimagiba Root Crops Hub',
+      province: 'Laguna',
+      city: 'Calamba',
+      avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400',
+      plan_id: 'weekly',
+      plan_name: 'Weekly Boost',
+      plan_cost: 200,
+      period_days: 7,
+      start_date: '2026-09-28',
+      end_date: '2026-10-05', // Expired
+      impressions: 5120,
+      clicks: 690,
+      reminded: false
+    }
+  ];
+
+  baseSubscriptions.forEach(s => {
+    if (!subMap.has(s.id)) {
+      subMap.set(s.id, s);
+    }
+  });
+
+  const now = new Date('2026-10-10T00:00:00');
+  const subscriptions = Array.from(subMap.values()).map(sub => {
+    const end = new Date(sub.end_date);
+    const diffTime = end.getTime() - now.getTime();
+    const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    let status_code = 'active';
+    if (daysRemaining <= 0) {
+      status_code = 'expired';
+    } else if (daysRemaining <= 3) {
+      status_code = 'expiring_soon';
+    }
+
+    return {
+      ...sub,
+      days_remaining: daysRemaining,
+      status_code: status_code,
+      reminded: Boolean(sub.reminded)
+    };
+  });
+
+  return subscriptions.sort((a, b) => {
+    if (a.status_code === 'expiring_soon' && b.status_code !== 'expiring_soon') return -1;
+    if (b.status_code === 'expiring_soon' && a.status_code !== 'expiring_soon') return 1;
+    return a.days_remaining - b.days_remaining;
+  });
+}
+
+function initSubscriptionPage() {
+  const lockEl = document.getElementById('adminSubLockContainer');
+  const mainEl = document.getElementById('adminSubMainView');
+  const user = window.AgriState.user;
+  const isAdmin = Boolean(user && (user.role === 'admin' || user.is_admin || user.email === 'comiakrystel@gmail.com'));
+
+  if (!isAdmin) {
+    if (lockEl) lockEl.style.display = 'block';
+    if (mainEl) mainEl.style.display = 'none';
+    return;
+  }
+
+  if (lockEl) lockEl.style.display = 'none';
+  if (mainEl) mainEl.style.display = 'block';
+
+  refreshSubscriptionData();
+}
+
+function refreshSubscriptionData() {
+  const subs = getAllFarmerSubscriptions();
+  
+  // Calculate KPIs
+  const totalEarnings = subs.reduce((sum, s) => sum + (s.plan_cost || 0), 0);
+  const activeSubs = subs.filter(s => s.status_code === 'active' || s.status_code === 'expiring_soon');
+  const expiringSubs = subs.filter(s => s.status_code === 'expiring_soon');
+  const expiredSubs = subs.filter(s => s.status_code === 'expired');
+
+  // Plan counts & earnings
+  const weeklySubs = subs.filter(s => s.plan_id === 'weekly');
+  const monthlySubs = subs.filter(s => s.plan_id === 'monthly');
+  const annualSubs = subs.filter(s => s.plan_id === 'annual');
+
+  const weeklyEarnings = weeklySubs.reduce((sum, s) => sum + s.plan_cost, 0);
+  const monthlyEarnings = monthlySubs.reduce((sum, s) => sum + s.plan_cost, 0);
+  const annualEarnings = annualSubs.reduce((sum, s) => sum + s.plan_cost, 0);
+
+  // Update KPI Elements
+  const kpiEarnings = document.getElementById('kpiSubTotalEarnings');
+  const kpiActive = document.getElementById('kpiSubActiveCount');
+  const kpiActiveSubtext = document.getElementById('kpiSubActiveSubtext');
+  const kpiExpiring = document.getElementById('kpiSubExpiringCount');
+  const kpiPopularPlan = document.getElementById('kpiSubPopularPlan');
+  const kpiPopularSubtext = document.getElementById('kpiSubPopularSubtext');
+
+  if (kpiEarnings) kpiEarnings.textContent = `₱${totalEarnings.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+  if (kpiActive) kpiActive.textContent = `${activeSubs.length} Active`;
+  if (kpiActiveSubtext) kpiActiveSubtext.textContent = `${subs.length} Total participating farmers`;
+  if (kpiExpiring) kpiExpiring.textContent = `${expiringSubs.length} Expiring Soon`;
+
+  // Determine Most Popular Tier
+  let popularName = 'Monthly Pro (₱700)';
+  let popularPct = '48%';
+  if (monthlySubs.length >= weeklySubs.length && monthlySubs.length >= annualSubs.length) {
+    popularName = 'Monthly Pro (₱700)';
+    popularPct = `${Math.round((monthlySubs.length / subs.length) * 100)}% of producers`;
+  } else if (annualSubs.length >= weeklySubs.length) {
+    popularName = 'Annual VIP (₱5,000)';
+    popularPct = `${Math.round((annualSubs.length / subs.length) * 100)}% of producers`;
+  } else {
+    popularName = 'Weekly Boost (₱200)';
+    popularPct = `${Math.round((weeklySubs.length / subs.length) * 100)}% of producers`;
+  }
+  if (kpiPopularPlan) kpiPopularPlan.textContent = popularName;
+  if (kpiPopularSubtext) kpiPopularSubtext.textContent = `Preferred by ${popularPct}`;
+
+  // Update Plan Breakdown Cards
+  const elWeeklyCount = document.getElementById('planCountWeekly');
+  const elWeeklyEarnings = document.getElementById('planEarningsWeekly');
+  const elMonthlyCount = document.getElementById('planCountMonthly');
+  const elMonthlyEarnings = document.getElementById('planEarningsMonthly');
+  const elAnnualCount = document.getElementById('planCountAnnual');
+  const elAnnualEarnings = document.getElementById('planEarningsAnnual');
+
+  if (elWeeklyCount) elWeeklyCount.textContent = weeklySubs.length;
+  if (elWeeklyEarnings) elWeeklyEarnings.textContent = `₱${weeklyEarnings.toLocaleString('en-PH')}`;
+  if (elMonthlyCount) elMonthlyCount.textContent = monthlySubs.length;
+  if (elMonthlyEarnings) elMonthlyEarnings.textContent = `₱${monthlyEarnings.toLocaleString('en-PH')}`;
+  if (elAnnualCount) elAnnualCount.textContent = annualSubs.length;
+  if (elAnnualEarnings) elAnnualEarnings.textContent = `₱${annualEarnings.toLocaleString('en-PH')}`;
+
+  // Update filter counts
+  const cAll = document.getElementById('countSubFilterAll');
+  const cExpiring = document.getElementById('countSubFilterExpiring');
+  const cActive = document.getElementById('countSubFilterActive');
+  const cExpired = document.getElementById('countSubFilterExpired');
+
+  if (cAll) cAll.textContent = subs.length;
+  if (cExpiring) cExpiring.textContent = expiringSubs.length;
+  if (cActive) cActive.textContent = activeSubs.length;
+  if (cExpired) cExpired.textContent = expiredSubs.length;
+
+  renderAdminSubscriptions();
+}
+
+function renderAdminSubscriptions(searchQuery = '', statusFilter = null) {
+  const tbody = document.getElementById('adminSubscriptionsTableBody');
+  if (!tbody) return;
+
+  const currentFilter = statusFilter || window.AgriState.adminSubFilter || 'all';
+  let subs = getAllFarmerSubscriptions();
+
+  // Search filter
+  const query = (searchQuery || (document.getElementById('subSearchInput') ? document.getElementById('subSearchInput').value : '')).trim().toLowerCase();
+  if (query) {
+    subs = subs.filter(s => 
+      s.farmer_name.toLowerCase().includes(query) ||
+      s.farm_name.toLowerCase().includes(query) ||
+      s.province.toLowerCase().includes(query) ||
+      s.plan_name.toLowerCase().includes(query)
+    );
+  }
+
+  // Status filter
+  if (currentFilter === 'expiring') {
+    subs = subs.filter(s => s.status_code === 'expiring_soon');
+  } else if (currentFilter === 'active') {
+    subs = subs.filter(s => s.status_code === 'active');
+  } else if (currentFilter === 'expired') {
+    subs = subs.filter(s => s.status_code === 'expired');
+  }
+
+  if (subs.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+          <div style="font-weight: 700; font-size: 1rem; color: var(--text-main);">No subscription records match your filter criteria</div>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">Try resetting your search query or selecting "All Plans".</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = subs.map(sub => {
+    const isExpiring = sub.status_code === 'expiring_soon';
+    const isExpired = sub.status_code === 'expired';
+    const isActive = sub.status_code === 'active';
+
+    let statusPill = '';
+    if (isExpiring) {
+      statusPill = `<span class="sub-status-pill" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">⚠️ Expiring Soon (${sub.days_remaining}d)</span>`;
+    } else if (isExpired) {
+      statusPill = `<span class="sub-status-pill" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;">✗ Expired (${Math.abs(sub.days_remaining)}d ago)</span>`;
+    } else {
+      statusPill = `<span class="sub-status-pill" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">✓ Active (${sub.days_remaining}d)</span>`;
+    }
+
+    // Days remaining progress bar
+    const maxDays = sub.period_days || 30;
+    const pct = Math.max(0, Math.min(100, Math.round((sub.days_remaining / maxDays) * 100)));
+    const barColor = isExpiring ? '#f59e0b' : (isExpired ? '#ef4444' : '#22c55e');
+
+    return `
+      <tr style="${isExpiring ? 'background: #fffdf5;' : ''}">
+        <td>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <img src="${sub.avatar}" alt="${sub.farmer_name}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid ${isExpiring ? '#f59e0b' : 'var(--border-subtle)'};">
+            <div>
+              <div style="font-weight: 800; font-size: 0.9rem; color: var(--text-main);">${sub.farmer_name}</div>
+              <div style="font-size: 0.725rem; color: var(--text-muted); font-family: monospace;">ID: ${sub.id}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div style="font-weight: 700; color: var(--text-main); font-size: 0.85rem;">${sub.farm_name}</div>
+          <div style="font-size: 0.75rem; color: var(--primary-deep); font-weight: 600;">📍 ${sub.city}, ${sub.province}</div>
+        </td>
+        <td>
+          <div style="font-weight: 800; font-size: 0.85rem; color: ${sub.plan_id === 'annual' ? '#7c3aed' : (sub.plan_id === 'monthly' ? '#15803d' : '#2563eb')};">
+            ${sub.plan_name}
+          </div>
+          <div style="font-weight: 800; font-size: 0.8rem; color: var(--text-main); font-family: monospace;">
+            ₱${sub.plan_cost.toLocaleString('en-PH')} / ${sub.period_days} Days
+          </div>
+        </td>
+        <td>
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">${sub.start_date} &rarr; ${sub.end_date}</div>
+          <div style="font-size: 0.725rem; color: var(--text-muted);">${sub.period_days} Days Billing Cycle</div>
+        </td>
+        <td>
+          <div style="min-width: 110px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 800; color: ${barColor}; margin-bottom: 0.2rem;">
+              <span>${isExpired ? '0 Days' : `${sub.days_remaining} Days`}</span>
+              <span>${pct}%</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 9999px; overflow: hidden;">
+              <div style="width: ${pct}%; height: 100%; background: ${barColor}; border-radius: 9999px;"></div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">🎬 ${(sub.impressions || 0).toLocaleString()} Views</div>
+          <div style="font-size: 0.725rem; color: #15803d; font-weight: 600;">👆 ${(sub.clicks || 0).toLocaleString()} Store Clicks</div>
+        </td>
+        <td>
+          ${statusPill}
+        </td>
+        <td style="text-align: right;">
+          <div style="display: inline-flex; gap: 0.35rem; justify-content: flex-end; align-items: center;">
+            ${sub.reminded ? `
+              <span style="background: #dcfce7; color: #15803d; font-size: 0.725rem; font-weight: 800; padding: 0.35rem 0.65rem; border-radius: var(--radius-sm); border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 0.3rem;">
+                ✓ Reminded
+              </span>
+            ` : `
+              <button 
+                onclick="adminSendSubscriptionReminder('${sub.id}', '${sub.farmer_name.replace(/'/g, "\\'")}')" 
+                class="btn-primary" 
+                style="padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 800; background: ${isExpiring ? '#d97706' : '#15803d'}; border-color: ${isExpiring ? '#d97706' : '#15803d'}; display: inline-flex; align-items: center; gap: 0.3rem;"
+                title="Send automated push & SMS reminder to ${sub.farmer_name} to renew before expiration"
+              >
+                🔔 Remind
+              </button>
+            `}
+            <button 
+              onclick="adminManualRenewSubscription('${sub.id}', '${sub.farmer_name.replace(/'/g, "\\'")}', '${sub.plan_id}')" 
+              class="btn-secondary" 
+              style="padding: 0.35rem 0.65rem; font-size: 0.75rem; font-weight: 700; white-space: nowrap;"
+              title="Renew subscription contract for ${sub.farmer_name}"
+            >
+              ⚡ Renew
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterSubscriptions(filter) {
+  window.AgriState.adminSubFilter = filter;
+  
+  const buttons = ['all', 'expiring', 'active', 'expired'];
+  buttons.forEach(b => {
+    const btn = document.getElementById(`subFilter${b.charAt(0).toUpperCase() + b.slice(1)}`);
+    if (btn) {
+      if (b === filter) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    }
+  });
+
+  renderAdminSubscriptions('', filter);
+}
+
+function handleSubSearch(query) {
+  renderAdminSubscriptions(query, window.AgriState.adminSubFilter || 'all');
+}
+
+function adminSendSubscriptionReminder(subId, farmerName) {
+  const subs = getAllFarmerSubscriptions();
+  const sub = subs.find(s => s.id === subId);
+  if (!sub) return;
+
+  sub.reminded = true;
+  sub.last_reminded_at = new Date().toISOString();
+
+  // Save to agri_farmer_subscriptions
+  try {
+    const stored = JSON.parse(localStorage.getItem('agri_farmer_subscriptions') || '[]');
+    const existingIdx = stored.findIndex(s => s.id === subId);
+    if (existingIdx >= 0) {
+      stored[existingIdx] = { ...stored[existingIdx], reminded: true, last_reminded_at: sub.last_reminded_at };
+    } else {
+      stored.push(sub);
+    }
+    localStorage.setItem('agri_farmer_subscriptions', JSON.stringify(stored));
+  } catch (e) {}
+
+  // Save notification for the farmer
+  try {
+    const notifKey = `agri_notifications_${sub.farmer_id}`;
+    const notifs = JSON.parse(localStorage.getItem(notifKey) || '[]');
+    notifs.unshift({
+      id: `notif-${Date.now()}`,
+      type: 'subscription_expiring',
+      title: '🔔 Subscription Renewal Alert',
+      message: `Your ${sub.plan_name} is expiring in ${sub.days_remaining} day(s). Renew today to keep your AI Video Commercial actively promoting your harvest on the AgriConnect marketplace.`,
+      timestamp: new Date().toISOString(),
+      read: false
+    });
+    localStorage.setItem(notifKey, JSON.stringify(notifs));
+  } catch (e) {}
+
+  showToast(`🔔 Renewal reminder successfully dispatched to ${farmerName}! Notification logged.`);
+  renderAdminSubscriptions();
+}
+
+function adminManualRenewSubscription(subId, farmerName, planType = 'monthly') {
+  const subs = getAllFarmerSubscriptions();
+  const sub = subs.find(s => s.id === subId);
+  if (!sub) return;
+
+  const durationDays = planType === 'annual' ? 365 : (planType === 'weekly' ? 7 : 30);
+  const cost = planType === 'annual' ? 5000 : (planType === 'weekly' ? 200 : 700);
+  const newStartDate = new Date('2026-10-10');
+  const newEndDate = new Date(newStartDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+  sub.start_date = newStartDate.toISOString().split('T')[0];
+  sub.end_date = newEndDate.toISOString().split('T')[0];
+  sub.plan_id = planType;
+  sub.plan_cost = cost;
+  sub.period_days = durationDays;
+  sub.plan_name = planType === 'annual' ? 'Annual VIP (Priority Commercials)' : (planType === 'weekly' ? 'Weekly Boost' : 'Monthly Pro (AI Video Ad)');
+  sub.reminded = false;
+
+  try {
+    const stored = JSON.parse(localStorage.getItem('agri_farmer_subscriptions') || '[]');
+    const existingIdx = stored.findIndex(s => s.id === subId);
+    if (existingIdx >= 0) {
+      stored[existingIdx] = sub;
+    } else {
+      stored.push(sub);
+    }
+    localStorage.setItem('agri_farmer_subscriptions', JSON.stringify(stored));
+  } catch (e) {}
+
+  showToast(`⚡ ${sub.plan_name} renewed successfully for ${farmerName} (+${durationDays} days extended)!`);
+  refreshSubscriptionData();
+}
+
+// =============================================================================
+// 7. ADMIN MARKETPLACE DASHBOARD ANALYTICS CONTROLLER
+// =============================================================================
+
+function renderMarketplaceAdminAnalytics() {
+  const container = document.getElementById('adminMarketplaceAnalyticsPanel');
+  if (!container) return;
+
+  const products = window.AgriState.products || [];
+  const orders = getAllPlatformOrders();
+
+  // 1. Calculate Product Sales & Units
+  const productSalesMap = new Map();
+  
+  // Initialize with catalog items and baseline historical volumes
+  products.forEach(p => {
+    // Generate deterministic baseline volume based on rating & price
+    const baselineUnits = Math.round(((p.price < 100 ? 240 : (p.price < 300 ? 120 : 45)) + (Number(p.rating || 4.8) * 15)));
+    productSalesMap.set(p.id, {
+      id: p.id,
+      name: p.name,
+      category: p.category_name || 'Produce',
+      farmer_name: p.farmer_name || 'Verified Farmer',
+      province: p.province || 'Luzon',
+      price: p.price || 0,
+      image: p.image_url,
+      stock: p.quantity || 50,
+      unit: p.unit || 'kg',
+      units_sold: baselineUnits,
+      revenue: baselineUnits * (p.price || 0)
+    });
+  });
+
+  // Aggregate live buyer orders
+  orders.forEach(order => {
+    (order.items || []).forEach(item => {
+      const pId = item.id || item.product_id;
+      if (pId && productSalesMap.has(pId)) {
+        const record = productSalesMap.get(pId);
+        const qty = Number(item.quantity || 1);
+        record.units_sold += qty;
+        record.revenue += qty * (record.price || item.price || 0);
+      } else if (item.name) {
+        // match by name if id differs
+        for (const [id, rec] of productSalesMap.entries()) {
+          if (rec.name.toLowerCase() === item.name.toLowerCase()) {
+            const qty = Number(item.quantity || 1);
+            rec.units_sold += qty;
+            rec.revenue += qty * (rec.price || item.price || 0);
+            break;
+          }
+        }
+      }
+    });
+  });
+
+  const productSalesList = Array.from(productSalesMap.values());
+  const totalMarketplaceGMV = productSalesList.reduce((sum, p) => sum + p.revenue, 0);
+  const totalUnitsSold = productSalesList.reduce((sum, p) => sum + p.units_sold, 0);
+
+  // 2. Calculate Top Performing Farmers
+  const farmerSalesMap = new Map();
+  productSalesList.forEach(p => {
+    const fKey = p.farmer_name;
+    if (!farmerSalesMap.has(fKey)) {
+      farmerSalesMap.set(fKey, {
+        farmer_name: fKey,
+        province: p.province,
+        total_revenue: 0,
+        units_sold: 0,
+        product_count: 0,
+        rating: 4.9,
+        orders_count: 0
+      });
+    }
+    const fRec = farmerSalesMap.get(fKey);
+    fRec.total_revenue += p.revenue;
+    fRec.units_sold += p.units_sold;
+    fRec.product_count += 1;
+  });
+
+  // Attach order counts
+  orders.forEach(o => {
+    const fName = o.farmer_name || o.origin;
+    if (fName && farmerSalesMap.has(fName)) {
+      farmerSalesMap.get(fName).orders_count += 1;
+    }
+  });
+
+  const topFarmersList = Array.from(farmerSalesMap.values()).sort((a, b) => b.total_revenue - a.total_revenue);
+  const topFarmer = topFarmersList[0] || { farmer_name: 'Mang Ramon Dela Cruz', total_revenue: 84200, province: 'Benguet' };
+
+  // 3. Calculate Best-Selling Items
+  const bestSellersList = [...productSalesList].sort((a, b) => b.units_sold - a.units_sold);
+  const topItem = bestSellersList[0] || { name: 'Benguet Highland Strawberries', units_sold: 840, unit: 'kg' };
+
+  // Current active tab (default: 'products')
+  const activeTab = window.AgriState.adminAnalyticsTab || 'products';
+
+  container.innerHTML = `
+    <!-- Top Executive Admin Header Bar -->
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a29 100%); border-radius: var(--radius-md); padding: 1.5rem 1.75rem; color: #ffffff; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+          <span style="background: #dc2626; color: #ffffff; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em;">
+            👑 Admin Analytics Console
+          </span>
+          <span style="font-size: 0.75rem; color: #bbf7d0; font-weight: 600;">Philippine Agricultural GMV & Performance</span>
+        </div>
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: #ffffff; margin: 0;">
+          Marketplace Sales & Producer Intelligence
+        </h2>
+        <p style="font-size: 0.85rem; color: #f0fdf4; opacity: 0.9; margin: 0.2rem 0 0;">
+          Comprehensive real-time analytics for farmgate revenue, top agricultural producers, and volume velocity across all crop tiers.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="subscriptions.html" class="btn-secondary" style="background: rgba(255,255,255,0.15); color: #ffffff; border-color: rgba(255,255,255,0.3); font-size: 0.8rem; font-weight: 700; padding: 0.5rem 1rem; text-decoration: none;">
+          👑 Subscription Status &rarr;
+        </a>
+        <a href="admin.html" class="btn-primary" style="background: #166534; border-color: #166534; font-size: 0.8rem; font-weight: 700; padding: 0.5rem 1rem; text-decoration: none;">
+          Executive Console &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- 4 KPI Metrics Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      
+      <!-- Metric 1: Total Marketplace Sales -->
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Marketplace GMV</span>
+          <span style="width: 28px; height: 28px; border-radius: var(--radius-sm); background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem;">₱</span>
+        </div>
+        <div style="font-size: 1.65rem; font-weight: 800; color: var(--primary-deep); font-family: monospace;">
+          ₱${totalMarketplaceGMV.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+        </div>
+        <div style="font-size: 0.725rem; color: #15803d; font-weight: 700; margin-top: 0.25rem;">
+          Direct Farmgate Settlement Volume
+        </div>
+      </div>
+
+      <!-- Metric 2: Total Units Sold -->
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Harvest Volume Sold</span>
+          <span style="width: 28px; height: 28px; border-radius: var(--radius-sm); background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">📦</span>
+        </div>
+        <div style="font-size: 1.65rem; font-weight: 800; color: var(--text-main);">
+          ${totalUnitsSold.toLocaleString()} Units
+        </div>
+        <div style="font-size: 0.725rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Across ${productSalesList.length} catalog listings
+        </div>
+      </div>
+
+      <!-- Metric 3: Top Performing Farmer -->
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Top-Performing Farmer</span>
+          <span style="width: 28px; height: 28px; border-radius: var(--radius-sm); background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center;">🏆</span>
+        </div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${topFarmer.farmer_name}">
+          ${topFarmer.farmer_name}
+        </div>
+        <div style="font-size: 0.725rem; color: var(--primary-deep); font-weight: 700; margin-top: 0.25rem;">
+          ₱${(topFarmer.total_revenue || 0).toLocaleString('en-PH')} • ${topFarmer.province}
+        </div>
+      </div>
+
+      <!-- Metric 4: Best-Selling Item -->
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Best-Selling Item</span>
+          <span style="width: 28px; height: 28px; border-radius: var(--radius-sm); background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center;">🌟</span>
+        </div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: #7c3aed; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${topItem.name}">
+          ${topItem.name}
+        </div>
+        <div style="font-size: 0.725rem; color: var(--text-muted); margin-top: 0.25rem;">
+          ${(topItem.units_sold || 0).toLocaleString()} ${topItem.unit} sold (${Math.round(((topItem.revenue || 1) / (totalMarketplaceGMV || 1)) * 100)}% of GMV)
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Analytics Tab Navigation -->
+    <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 1.5rem;">
+      <div style="display: flex; border-bottom: 1px solid var(--border-subtle); background: #fafafa; overflow-x: auto;">
+        <button 
+          onclick="switchAdminMarketplaceAnalyticsTab('products')" 
+          style="padding: 0.85rem 1.25rem; font-size: 0.85rem; font-weight: 800; border: none; background: ${activeTab === 'products' ? '#ffffff' : 'transparent'}; color: ${activeTab === 'products' ? 'var(--primary)' : 'var(--text-secondary)'}; border-bottom: 2.5px solid ${activeTab === 'products' ? 'var(--primary)' : 'transparent'}; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap;"
+        >
+          📊 Sales Per Product (${productSalesList.length})
+        </button>
+        <button 
+          onclick="switchAdminMarketplaceAnalyticsTab('farmers')" 
+          style="padding: 0.85rem 1.25rem; font-size: 0.85rem; font-weight: 800; border: none; background: ${activeTab === 'farmers' ? '#ffffff' : 'transparent'}; color: ${activeTab === 'farmers' ? 'var(--primary)' : 'var(--text-secondary)'}; border-bottom: 2.5px solid ${activeTab === 'farmers' ? 'var(--primary)' : 'transparent'}; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap;"
+        >
+          🏆 Top-Performing Farmers (${topFarmersList.length})
+        </button>
+        <button 
+          onclick="switchAdminMarketplaceAnalyticsTab('bestsellers')" 
+          style="padding: 0.85rem 1.25rem; font-size: 0.85rem; font-weight: 800; border: none; background: ${activeTab === 'bestsellers' ? '#ffffff' : 'transparent'}; color: ${activeTab === 'bestsellers' ? 'var(--primary)' : 'var(--text-secondary)'}; border-bottom: 2.5px solid ${activeTab === 'bestsellers' ? 'var(--primary)' : 'transparent'}; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; white-space: nowrap;"
+        >
+          🌟 Best-Selling Items Leaderboard
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div style="padding: 1.25rem;">
+        
+        <!-- TAB 1: Sales Per Product Table -->
+        ${activeTab === 'products' ? `
+          <div style="overflow-x: auto;">
+            <table class="sub-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+              <thead>
+                <tr style="background: var(--bg-subtle); text-transform: uppercase; font-size: 0.725rem; color: var(--text-secondary); letter-spacing: 0.04em;">
+                  <th style="padding: 0.75rem 1rem; text-align: left;">Product Item</th>
+                  <th style="padding: 0.75rem 1rem; text-align: left;">Farmer Producer</th>
+                  <th style="padding: 0.75rem 1rem; text-align: right;">Unit Price</th>
+                  <th style="padding: 0.75rem 1rem; text-align: right;">Units Sold</th>
+                  <th style="padding: 0.75rem 1rem; text-align: right;">Gross Sales (₱)</th>
+                  <th style="padding: 0.75rem 1rem; text-align: center;">Stock Status</th>
+                  <th style="padding: 0.75rem 1rem; text-align: right;">GMV Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${productSalesList.map(p => {
+                  const gmvPct = Math.round((p.revenue / (totalMarketplaceGMV || 1)) * 100);
+                  const isLowStock = (p.stock || 0) < 20;
+
+                  return `
+                    <tr style="border-bottom: 1px solid var(--border-subtle);">
+                      <td style="padding: 0.85rem 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.65rem;">
+                          <img src="${p.image || 'assets/placeholder.jpg'}" alt="${p.name}" style="width: 36px; height: 36px; border-radius: var(--radius-sm); object-fit: cover;">
+                          <div>
+                            <div style="font-weight: 800; color: var(--text-main); font-size: 0.875rem;">${p.name}</div>
+                            <div style="font-size: 0.725rem; color: var(--text-muted);">${p.category}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style="padding: 0.85rem 1rem;">
+                        <div style="font-weight: 700; color: var(--text-main); font-size: 0.825rem;">${p.farmer_name}</div>
+                        <div style="font-size: 0.725rem; color: var(--primary-deep);">📍 ${p.province}</div>
+                      </td>
+                      <td style="padding: 0.85rem 1rem; text-align: right; font-family: monospace; font-weight: 700;">
+                        ₱${p.price.toLocaleString()} / ${p.unit}
+                      </td>
+                      <td style="padding: 0.85rem 1rem; text-align: right; font-weight: 800; color: var(--text-main);">
+                        ${p.units_sold.toLocaleString()} ${p.unit}
+                      </td>
+                      <td style="padding: 0.85rem 1rem; text-align: right; font-weight: 800; color: var(--primary-deep); font-family: monospace;">
+                        ₱${p.revenue.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td style="padding: 0.85rem 1rem; text-align: center;">
+                        <span style="font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 9999px; ${isLowStock ? 'background: #fee2e2; color: #dc2626;' : 'background: #dcfce7; color: #15803d;'}">
+                          ${isLowStock ? `Low Stock (${p.stock})` : `In Stock (${p.stock})`}
+                        </span>
+                      </td>
+                      <td style="padding: 0.85rem 1rem; text-align: right;">
+                        <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-secondary);">${gmvPct}%</div>
+                        <div style="width: 60px; height: 4px; background: #e2e8f0; border-radius: 9999px; margin-left: auto; overflow: hidden; margin-top: 0.2rem;">
+                          <div style="width: ${Math.min(100, gmvPct * 2)}%; height: 100%; background: var(--primary);"></div>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : ''}
+
+        <!-- TAB 2: Top-Performing Farmers Leaderboard -->
+        ${activeTab === 'farmers' ? `
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            ${topFarmersList.map((f, idx) => {
+              return `
+                <div style="border: 1.5px solid ${idx === 0 ? 'var(--primary)' : 'var(--border-subtle)'}; background: ${idx === 0 ? '#f0fdf4' : '#ffffff'}; border-radius: var(--radius-sm); padding: 1.15rem; box-shadow: var(--shadow-sm);">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.65rem;">
+                      <span style="width: 26px; height: 26px; border-radius: 50%; background: ${idx === 0 ? '#15803d' : (idx === 1 ? '#0284c7' : '#64748b')}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">
+                        #${idx + 1}
+                      </span>
+                      <div>
+                        <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">${f.farmer_name}</div>
+                        <div style="font-size: 0.75rem; color: var(--primary-deep); font-weight: 700;">📍 ${f.province} • PhilGAP Certified</div>
+                      </div>
+                    </div>
+                    <span style="background: #dcfce7; color: #15803d; font-size: 0.7rem; font-weight: 800; padding: 0.15rem 0.45rem; border-radius: 9999px;">
+                      ⭐ 4.9 Rating
+                    </span>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: rgba(0,0,0,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.65rem; margin-bottom: 0.75rem;">
+                    <div>
+                      <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Gross Sales</div>
+                      <div style="font-weight: 800; font-size: 1.05rem; color: var(--primary-deep); font-family: monospace;">
+                        ₱${f.total_revenue.toLocaleString('en-PH')}
+                      </div>
+                    </div>
+                    <div>
+                      <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Volume Shipped</div>
+                      <div style="font-weight: 800; font-size: 1.05rem; color: var(--text-main);">
+                        ${f.units_sold.toLocaleString()} Units
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary);">
+                    <span>Active Crop Listings: <strong>${f.product_count}</strong></span>
+                    <span style="color: #15803d; font-weight: 700;">✓ 99.4% Fulfillment Rate</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : ''}
+
+        <!-- TAB 3: Best-Selling Items Breakdown -->
+        ${activeTab === 'bestsellers' ? `
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+            ${bestSellersList.slice(0, 8).map((item, idx) => {
+              const pct = Math.round((item.revenue / (totalMarketplaceGMV || 1)) * 100);
+
+              return `
+                <div style="border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem; background: #ffffff; box-shadow: var(--shadow-sm);">
+                  <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <img src="${item.image || 'assets/placeholder.jpg'}" alt="${item.name}" style="width: 56px; height: 56px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-subtle);">
+                    <div style="flex: 1;">
+                      <span style="background: #ede9fe; color: #7c3aed; font-size: 0.65rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 9999px; text-transform: uppercase;">Rank #${idx + 1} Best Seller</span>
+                      <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main); margin-top: 0.2rem;">${item.name}</div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);">${item.farmer_name}</div>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; justify-content: space-between; font-size: 0.825rem; font-weight: 700; margin-bottom: 0.35rem;">
+                    <span>Volume: <strong style="color: var(--text-main);">${item.units_sold.toLocaleString()} ${item.unit}</strong></span>
+                    <span>Revenue: <strong style="color: var(--primary-deep);">₱${item.revenue.toLocaleString('en-PH')}</strong></span>
+                  </div>
+
+                  <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 9999px; overflow: hidden;">
+                    <div style="width: ${Math.min(100, pct * 3)}%; height: 100%; background: #7c3aed; border-radius: 9999px;"></div>
+                  </div>
+                  <div style="font-size: 0.7rem; color: var(--text-muted); text-align: right; margin-top: 0.2rem;">
+                    ${pct}% of total platform marketplace GMV
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : ''}
+
+      </div>
+    </div>
+  `;
+}
+
+function switchAdminMarketplaceAnalyticsTab(tabName) {
+  window.AgriState.adminAnalyticsTab = tabName;
+  renderMarketplaceAdminAnalytics();
+}
+
+// =============================================================================
+// 8. ADMIN PLATFORM ORDER TRACKING & LOGISTICS SUPERVISION CONTROLLER
+// =============================================================================
+
+function setAdminTrackFilter(status) {
+  window.AgriState.adminTrackFilter = status;
+
+  const buttons = [
+    { id: 'btnTrackFilterAll', status: 'all' },
+    { id: 'btnTrackFilterPending', status: 'pending' },
+    { id: 'btnTrackFilterInTransit', status: 'in_transit' },
+    { id: 'btnTrackFilterDelivered', status: 'delivered' },
+    { id: 'btnTrackFilterCancelled', status: 'cancelled' }
+  ];
+
+  buttons.forEach(b => {
+    const el = document.getElementById(b.id);
+    if (el) {
+      if (b.status === status) {
+        el.className = 'btn-primary';
+        el.style.background = 'var(--primary)';
+        el.style.color = '#ffffff';
+      } else {
+        el.className = 'btn-secondary';
+        el.style.background = '#ffffff';
+        el.style.color = 'var(--text-main)';
+      }
+    }
+  });
+
+  renderOrderTrackingList();
+}
+
+function adminUpdateOrderStatus(orderId, newStatus, newStatusCode) {
+  let resolvedCode = newStatusCode;
+  let statusLabel = newStatus;
+
+  const raw = (newStatus || '').toLowerCase();
+  if (!resolvedCode) {
+    if (raw === 'delivered' || raw.includes('delivered')) {
+      resolvedCode = 'delivered';
+      statusLabel = 'Delivered to Buyer';
+    } else if (raw === 'in_transit' || raw.includes('transit')) {
+      resolvedCode = 'in_transit';
+      statusLabel = 'In Cold-Chain Transit';
+    } else if (raw === 'cancelled' || raw.includes('cancel')) {
+      resolvedCode = 'cancelled';
+      statusLabel = 'Order Cancelled';
+    } else {
+      resolvedCode = 'pending';
+      statusLabel = 'Order Confirmed';
+    }
+  }
+
+  // 1. Update in agri_all_orders
+  try {
+    const masterOrders = JSON.parse(localStorage.getItem('agri_all_orders') || '[]');
+    const order = masterOrders.find(o => o.id === orderId);
+    if (order) {
+      order.status = statusLabel;
+      order.status_code = resolvedCode;
+      if (resolvedCode === 'delivered') order.paymentStatus = 'Settled & Released to Farmer';
+      localStorage.setItem('agri_all_orders', JSON.stringify(masterOrders));
+    }
+  } catch (e) {}
+
+  // 2. Update in agri_orders
+  try {
+    const orders = JSON.parse(localStorage.getItem('agri_orders') || '[]');
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      order.status = statusLabel;
+      order.status_code = resolvedCode;
+      if (resolvedCode === 'delivered') order.paymentStatus = 'Settled & Released to Farmer';
+      localStorage.setItem('agri_orders', JSON.stringify(orders));
+    }
+  } catch (e) {}
+
+  // 3. Update in user-scoped orders
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('agri_orders_') || key.startsWith('agri_buyer_orders_'))) {
+        try {
+          const userOrders = JSON.parse(localStorage.getItem(key) || '[]');
+          let modified = false;
+          userOrders.forEach(o => {
+            if (o && o.id === orderId) {
+              o.status = statusLabel;
+              o.status_code = resolvedCode;
+              if (resolvedCode === 'delivered') o.paymentStatus = 'Settled & Released to Farmer';
+              modified = true;
+            }
+          });
+          if (modified) {
+            localStorage.setItem(key, JSON.stringify(userOrders));
+          }
+        } catch (e) {}
+      }
+    }
+  } catch (e) {}
+
+  // 4. Update in agri_farmer_orders
+  try {
+    const farmerOrders = JSON.parse(localStorage.getItem('agri_farmer_orders') || '[]');
+    let modified = false;
+    farmerOrders.forEach(fo => {
+      if (fo && (fo.id === orderId || fo.master_order_id === orderId)) {
+        fo.status = statusLabel;
+        fo.status_code = resolvedCode;
+        if (resolvedCode === 'delivered') fo.payment_status = 'Disbursed to Escrow Wallet';
+        modified = true;
+      }
+    });
+    if (modified) {
+      localStorage.setItem('agri_farmer_orders', JSON.stringify(farmerOrders));
+    }
+  } catch (e) {}
+
+  // 5. Update window.AgriState.orders
+  if (window.AgriState && Array.isArray(window.AgriState.orders)) {
+    window.AgriState.orders.forEach(o => {
+      if (o && o.id === orderId) {
+        o.status = statusLabel;
+        o.status_code = resolvedCode;
+      }
+    });
+  }
+
+  const readableName = resolvedCode === 'delivered' ? '✓ Delivered' : (resolvedCode === 'in_transit' ? '🚚 In Transit' : (resolvedCode === 'cancelled' ? '✗ Cancelled' : '⏳ Pending'));
+  showToast(`✓ Order #${orderId} status updated to [${readableName}]! Platform synchronized.`);
+
+  if (document.getElementById('ordersListContainer')) {
+    renderOrderTrackingList();
+  }
+  if (typeof refreshAdminData === 'function' && document.getElementById('adminTransactionsTableBody')) {
+    refreshAdminData();
+  }
+}
+
 
 
 

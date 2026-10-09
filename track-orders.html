@@ -94,6 +94,31 @@
       </div>
     </div>
 
+    <!-- Admin Track Filters Toolbar (Rendered dynamically for Admin) -->
+    <div id="adminTrackFiltersToolbar" style="display: none; margin-bottom: 1.5rem; background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem 1.15rem; box-shadow: var(--shadow-sm); justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+      <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status:</span>
+        <button onclick="setAdminTrackFilter('all')" id="btnTrackFilterAll" class="btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; font-weight: 700;">
+          All Orders (<span id="trackCountAll">0</span>)
+        </button>
+        <button onclick="setAdminTrackFilter('pending')" id="btnTrackFilterPending" class="btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; font-weight: 600;">
+          ⏳ Pending (<span id="trackCountPending">0</span>)
+        </button>
+        <button onclick="setAdminTrackFilter('in_transit')" id="btnTrackFilterInTransit" class="btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; font-weight: 600;">
+          🚚 In Transit (<span id="trackCountInTransit">0</span>)
+        </button>
+        <button onclick="setAdminTrackFilter('delivered')" id="btnTrackFilterDelivered" class="btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; font-weight: 600;">
+          ✓ Delivered (<span id="trackCountDelivered">0</span>)
+        </button>
+        <button onclick="setAdminTrackFilter('cancelled')" id="btnTrackFilterCancelled" class="btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.8rem; font-weight: 600;">
+          ✗ Cancelled (<span id="trackCountCancelled">0</span>)
+        </button>
+      </div>
+      <div style="font-size: 0.75rem; color: var(--primary-deep); font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+        👑 Platform Dispatch Oversight
+      </div>
+    </div>
+
     <!-- Active Orders Feed Container -->
     <div id="ordersListContainer">
       <!-- Populated dynamically by app.js renderOrderTrackingList() -->

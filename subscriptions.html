@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Status & Ad Monitoring | AgriConnect Executive Console</title>
+  <meta name="description" content="AgriConnect Executive Subscription & Ad Monitoring Console. Monitor farmer AI video ad subscriptions, platform recurring revenue, expiring plans, and dispatch renewal reminders.">
+  <link rel="stylesheet" href="assets/app.css">
+  <script src="assets/app.js" defer></script>
+  <link rel="icon" type="image/png" href="assets/favicon.png?v=4">
+  <link rel="shortcut icon" href="favicon.ico?v=4">
+  <link rel="apple-touch-icon" href="assets/favicon.png?v=4">
+  <meta property="og:image" content="assets/logo.png">
+  <style>
+    .sub-filter-btn {
+      padding: 0.55rem 1rem;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      color: var(--text-secondary);
+      font-weight: 700;
+      font-size: 0.825rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+    }
+    .sub-filter-btn:hover {
+      background: var(--bg-subtle);
+      color: var(--text-main);
+    }
+    .sub-filter-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(21, 128, 61, 0.25);
+    }
+    .sub-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    .sub-table th {
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.725rem;
+      letter-spacing: 0.05em;
+      padding: 0.85rem 1rem;
+      border-bottom: 1.5px solid var(--border-subtle);
+    }
+    .sub-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: middle;
+      color: var(--text-main);
+    }
+    .sub-table tr:hover td {
+      background: #f8fafc;
+    }
+    .sub-status-pill {
+      font-size: 0.725rem;
+      font-weight: 800;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .pulse-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      animation: pulseGreen 1.8s infinite;
+    }
+    @keyframes pulseGreen {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand-logo" aria-label="AgriConnect Home">
+        <img src="assets/logo.png" alt="AgriConnect Logo" class="brand-logo-img">
+        <span>AgriConnect</span>
+      </a>
+
+      <nav class="header-nav" id="headerNav" aria-label="Main Navigation">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="marketplace.html" class="nav-link">Marketplace</a>
+        <a href="farmers.html" class="nav-link">Farmers</a>
+        <a href="subscriptions.html" class="nav-link active" style="color: var(--primary); font-weight: 800;">Subscription Status</a>
+        <a href="track-orders.html" class="nav-link">Track Orders</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="admin.html" class="btn-primary header-dashboard-btn" style="font-size: 0.825rem; padding: 0.45rem 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; background: #0f172a; border-color: #0f172a;" aria-label="Open Admin Console">
+          <span>👑 Admin Console</span>
+        </a>
+
+        <button onclick="toggleCart(true)" class="btn-secondary" style="position: relative; padding: 0.45rem 0.75rem;" aria-label="View Cart">
+          <span style="font-size: 0.95rem;">👑</span>
+        </button>
+
+        <div id="userAuthContainer"></div>
+
+        <button class="mobile-menu-btn" onclick="toggleMobileNav()" aria-label="Toggle navigation">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main style="max-width: 1280px; margin: 2rem auto 5rem; padding: 0 1.25rem;">
+
+    <!-- Guest / Non-Admin Access Lock Container -->
+    <div id="adminSubLockContainer" style="display: none; text-align: center; padding: 4rem 1.5rem; background: #ffffff; border-radius: var(--radius-md); border: 1.5px dashed var(--border-strong); box-shadow: var(--shadow-sm); max-width: 600px; margin: 3rem auto;">
+      <div style="width: 72px; height: 72px; border-radius: 50%; background: #fef2f2; border: 2px solid #fecaca; color: #dc2626; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 2rem;">
+        🔒
+      </div>
+      <span style="font-size: 0.75rem; font-weight: 800; color: #dc2626; text-transform: uppercase; letter-spacing: 0.08em; background: #fee2e2; padding: 0.25rem 0.75rem; border-radius: 9999px; display: inline-block; margin-bottom: 0.75rem;">
+        Administrator Access Only
+      </span>
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">
+        Subscription Status Authority Restricted
+      </h2>
+      <p style="font-size: 0.925rem; color: var(--text-secondary); max-width: 440px; margin: 0 auto 1.75rem; line-height: 1.55;">
+        This portal allows administrators to supervise farmer subscriptions, track AI ad earnings, monitor expiration dates, and dispatch renewal reminders.
+      </p>
+      <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+        <a href="auth.html?redirect=subscriptions.html" class="btn-primary" style="padding: 0.7rem 1.5rem; text-decoration: none; font-size: 0.9rem; font-weight: 700;">
+          Log In as Administrator &rarr;
+        </a>
+        <button onclick="autoLoginAsAdmin()" class="btn-secondary" style="padding: 0.7rem 1.25rem; font-size: 0.9rem; font-weight: 600;">
+          ⚡ 1-Click Admin Access
+        </button>
+      </div>
+    </div>
+
+    <!-- Authenticated Subscription Monitoring View -->
+    <div id="adminSubMainView">
+      
+      <!-- Top Banner Header -->
+      <div style="position: relative; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 2rem; box-shadow: var(--shadow-sm); background: #0f172a;">
+        <img src="assets/dashboard-banner.jpg" alt="Subscription Operations" style="width: 100%; height: 190px; object-fit: cover; display: block; filter: brightness(0.6);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(15, 23, 42, 0.94) 0%, rgba(20, 83, 45, 0.88) 100%); backdrop-filter: blur(2px);"></div>
+        <div style="position: absolute; inset: 0; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; color: #ffffff; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+              <span style="background: rgba(220, 38, 38, 0.9); color: #ffffff; font-size: 0.725rem; font-weight: 800; padding: 0.2rem 0.65rem; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.35rem;">
+                👑 Subscription Authority
+              </span>
+              <span style="background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.75rem; color: #f0fdf4; display: inline-flex; align-items: center; gap: 0.4rem;">
+                <span class="pulse-dot"></span> Automated Ad Pipeline Operational
+              </span>
+            </div>
+            <h1 style="font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.4); margin: 0;">
+              Farmer Subscription & AI Ad Status Authority
+            </h1>
+            <p style="font-size: 0.9rem; color: #f0fdf4; opacity: 0.95; margin-top: 0.3rem; text-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+              Monitor subscription statuses, total ad earnings, popular tiers, and dispatch timely renewal reminders to participating farmers.
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <button onclick="refreshSubscriptionData()" class="btn-secondary" style="background: rgba(255,255,255,0.2); color: #ffffff; border-color: rgba(255,255,255,0.4); backdrop-filter: blur(8px); padding: 0.6rem 1.15rem; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.45rem;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              Refresh Statuses
+            </button>
+            <a href="admin.html" class="btn-primary" style="padding: 0.6rem 1.15rem; font-size: 0.85rem; font-weight: 700; text-decoration: none; background: #166534; border-color: #166534;">
+              Executive Console &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top KPI Metric Cards Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+        
+        <!-- KPI 1: Total Subscription Earnings -->
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Subscription Earnings</span>
+            <span style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">
+              ₱
+            </span>
+          </div>
+          <div id="kpiSubTotalEarnings" style="font-size: 1.85rem; font-weight: 800; color: var(--primary-deep);">
+            ₱0.00
+          </div>
+          <div style="font-size: 0.75rem; color: #15803d; font-weight: 600; margin-top: 0.35rem; display: flex; align-items: center; gap: 0.3rem;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            100% Platform Commercial Revenue
+          </div>
+        </div>
+
+        <!-- KPI 2: Active Subscriptions Count -->
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Active Subscriptions</span>
+            <span style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </span>
+          </div>
+          <div id="kpiSubActiveCount" style="font-size: 1.85rem; font-weight: 800; color: var(--text-main);">
+            0 Active
+          </div>
+          <div id="kpiSubActiveSubtext" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+            0 Total participating farmers
+          </div>
+        </div>
+
+        <!-- KPI 3: Expiring Soon Alert Queue (<= 3 Days) -->
+        <div style="background: #fffbeb; border: 1.5px solid #fde047; border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 800; color: #b45309; text-transform: uppercase;">Expiring Soon (&le; 3 Days)</span>
+            <span style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+              ⚠️
+            </span>
+          </div>
+          <div id="kpiSubExpiringCount" style="font-size: 1.85rem; font-weight: 800; color: #b45309;">
+            0 Expiring
+          </div>
+          <div style="font-size: 0.75rem; color: #d97706; font-weight: 700; margin-top: 0.35rem;">
+            Action: Dispatch renewal reminder
+          </div>
+        </div>
+
+        <!-- KPI 4: Most Popular Plan -->
+        <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.35rem; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Most Popular Plan</span>
+            <span style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center;">
+              ⭐
+            </span>
+          </div>
+          <div id="kpiSubPopularPlan" style="font-size: 1.45rem; font-weight: 800; color: #7c3aed; margin-top: 0.2rem;">
+            Monthly (₱700)
+          </div>
+          <div id="kpiSubPopularSubtext" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+            Preferred by 48% of active producers
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Popular Plans Breakdown Cards -->
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">
+              Popular Subscription Plans & Earnings Distribution
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.2rem 0 0;">
+              Breakdown of active tier subscriptions and cumulative revenue generation per plan.
+            </p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+          
+          <!-- Plan 1: Weekly Tier -->
+          <div style="border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem; background: var(--bg-subtle);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">Weekly Boost</span>
+              <span style="background: #dcfce7; color: #15803d; font-size: 0.7rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 9999px;">₱200 / 7 Days</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Short-cycle harvest promotions</div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700;">
+              <span>Subscribers: <strong id="planCountWeekly" style="color: var(--primary);">0</strong></span>
+              <span>Earnings: <strong id="planEarningsWeekly" style="color: var(--primary-deep);">₱0</strong></span>
+            </div>
+          </div>
+
+          <!-- Plan 2: Monthly Tier (Most Popular) -->
+          <div style="border: 2px solid var(--primary); border-radius: var(--radius-sm); padding: 1rem; background: #f0fdf4;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <div style="display: flex; align-items: center; gap: 0.35rem;">
+                <span style="font-weight: 800; font-size: 0.95rem; color: var(--primary-deep);">Monthly Pro</span>
+                <span style="background: #15803d; color: #ffffff; font-size: 0.65rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 9999px; text-transform: uppercase;">Most Popular</span>
+              </div>
+              <span style="background: #ffffff; color: #15803d; font-size: 0.7rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 9999px; border: 1px solid #bbf7d0;">₱700 / 30 Days</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Continuous cold-chain & homepage broadcast</div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700;">
+              <span>Subscribers: <strong id="planCountMonthly" style="color: var(--primary);">0</strong></span>
+              <span>Earnings: <strong id="planEarningsMonthly" style="color: var(--primary-deep);">₱0</strong></span>
+            </div>
+          </div>
+
+          <!-- Plan 3: Annual Tier -->
+          <div style="border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 1rem; background: var(--bg-subtle);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">Annual VIP</span>
+              <span style="background: #ede9fe; color: #7c3aed; font-size: 0.7rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 9999px;">₱5,000 / 365 Days</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Full-year automated commercial production</div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700;">
+              <span>Subscribers: <strong id="planCountAnnual" style="color: #7c3aed;">0</strong></span>
+              <span>Earnings: <strong id="planEarningsAnnual" style="color: var(--primary-deep);">₱0</strong></span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Main Subscription Status Monitoring Table Container -->
+      <div style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden;">
+        
+        <!-- Toolbar Header & Filters -->
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: #fafafa;">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0;">
+              Participating Farmers Subscription Directory
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0.2rem 0 0;">
+              Track active AI commercial contracts, monitor days remaining, identify expiring plans, and dispatch instant renewal reminders.
+            </p>
+          </div>
+
+          <!-- Sub-filters & Search -->
+          <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
+            <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+              <button onclick="filterSubscriptions('all')" id="subFilterAll" class="sub-filter-btn active">
+                All Plans (<span id="countSubFilterAll">0</span>)
+              </button>
+              <button onclick="filterSubscriptions('expiring')" id="subFilterExpiring" class="sub-filter-btn">
+                ⚠️ Expiring Soon (<span id="countSubFilterExpiring">0</span>)
+              </button>
+              <button onclick="filterSubscriptions('active')" id="subFilterActive" class="sub-filter-btn">
+                ✓ Active (<span id="countSubFilterActive">0</span>)
+              </button>
+              <button onclick="filterSubscriptions('expired')" id="subFilterExpired" class="sub-filter-btn">
+                ✗ Expired (<span id="countSubFilterExpired">0</span>)
+              </button>
+            </div>
+
+            <div style="position: relative; min-width: 220px;">
+              <input 
+                type="text" 
+                id="subSearchInput" 
+                oninput="handleSubSearch(this.value)" 
+                placeholder="Search farmer or farm..." 
+                style="width: 100%; padding: 0.5rem 0.75rem 0.5rem 2rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.825rem; font-family: inherit; background: #ffffff;"
+              >
+              <svg style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Table -->
+        <div style="overflow-x: auto;">
+          <table class="sub-table">
+            <thead>
+              <tr>
+                <th>Farmer Producer</th>
+                <th>Farm Location</th>
+                <th>Plan Tier & Cost</th>
+                <th>Subscription Period</th>
+                <th>Days Remaining</th>
+                <th>AI Ad Performance</th>
+                <th>Status</th>
+                <th style="text-align: right;">Action / Renewal</th>
+              </tr>
+            </thead>
+            <tbody id="adminSubscriptionsTableBody">
+              <!-- Injected dynamically by app.js renderAdminSubscriptions() -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Site Footer -->
+  <footer style="background: #ffffff; border-top: 1px solid var(--border-subtle); padding: 3rem 1.25rem 2rem;">
+    <div style="max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-subtle);">
+      <div>
+        <div class="brand-logo" style="margin-bottom: 0.75rem;">
+          <img src="assets/logo.png" alt="AgriConnect Logo" class="brand-logo-img">
+          <span>AgriConnect</span>
+        </div>
+        <p style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.6;">
+          Direct agricultural connection empowering Filipino farmers and conscious consumers through honest pricing and cold-chain transparency.
+        </p>
+      </div>
+
+      <div>
+        <h5 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-main); margin-bottom: 0.75rem;">Admin Navigation</h5>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.825rem;">
+          <li><a href="admin.html" style="color: var(--text-secondary); text-decoration: none;">Executive Console</a></li>
+          <li><a href="marketplace.html" style="color: var(--text-secondary); text-decoration: none;">Marketplace & Analytics</a></li>
+          <li><a href="subscriptions.html" style="color: var(--primary); font-weight: 700; text-decoration: none;">Subscription Status</a></li>
+          <li><a href="track-orders.html" style="color: var(--text-secondary); text-decoration: none;">Track Orders & Logistics</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h5 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-main); margin-bottom: 0.75rem;">Commercial Engine</h5>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.825rem;">
+          <li><span style="color: var(--text-secondary);">AI Video Ad Synthesis</span></li>
+          <li><span style="color: var(--text-secondary);">Weekly Boost (₱200)</span></li>
+          <li><span style="color: var(--text-secondary);">Monthly Pro (₱700)</span></li>
+          <li><span style="color: var(--text-secondary);">Annual VIP (₱5,000)</span></li>
+        </ul>
+      </div>
+
+      <div>
+        <h5 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-main); margin-bottom: 0.75rem;">Account Standing</h5>
+        <div style="font-size: 0.825rem; color: var(--text-secondary); line-height: 1.5;">
+          Logged in as <strong>Krystel Comia</strong><br>
+          Role: <span style="color: #dc2626; font-weight: 800;">👑 SUPERADMIN</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="max-width: 1240px; margin: 1.5rem auto 0; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); flex-wrap: wrap; gap: 0.5rem;">
+      <div>&copy; 2026 AgriConnect Philippines. All rights reserved.</div>
+      <div>Executive Subscription & Ad Management Console</div>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+</body>
+</html>
