@@ -1342,6 +1342,15 @@ function renderFarmListSidePanel() {
 }
 
 function selectFarmForDirections(farmerId) {
+  if (!window.AgriState?.user) {
+    showToast('🔐 Please log in or create an account to view driving directions and farm logistics.', 'warning');
+    setTimeout(() => {
+      const page = window.location.pathname.split('/').pop() || 'maps.html';
+      const search = window.location.search || '';
+      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
+    }, 800);
+    return;
+  }
   const f = window.AgriState.farmers.find(item => item.id === farmerId);
   if (!f) return;
 
@@ -2037,9 +2046,11 @@ function handleTrackSearch() {
 function addToCart(productId, quantity = 1, btnElement = null) {
   const user = window.AgriState.user;
   if (!user) {
-    showToast('Please log in or create an account before adding items to your harvest basket.');
+    showToast('🔐 Please log in or create an account before adding items to your harvest basket.', 'warning');
     const modal = document.getElementById('productDetailModal');
     if (modal) modal.classList.remove('open');
+    const modal2 = document.getElementById('productModal');
+    if (modal2) modal2.classList.remove('open');
     setTimeout(() => {
       const page = window.location.pathname.split('/').pop() || 'marketplace.html';
       const search = window.location.search || '';
@@ -5134,6 +5145,20 @@ function initSellHarvestPage() {
   if (!form) return;
 
   const user = window.AgriState.user;
+  if (!user) {
+    showToast('🔐 Please log in or create an account to access the harvest selling portal.', 'warning');
+    setTimeout(() => {
+      window.location.href = 'auth.html?redirect=sell-harvest.html';
+    }, 800);
+    return;
+  }
+  if (user.role !== 'farmer' && !user.is_admin) {
+    showToast('🌾 Only registered Farmer accounts can list products for sale.', 'warning');
+    setTimeout(() => {
+      window.location.href = 'dashboard.html';
+    }, 1000);
+    return;
+  }
 
   // Set default target harvest / dispatch date to tomorrow
   const dateInput = document.getElementById('pageHarvestDate');
@@ -5422,6 +5447,15 @@ function applySuggestedPrice(price) {
 function handlePageHarvestSubmit(e) {
   if (e) e.preventDefault();
 
+  const user = window.AgriState.user;
+  if (!user) {
+    showToast('🔐 Please log in or create an account to publish your harvest.', 'warning');
+    setTimeout(() => {
+      window.location.href = 'auth.html?redirect=sell-harvest.html';
+    }, 800);
+    return;
+  }
+
   const cropInput = document.getElementById('pageCropName') || document.getElementById('sellCropName');
   const catSelect = document.getElementById('pageCropCategory') || document.getElementById('sellCategory');
   const varietyInput = document.getElementById('pageCropVariety');
@@ -5462,9 +5496,6 @@ function handlePageHarvestSubmit(e) {
   const harvestDate = dateInput && dateInput.value ? dateInput.value : new Date().toISOString().split('T')[0];
   const hubLocation = hubInput && hubInput.value.trim() ? hubInput.value.trim() : 'Km. 5 Agri-Hub Cold-Chain Facility, La Trinidad';
   const desc = descInput && descInput.value.trim() ? descInput.value.trim() : 'Fresh seasonal harvest direct from our farm fields.';
-
-  const user = window.AgriState.user;
-
   const newProd = {
     id: 'prod-' + Date.now(),
     name: cropName,
@@ -7827,6 +7858,17 @@ function toggleAgriMate(forceState) {
   if (!win) return;
 
   const nextState = (typeof forceState === 'boolean') ? forceState : !win.classList.contains('open');
+
+  if (nextState && !window.AgriState?.user) {
+    showToast('🔐 Please log in or create an account to consult with AgriMate AI Assistant.', 'warning');
+    setTimeout(() => {
+      const page = window.location.pathname.split('/').pop() || 'index.html';
+      const search = window.location.search || '';
+      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
+    }, 800);
+    return;
+  }
+
   window.AgriMateState.isOpen = nextState;
 
   if (nextState) {
@@ -7891,11 +7933,29 @@ function renderAgriMateChips() {
 }
 
 function handleAgriMateChip(query) {
+  if (!window.AgriState?.user) {
+    showToast('🔐 Please log in or create an account to consult with AgriMate AI Assistant.', 'warning');
+    setTimeout(() => {
+      const page = window.location.pathname.split('/').pop() || 'index.html';
+      const search = window.location.search || '';
+      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
+    }, 800);
+    return;
+  }
   sendAgriMateMessage(query);
 }
 
 function handleAgriMateSubmit(e) {
   if (e) e.preventDefault();
+  if (!window.AgriState?.user) {
+    showToast('🔐 Please log in or create an account to consult with AgriMate AI Assistant.', 'warning');
+    setTimeout(() => {
+      const page = window.location.pathname.split('/').pop() || 'index.html';
+      const search = window.location.search || '';
+      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
+    }, 800);
+    return;
+  }
   const input = document.getElementById('agrimateInput');
   if (!input) return;
   const text = input.value.trim();
@@ -7905,6 +7965,15 @@ function handleAgriMateSubmit(e) {
 }
 
 async function sendAgriMateMessage(userText) {
+  if (!window.AgriState?.user) {
+    showToast('🔐 Please log in or create an account to consult with AgriMate AI Assistant.', 'warning');
+    setTimeout(() => {
+      const page = window.location.pathname.split('/').pop() || 'index.html';
+      const search = window.location.search || '';
+      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
+    }, 800);
+    return;
+  }
   if (window.AgriMateState.isTyping) return;
 
   appendAgriMateMessage('user', userText);
@@ -8731,18 +8800,50 @@ function initSponsoredTopAd() {
 /* ============================================================ */
 /* AI Video Generation Pipeline (5-10 min wait time)            */
 /* ============================================================ */
-function generateAiVideoAdData(farmKey, customName, customLoc, tier, durationDays, price) {
-  let preset = FARM_CATALOG_PRESETS[farmKey];
+function generateAiVideoAdData(farmKeyOrUser, customName, customLoc, tier, durationDays, price) {
+  let user = null;
+  let farmKey = null;
+
+  if (typeof farmKeyOrUser === 'object' && farmKeyOrUser !== null) {
+    user = farmKeyOrUser;
+    farmKey = user.id;
+  } else if (typeof farmKeyOrUser === 'string') {
+    farmKey = farmKeyOrUser;
+  }
+
+  if (!user && window.AgriState?.user) {
+    user = window.AgriState.user;
+  }
+
+  let preset = farmKey ? FARM_CATALOG_PRESETS[farmKey] : null;
+
+  if (!preset && user) {
+    // Check if any existing preset matches by farmer name or farm name
+    const foundKey = Object.keys(FARM_CATALOG_PRESETS).find(k => {
+      const p = FARM_CATALOG_PRESETS[k];
+      return (user.full_name && p.farmName.toLowerCase().includes(user.full_name.toLowerCase())) ||
+             (user.farm_name && p.farmName.toLowerCase().includes(user.farm_name.toLowerCase()));
+    });
+    if (foundKey) {
+      preset = FARM_CATALOG_PRESETS[foundKey];
+    }
+  }
 
   if (!preset) {
-    const safeFarmName = customName || 'Verified Philippine Agri Collective';
-    const safeLocation = customLoc || 'Philippines';
+    const safeFarmName = user?.farm_name 
+      ? (user?.full_name ? `${user.full_name} — ${user.farm_name}` : user.farm_name)
+      : (user?.full_name ? `${user.full_name}'s Family Farm` : (customName || 'Verified Philippine Agri Collective'));
+    const safeLocation = (user?.city && user?.province) 
+      ? `${user.city}, ${user.province}` 
+      : (user?.province || user?.city || customLoc || 'San Juan, Batangas, Philippines');
+    const safeAvatar = user?.avatar || user?.avatar_url || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=300';
+
     preset = {
       farmName: safeFarmName,
       location: safeLocation,
-      avatar: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300',
-      actionLink: 'marketplace.html',
-      actionText: 'Explore Direct Harvest',
+      avatar: safeAvatar,
+      actionLink: `marketplace.html?farmer=${encodeURIComponent(user?.farm_name || user?.full_name || '')}`,
+      actionText: `Order Direct from ${user?.farm_name || safeFarmName}`,
       scenes: [
         {
           sceneNum: 1,
@@ -8758,7 +8859,7 @@ function generateAiVideoAdData(farmKey, customName, customLoc, tier, durationDay
           timeSpan: '5s - 10s',
           sceneTag: 'SCENE 2/3 • FRESH MORNING HARVEST',
           headline: '✨ Harvested at Peak Quality with Fair Returns',
-          subtext: 'Chemical-free handling, carefully sorted and packaged to protect nutrient density and natural freshness.',
+          subtext: `Carefully sorted and packaged to protect freshness and nutrient density. Supporting honest livelihood for ${user?.full_name || safeFarmName}.`,
           badges: ['Peak Freshness', 'Fair Farmgate Return', 'Direct Trade Certified'],
           bgImage: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1400&q=80'
         },
@@ -8788,9 +8889,9 @@ function generateAiVideoAdData(farmKey, customName, customLoc, tier, durationDay
   const durationLabel = durationDays === 7 ? '1 Week Homepage Feature' : durationDays === 30 ? '1 Month Homepage Feature' : '1 Year Homepage Feature';
   const expiresAt = Date.now() + (durationDays * 24 * 60 * 60 * 1000);
 
-  const farmerName = String(preset.farmName || '').split(' — ')[0].trim() || preset.farmName;
+  const farmerName = user?.full_name || String(preset.farmName || '').split(' — ')[0].trim() || preset.farmName;
   const salesSeed = getAdSalesFigures(
-    DEFAULT_SPONSORED_ADS.find(d => String(d.farmerName).toLowerCase() === farmerName.toLowerCase()) || { farmerName }
+    DEFAULT_SPONSORED_ADS.find(d => String(d.farmerName).toLowerCase() === farmerName.toLowerCase()) || { farmerName, farmName: preset.farmName }
   );
   const ratingSeed = getAdRatingStats({ farmerName, farmName: preset.farmName });
 
@@ -9340,8 +9441,20 @@ function stopCommercialAudio() {
 /* Subscription Modal & AI Trigger (Zero Manual Work)           */
 /* ============================================================ */
 function openSubscribeModal(tier, price, planName, durationDays) {
+  const user = window.AgriState?.user;
+  if (!user) {
+    showToast('🔐 Please log in or create an account to access subscription services.', 'warning');
+    setTimeout(() => {
+      const page = window.location.pathname.split('/').pop() || 'index.html';
+      const search = window.location.search || '';
+      window.location.href = `auth.html?redirect=${encodeURIComponent(page + search)}`;
+    }, 800);
+    return;
+  }
+
   // Prevent buyers from opening subscription modal (buyers don't subscribe)
-  if (window.AgriState?.user && window.AgriState.user.role !== 'farmer') {
+  if (user.role !== 'farmer' && !user.is_admin) {
+    showToast('🌾 Subscription services are reserved exclusively for registered Farmer accounts. Please log in with a Farmer account or register your farm.', 'warning');
     return;
   }
   const modal = document.getElementById('subscribeAdModal');
@@ -9367,6 +9480,29 @@ function openSubscribeModal(tier, price, planName, durationDays) {
     durationDisplay.textContent = resolvedDuration === 7 ? '1 Week (7 Days)' : resolvedDuration === 30 ? '1 Month (30 Days)' : '1 Year (365 Days)';
   }
 
+  // Automatically determine and display logged-in farmer account details (no manual dropdown selection)
+  const farmName = user.farm_name || `${user.full_name}'s Farm`;
+  const location = (user.city && user.province) ? `${user.city}, ${user.province}` : (user.province || user.city || 'San Juan, Batangas, Philippines');
+  const avatar = user.avatar || user.avatar_url || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200';
+
+  const avatarEl = document.getElementById('subModalFarmerAvatar');
+  const farmNameEl = document.getElementById('subModalFarmNameDisplay');
+  const detailEl = document.getElementById('subModalFarmerDetailDisplay');
+  const ratingEl = document.getElementById('subModalRatingMetric');
+  const salesEl = document.getElementById('subModalSalesMetric');
+  const ordersEl = document.getElementById('subModalOrdersMetric');
+
+  if (avatarEl) avatarEl.src = avatar;
+  if (farmNameEl) farmNameEl.textContent = farmName;
+  if (detailEl) detailEl.textContent = `${user.full_name} • ${location}`;
+
+  const ratingStats = getAdRatingStats({ farmerName: user.full_name, farmName });
+  const salesStats = getAdSalesFigures({ farmerName: user.full_name, farmName });
+
+  if (ratingEl) ratingEl.innerHTML = `⭐ <strong>${ratingStats.rating}</strong> (${ratingStats.reviewsCount} verified reviews)`;
+  if (salesEl) salesEl.innerHTML = `📦 <strong>₱${Number(salesStats.totalSales).toLocaleString()}</strong> gross sales`;
+  if (ordersEl) ordersEl.innerHTML = `✅ <strong>${salesStats.ordersCompleted}</strong> completed orders`;
+
   modal.classList.add('open');
 }
 
@@ -9376,25 +9512,31 @@ function closeSubscribeModal() {
 }
 
 function handleSubFarmChange() {
-  const select = document.getElementById('subFarmSelect');
-  const customWrap = document.getElementById('customFarmWrap');
-  if (select && customWrap) {
-    customWrap.style.display = (select.value === 'custom') ? 'block' : 'none';
-  }
+  // Retained as safe no-op for backward compatibility
 }
 
 function handleSubscribeSubmit(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
+
+  const user = window.AgriState?.user;
+  if (!user) {
+    showToast('🔐 Please log in or create an account to activate a subscription.', 'warning');
+    setTimeout(() => {
+      window.location.href = 'auth.html';
+    }, 800);
+    return;
+  }
+  if (user.role !== 'farmer' && !user.is_admin) {
+    showToast('🌾 Subscriptions are reserved for verified Farmer accounts.', 'warning');
+    return;
+  }
 
   const tier = document.getElementById('subTierInput')?.value || 'weekly';
   const price = document.getElementById('subPriceInput')?.value || '200';
   const durationDays = parseInt(document.getElementById('subDurationDaysInput')?.value || '7', 10);
-  const farmSelect = document.getElementById('subFarmSelect')?.value || 'farmer-ramon';
-  const customName = document.getElementById('customFarmName')?.value?.trim();
-  const customLoc = document.getElementById('customFarmLocation')?.value?.trim();
 
-  // 100% Automated AI Creative Generation - zero manual copywriting required
-  const generatedAd = generateAiVideoAdData(farmSelect, customName, customLoc, tier, durationDays, price);
+  // 100% Automated AI Creative Generation directly determined from logged-in farmer account
+  const generatedAd = generateAiVideoAdData(user, null, null, tier, durationDays, price);
 
   closeSubscribeModal();
 

@@ -1223,36 +1223,42 @@
         </div>
       </div>
 
-      <!-- Simple Farm Selector Form -->
+      <!-- Automatically Determined Linked Farmer Account -->
       <form id="subscribeAdForm" onsubmit="handleSubscribeSubmit(event)">
         <input type="hidden" id="subTierInput" value="weekly">
         <input type="hidden" id="subPriceInput" value="200">
         <input type="hidden" id="subDurationDaysInput" value="7">
 
         <div style="margin-bottom: 1.25rem;">
-          <label style="display: block; font-size: 0.825rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem;">
-            Select Farm / Listing to Feature *
-          </label>
-          <select id="subFarmSelect" onchange="handleSubFarmChange()" required style="width: 100%; padding: 0.7rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.875rem; background: #ffffff;">
-            <option value="farmer-ramon">Mang Ramon Dela Cruz — Dela Cruz Family Farm (Benguet)</option>
-            <option value="farmer-nena">Aling Nena Bautista — Bautista Rice Fields (Nueva Ecija)</option>
-            <option value="farmer-jun">Kuya Jun Villanueva — Villanueva Mango Orchard (Guimaras)</option>
-            <option value="farmer-marites">Ate Marites Sarmiento — Sarmiento Coastal Catch (Navotas)</option>
-            <option value="farmer-berting">Tatay Berting Lopez — Lopez Coconut & Root Farm (Quezon)</option>
-            <option value="farmer-cora">Nanay Cora Aquino — Aquino Poultry Yard (Cavite)</option>
-            <option value="custom">Enter Custom Farm / Enterprise Name...</option>
-          </select>
-        </div>
-
-        <div id="customFarmWrap" style="display: none; margin-bottom: 1.25rem;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
-            <div>
-              <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.3rem;">Farm Name</label>
-              <input type="text" id="customFarmName" placeholder="e.g. Bukidnon Mountain Organics" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+            <label style="font-size: 0.825rem; font-weight: 700; color: var(--text-main);">
+              Featured Farm Account
+            </label>
+            <span style="font-size: 0.75rem; color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem;">
+              <span>✓</span> Auto-Determined from Login
+            </span>
+          </div>
+          <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: var(--radius-md); padding: 1rem 1.15rem;">
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <img id="subModalFarmerAvatar" src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=200" alt="Farmer" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid #16a34a; flex-shrink: 0;">
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                  <h4 id="subModalFarmNameDisplay" style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #14532d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    Dela Cruz Family Farm
+                  </h4>
+                  <span style="background: #dcfce7; color: #166534; font-size: 0.68rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 9999px; border: 1px solid #86efac;">
+                    Verified Producer
+                  </span>
+                </div>
+                <p id="subModalFarmerDetailDisplay" style="margin: 0.25rem 0 0; font-size: 0.825rem; color: #166534;">
+                  Mang Ramon Dela Cruz • La Trinidad, Benguet
+                </p>
+              </div>
             </div>
-            <div>
-              <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.3rem;">Province / Location</label>
-              <input type="text" id="customFarmLocation" placeholder="e.g. Malaybalay, Bukidnon" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem;">
+            <div id="subModalFarmerMetrics" style="margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px dashed #bbf7d0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem; color: #14532d;">
+              <span id="subModalRatingMetric">⭐ <strong>4.9</strong> (38 reviews)</span>
+              <span id="subModalSalesMetric">📦 <strong>₱342,000+</strong> total sales</span>
+              <span id="subModalOrdersMetric">✅ <strong>128</strong> orders completed</span>
             </div>
           </div>
         </div>
