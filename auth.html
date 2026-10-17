@@ -58,9 +58,12 @@
     </div>
   </header>
 
-  <!-- Auth Main Content -->
-  <main style="min-height: calc(100vh - 180px); display: flex; align-items: center; justify-content: center; padding: 3rem 1.25rem 5rem; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);">
-    <div id="authPageContainer" style="max-width: 520px; width: 100%; background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-modal); overflow: hidden;">
+  <!-- Auth Main Content with Background -->
+  <main style="min-height: calc(100vh - 180px); display: flex; align-items: center; justify-content: center; padding: 3.5rem 1.25rem 5rem; position: relative; background: url('assets/hero-farmer.jpg') center center / cover no-repeat fixed;">
+    <!-- Ambient Dark Emerald Vignette Overlay -->
+    <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(10, 37, 24, 0.78) 0%, rgba(15, 23, 42, 0.82) 100%); backdrop-filter: blur(2px);"></div>
+
+    <div id="authPageContainer" style="position: relative; z-index: 2; max-width: 520px; width: 100%; background: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35); border-radius: var(--radius-lg); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35); overflow: hidden;">
       
       <!-- Top Brand Accent Header with Background Photo -->
       <div style="position: relative; overflow: hidden; padding: 2rem 1.5rem; text-align: center; color: #ffffff; background: #14532d;">
@@ -73,33 +76,12 @@
         </div>
       </div>
 
-      <!-- Tab Switcher Navigation -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; background: var(--bg-subtle); padding: 0.35rem; margin: 1.25rem 1.5rem 0.5rem; border-radius: var(--radius-md);">
-        <button 
-          id="loginTabBtn" 
-          onclick="switchAuthTab('login')" 
-          type="button" 
-          class="active" 
-          style="padding: 0.6rem; border: none; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: var(--transition); background: #ffffff; color: var(--primary-deep); box-shadow: var(--shadow-sm);"
-        >
-          Log In
-        </button>
-        <button 
-          id="signupTabBtn" 
-          onclick="switchAuthTab('signup')" 
-          type="button" 
-          style="padding: 0.6rem; border: none; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: var(--transition); background: transparent; color: var(--text-secondary);"
-        >
-          Create Account
-        </button>
-      </div>
-
       <!-- FORM 1: LOG IN -->
-      <section id="loginFormSection" style="padding: 1.5rem; display: block;">
-        <div style="margin-bottom: 1.25rem;">
-          <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main);">Welcome back</h2>
-          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
-            Sign in to manage your harvest orders and direct farm listings.
+      <section id="loginFormSection" style="padding: 2rem 1.75rem 1.75rem; display: block;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">Log in</h2>
+          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5; margin: 0 auto; max-width: 380px;">
+            Welcome back. Sign in to manage your harvest orders and direct farm listings.
           </p>
         </div>
 
@@ -153,23 +135,23 @@
           </div>
 
           <button type="submit" class="btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.95rem; margin-top: 0.25rem;">
-            Log In to AgriConnect
+            Log in
           </button>
         </form>
 
-        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.825rem; color: var(--text-secondary);">
+        <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); font-size: 0.875rem; color: var(--text-secondary);">
           Don't have an account yet? 
-          <a href="#" onclick="switchAuthTab('signup'); return false;" style="color: var(--primary); font-weight: 700; text-decoration: none;">
-            Create one for free
+          <a href="#" onclick="switchAuthTab('signup'); return false;" id="createAccountLink" style="color: var(--primary); font-weight: 700; text-decoration: none; margin-left: 0.25rem;">
+            Create account
           </a>
         </div>
       </section>
 
       <!-- FORM 2: CREATE ACCOUNT -->
-      <section id="signupFormSection" style="padding: 1.5rem; display: none;">
-        <div style="margin-bottom: 1.25rem;">
-          <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main);">Create Your Account</h2>
-          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+      <section id="signupFormSection" style="padding: 2rem 1.75rem 1.75rem; display: none;">
+        <div style="margin-bottom: 1.5rem; text-align: center;">
+          <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">Create account</h2>
+          <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5; margin: 0 auto; max-width: 380px;">
             Choose your account role and get immediate access to direct farm trade.
           </p>
         </div>
