@@ -8250,6 +8250,9 @@ const DEFAULT_SPONSORED_ADS = [
     farmerName: 'Mang Ramon Dela Cruz',
     totalSales: 1284500,
     ordersCompleted: 3412,
+    subscriptionPrice: 700,
+    rating: 4.9,
+    reviewsCount: 38,
     location: 'La Trinidad, Benguet',
     avatar: 'https://images.unsplash.com/photo-1595231776515-ddffb1f4eb73?w=300',
     scenes: [
@@ -8298,6 +8301,9 @@ const DEFAULT_SPONSORED_ADS = [
     farmerName: 'Aling Nena Bautista',
     totalSales: 2765300,
     ordersCompleted: 5128,
+    subscriptionPrice: 2500,
+    rating: 5.0,
+    reviewsCount: 42,
     location: 'Muñoz, Nueva Ecija',
     avatar: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300',
     scenes: [
@@ -8346,6 +8352,9 @@ const DEFAULT_SPONSORED_ADS = [
     farmerName: 'Kuya Jun Villanueva',
     totalSales: 948750,
     ordersCompleted: 2207,
+    subscriptionPrice: 200,
+    rating: 4.9,
+    reviewsCount: 51,
     location: 'Jordan, Guimaras',
     avatar: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=300',
     scenes: [
@@ -8620,6 +8629,35 @@ function getActiveAiGeneration() {
   }
 }
 
+// Monetary value of a subscriber's package (used to rank videos on the homepage)
+const SUBSCRIPTION_TIER_VALUES = { weekly: 200, monthly: 700, yearly: 2500 };
+
+function getAdSubscriptionValue(ad) {
+  if (ad && Number(ad.subscriptionPrice) > 0) return Number(ad.subscriptionPrice);
+  const days = Number(ad && ad.durationDays) || 0;
+  if (days >= 365) return SUBSCRIPTION_TIER_VALUES.yearly;
+  if (days >= 30) return SUBSCRIPTION_TIER_VALUES.monthly;
+  return SUBSCRIPTION_TIER_VALUES.weekly;
+}
+
+// One video per subscriber (a farmer never appears twice / together in one video).
+// Videos are ordered by subscription value, highest first.
+function rankSponsoredAds(ads) {
+  const bestByFarmer = new Map();
+  ads.forEach(ad => {
+    const key = getAdFarmerName(ad).toLowerCase();
+    const existing = bestByFarmer.get(key);
+    if (!existing || getAdSubscriptionValue(ad) > getAdSubscriptionValue(existing)) {
+      bestByFarmer.set(key, ad);
+    }
+  });
+  return Array.from(bestByFarmer.values()).sort((a, b) =>
+    (getAdSubscriptionValue(b) - getAdSubscriptionValue(a)) ||
+    ((Number(b.durationDays) || 0) - (Number(a.durationDays) || 0)) ||
+    (getAdSalesFigures(b).totalSales - getAdSalesFigures(a).totalSales)
+  );
+}
+
 function getActiveSponsoredAds() {
   const customAdJson = localStorage.getItem('agri_custom_sponsor_ad');
   if (customAdJson) {
@@ -8631,7 +8669,7 @@ function getActiveSponsoredAds() {
         console.info('Subscriber ad package has expired after full homepage duration:', customAd.id);
         localStorage.removeItem('agri_custom_sponsor_ad');
         localStorage.removeItem('agri_active_subscription');
-        return DEFAULT_SPONSORED_ADS;
+        return rankSponsoredAds(DEFAULT_SPONSORED_ADS);
       }
 
       // Calculate and format real remaining days
@@ -8642,13 +8680,13 @@ function getActiveSponsoredAds() {
         customAd.durationBadge = `🗓️ ${totalDays}-Day Homepage Feature (${daysLeft}d left)`;
       }
 
-      return [customAd, ...DEFAULT_SPONSORED_ADS];
+      return rankSponsoredAds([customAd, ...DEFAULT_SPONSORED_ADS]);
     } catch (e) {
       console.warn('Error parsing custom sponsor ad', e);
-      return DEFAULT_SPONSORED_ADS;
+      return rankSponsoredAds(DEFAULT_SPONSORED_ADS);
     }
   }
-  return DEFAULT_SPONSORED_ADS;
+  return rankSponsoredAds(DEFAULT_SPONSORED_ADS);
 }
 
 /* ============================================================ */
@@ -8751,9 +8789,15 @@ function generateAiVideoAdData(farmKey, customName, customLoc, tier, durationDay
   const expiresAt = Date.now() + (durationDays * 24 * 60 * 60 * 1000);
 
   const farmerName = String(preset.farmName || '').split(' — ')[0].trim() || preset.farmName;
-  const salesSeed = getAdSalesFigures({ farmerName });
+  const salesSeed = getAdSalesFigures(
+    DEFAULT_SPONSORED_ADS.find(d => String(d.farmerName).toLowerCase() === farmerName.toLowerCase()) || { farmerName }
+  );
+  const ratingSeed = getAdRatingStats({ farmerName, farmName: preset.farmName });
 
   return {
+    subscriptionPrice: Number(price) || SUBSCRIPTION_TIER_VALUES[tier] || getAdSubscriptionValue({ durationDays }),
+    rating: ratingSeed.rating,
+    reviewsCount: ratingSeed.reviewsCount,
     id: 'ai-gen-commercial-' + Date.now(),
     tierName: tierLabel,
     tierBadge: tierBadge,
@@ -9072,6 +9116,47 @@ function getAdFarmerName(ad) {
   return String(ad.farmName || 'AgriConnect Farmer').split(' — ')[0].trim();
 }
 
+// Returns the farmer's star rating (from the live farmers directory when known;
+// stable name-seeded 4.5-5.0 rating for newly generated subscriber ads)
+function getAdRatingStats(ad) {
+  if (ad && typeof ad.rating === 'number') {
+    return { rating: ad.rating, reviewsCount: ad.reviewsCount || 0 };
+  }
+  const name = getAdFarmerName(ad || {}).toLowerCase();
+  const farm = String((ad && ad.farmName) || '').toLowerCase();
+  try {
+    const known = getStoredFarmers().find(f =>
+      f && typeof f.rating === 'number' && (
+        String(f.full_name || '').toLowerCase() === name ||
+        (f.farm_name && farm.includes(String(f.farm_name).toLowerCase()))
+      )
+    );
+    if (known) return { rating: known.rating, reviewsCount: known.reviewsCount || 0 };
+  } catch (e) {
+    console.warn('Could not look up farmer rating for ad:', e);
+  }
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  }
+  return { rating: 4.5 + (hash % 6) / 10, reviewsCount: 12 + (hash % 60) };
+}
+
+function renderAdStars(rating) {
+  const value = Math.max(0, Math.min(5, Number(rating) || 0));
+  return `<span class="ad-stars" role="img" aria-label="${value.toFixed(1)} out of 5 stars"><span class="ad-stars-empty">★★★★★</span><span class="ad-stars-fill" style="width: ${(value / 5) * 100}%">★★★★★</span></span>`;
+}
+
+function jumpToSponsoredAd(index) {
+  const ads = getActiveSponsoredAds();
+  if (!ads.length) return;
+  currentAdIndex = Math.max(0, Math.min(ads.length - 1, index));
+  adSecondsRemaining = AD_DURATION_SECONDS;
+  currentRenderedSceneIndex = -1;
+  renderCurrentSponsoredAd(true);
+  updateTimerDisplay();
+}
+
 function renderCurrentSponsoredAd(forceFullRebuild = false) {
   const container = document.getElementById('sponsoredAdContent');
   if (!container) return;
@@ -9091,15 +9176,32 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
 
   const farmerName = getAdFarmerName(ad);
   const sales = getAdSalesFigures(ad);
+  const ratingStats = getAdRatingStats(ad);
 
-  // Minimal ad: only the farmer's name and sales figures over the video background
+  // Ranked playlist: every subscriber has their own separate video; all are listed
+  // together on the homepage, highest-value subscription first
+  const playlistHtml = ads.map((a, i) => `
+    <button type="button" class="ad-playlist-item ${i === currentAdIndex ? 'active' : ''}" id="adPlaylistItem${i}" onclick="jumpToSponsoredAd(${i})" title="${escapeHtml(getAdFarmerName(a))} • ${escapeHtml(a.tierName || '')}">
+      <span class="ad-playlist-rank">#${i + 1}</span>
+      <span class="ad-playlist-name">${escapeHtml(getAdFarmerName(a))}</span>
+      <span class="ad-playlist-tier">₱${getAdSubscriptionValue(a).toLocaleString()}</span>
+    </button>
+  `).join('');
+
+  // One subscriber per video: farmer name, star rating and sales figures
   container.innerHTML = `
     <div class="video-commercial-reel ad-minimal-reel" id="videoReelStage">
       <img src="${escapeHtml(scene.bgImage || ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(farmerName)}" class="video-scene-bg">
       <div class="video-cinematic-overlay"></div>
 
       <div class="ad-minimal-info">
+        <span class="ad-rank-badge">#${currentAdIndex + 1} of ${ads.length} • ${escapeHtml(ad.tierName || 'Sponsored Farmer')}</span>
         <h3 class="ad-minimal-name">${escapeHtml(farmerName)}</h3>
+        <div class="ad-rating-row">
+          ${renderAdStars(ratingStats.rating)}
+          <strong class="ad-rating-value">${ratingStats.rating.toFixed(1)}</strong>
+          <span class="ad-rating-count">(${Number(ratingStats.reviewsCount).toLocaleString()} reviews)</span>
+        </div>
         <div class="ad-minimal-sales">
           <div class="ad-minimal-stat">
             <span class="ad-minimal-value">₱${Number(sales.totalSales).toLocaleString()}</span>
@@ -9111,6 +9213,10 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
             <span class="ad-minimal-label">Orders Sold</span>
           </div>
         </div>
+      </div>
+
+      <div class="ad-playlist" role="group" aria-label="Subscriber video ads ranked by subscription value">
+        ${playlistHtml}
       </div>
     </div>
   `;
