@@ -8317,6 +8317,7 @@ const DEFAULT_SPONSORED_ADS = [
     durationDays: 30,
     farmName: 'Cordillera Highland Strawberry & Greens',
     farmerName: 'Mang Ramon Dela Cruz',
+    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-farmer-walking-through-a-crop-field-41147-large.mp4',
     totalSales: 1284500,
     ordersCompleted: 3412,
     subscriptionPrice: 700,
@@ -8368,6 +8369,7 @@ const DEFAULT_SPONSORED_ADS = [
     durationDays: 365,
     farmName: 'Vergara Rice Mills & Grain Collective',
     farmerName: 'Aling Nena Bautista',
+    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-wheat-field-under-a-blue-sky-40356-large.mp4',
     totalSales: 2765300,
     ordersCompleted: 5128,
     subscriptionPrice: 2500,
@@ -8419,6 +8421,7 @@ const DEFAULT_SPONSORED_ADS = [
     durationDays: 7,
     farmName: 'Jordan Sweet Carabao Mango Orchard',
     farmerName: 'Kuya Jun Villanueva',
+    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-hands-holding-freshly-harvested-strawberries-40349-large.mp4',
     totalSales: 948750,
     ordersCompleted: 2207,
     subscriptionPrice: 200,
@@ -9128,17 +9131,6 @@ function startAdCountdownLoop() {
   adSecondsRemaining = AD_DURATION_SECONDS;
   updateTimerDisplay();
 
-  adProgressInterval = setInterval(() => {
-    if (!isAdPaused) {
-      const bar = document.getElementById('adTimerProgressBar');
-      if (bar) {
-        // Progress runs smoothly across the 15 seconds
-        const pct = Math.max(0, ((15 - adSecondsRemaining) / 15) * 100);
-        bar.style.width = pct + '%';
-      }
-    }
-  }, 100);
-
   adTickInterval = setInterval(() => {
     if (!isAdPaused) {
       adSecondsRemaining--;
@@ -9162,14 +9154,13 @@ function startAdCountdownLoop() {
 }
 
 function updateTimerDisplay() {
-  const timerDisplay = document.getElementById('adTimerDisplay');
-  if (timerDisplay) {
-    const elapsed = AD_DURATION_SECONDS - adSecondsRemaining;
-    const currentScene = Math.min(3, Math.floor(elapsed / 5) + 1);
-    timerDisplay.innerHTML = `
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <span>Scene ${currentScene}/3 • ${Math.max(1, adSecondsRemaining)}s remaining</span>
-    `;
+  const elapsed = Math.max(0, AD_DURATION_SECONDS - adSecondsRemaining);
+  const elapsedStr = String(elapsed).padStart(2, '0');
+  const totalStr = String(AD_DURATION_SECONDS).padStart(2, '0');
+
+  const timerNumbers = document.getElementById('adBottomTimerNumbers');
+  if (timerNumbers) {
+    timerNumbers.textContent = `00:${elapsedStr} / 00:${totalStr}`;
   }
 }
 
@@ -9267,7 +9258,7 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
   if (currentAdIndex < 0) currentAdIndex = ads.length - 1;
 
   const ad = ads[currentAdIndex];
-  const elapsed = AD_DURATION_SECONDS - adSecondsRemaining;
+  const elapsed = Math.max(0, AD_DURATION_SECONDS - adSecondsRemaining);
   const sceneIdx = Math.min(2, Math.floor(elapsed / 5));
   const scenes = ad.scenes || [];
   const scene = scenes[sceneIdx] || scenes[0] || {};
@@ -9276,6 +9267,7 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
   currentRenderedAdId = ad.id;
 
   const farmerName = getAdFarmerName(ad);
+  const farmName = ad.farmName || `${farmerName}'s Farm`;
   const sales = getAdSalesFigures(ad);
   const ratingStats = getAdRatingStats(ad);
 
@@ -9289,20 +9281,58 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
     </button>
   `).join('');
 
-  // One subscriber per video: farmer name, star rating and sales figures
+  const elapsedStr = String(elapsed).padStart(2, '0');
+  const videoSourceUrl = ad.videoUrl || scene.videoUrl || 'https://assets.mixkit.co/videos/preview/mixkit-farmer-walking-through-a-crop-field-41147-large.mp4';
+
+  // Check if video element already exists and just update scene captions & video time without tear down
+  const existingVideo = document.getElementById('adCommercialVideo');
+  const existingStage = document.getElementById('videoReelStage');
+
+  if (existingVideo && existingStage && !forceFullRebuild && existingStage.dataset.adId === ad.id) {
+    const captionTag = document.getElementById('adAiCaptionTag');
+    const captionHeadline = document.getElementById('adAiCaptionHeadline');
+    const captionSubtext = document.getElementById('adAiCaptionSubtext');
+    const bgImg = document.getElementById('adSceneBgImg');
+
+    if (captionTag) captionTag.textContent = scene.sceneTag || `SCENE ${sceneIdx + 1}/3 • HARVEST FOCUS`;
+    if (captionHeadline) captionHeadline.textContent = scene.headline || `🌱 100% Direct Farmgate from ${ad.location}`;
+    if (captionSubtext) captionSubtext.textContent = scene.subtext || `Carefully sorted and packaged to protect freshness and honest returns for ${farmerName}.`;
+    if (bgImg && scene.bgImage) bgImg.src = scene.bgImage;
+
+    const timerNumbers = document.getElementById('adBottomTimerNumbers');
+    if (timerNumbers) {
+      timerNumbers.textContent = `00:${elapsedStr} / 00:15`;
+    }
+    return;
+  }
+
+  // One subscriber per video: farmer name, star rating and sales figures, video stream & bottom numeric timer
   container.innerHTML = `
-    <div class="video-commercial-reel ad-minimal-reel" id="videoReelStage">
-      <img src="${escapeHtml(scene.bgImage || ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(farmerName)}" class="video-scene-bg">
+    <div class="video-commercial-reel ad-minimal-reel" id="videoReelStage" data-ad-id="${escapeHtml(ad.id)}">
+      <!-- 15-Second Commercial Video Layer -->
+      <video id="adCommercialVideo" class="video-scene-stream" autoplay muted loop playsinline preload="auto" poster="${escapeHtml(scene.bgImage || ad.avatar || 'assets/dashboard-banner.jpg')}">
+        <source src="${escapeHtml(videoSourceUrl)}" type="video/mp4">
+      </video>
+      <img id="adSceneBgImg" src="${escapeHtml(scene.bgImage || ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(farmerName)}" class="video-scene-bg">
       <div class="video-cinematic-overlay"></div>
 
+      <!-- AI-Generated Content based on Participating Farmer Information & Sales Data -->
       <div class="ad-minimal-info">
-        <span class="ad-rank-badge">#${currentAdIndex + 1} of ${ads.length} • ${escapeHtml(ad.tierName || 'Sponsored Farmer')}</span>
+        <div class="ad-top-tag-row">
+          <span class="ad-rank-badge">#${currentAdIndex + 1} of ${ads.length} • ${escapeHtml(ad.tierName || 'Sponsored Farmer')}</span>
+          <span class="ad-ai-commercial-badge">✨ AI-Generated Commercial</span>
+          <span class="ad-location-badge">🌱 ${escapeHtml(ad.location || 'Philippines')}</span>
+        </div>
+
         <h3 class="ad-minimal-name">${escapeHtml(farmerName)}</h3>
+        <div class="ad-farm-name-text">${escapeHtml(farmName)}</div>
+
         <div class="ad-rating-row">
           ${renderAdStars(ratingStats.rating)}
           <strong class="ad-rating-value">${ratingStats.rating.toFixed(1)}</strong>
-          <span class="ad-rating-count">(${Number(ratingStats.reviewsCount).toLocaleString()} reviews)</span>
+          <span class="ad-rating-count">(${Number(ratingStats.reviewsCount).toLocaleString()} verified reviews)</span>
         </div>
+
         <div class="ad-minimal-sales">
           <div class="ad-minimal-stat">
             <span class="ad-minimal-value">₱${Number(sales.totalSales).toLocaleString()}</span>
@@ -9314,10 +9344,26 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
             <span class="ad-minimal-label">Orders Sold</span>
           </div>
         </div>
+
+        <!-- AI Scene Narrative based on farmer's crops, method & provenance -->
+        <div class="ad-ai-scene-caption">
+          <div id="adAiCaptionTag" class="ad-ai-caption-tag">${escapeHtml(scene.sceneTag || `SCENE ${sceneIdx + 1}/3 • HARVEST FOCUS`)}</div>
+          <h4 id="adAiCaptionHeadline" class="ad-ai-caption-headline">${escapeHtml(scene.headline || `🌱 100% Direct Farmgate from ${ad.location}`)}</h4>
+          <p id="adAiCaptionSubtext" class="ad-ai-caption-subtext">${escapeHtml(scene.subtext || `Carefully sorted and packaged to protect freshness and honest returns for ${farmerName}.`)}</p>
+        </div>
       </div>
 
-      <div class="ad-playlist" role="group" aria-label="Subscriber video ads ranked by subscription value">
-        ${playlistHtml}
+      <!-- Bottom Bar: Numeric Timer displayed as numbers at bottom & subscriber playlist -->
+      <div class="ad-video-bottom-bar">
+        <div class="ad-bottom-timer-badge">
+          <span class="ad-timer-rec-dot"></span>
+          <span id="adBottomTimerNumbers" class="ad-bottom-timer-numbers">00:${elapsedStr} / 00:15</span>
+          <span class="ad-timer-label">15s Video Ad</span>
+        </div>
+
+        <div class="ad-playlist" role="group" aria-label="Subscriber video ads ranked by subscription value">
+          ${playlistHtml}
+        </div>
       </div>
     </div>
   `;
