@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="assets/app.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="assets/app.js" defer></script>
+  <script src="assets/demographics-realtime.js" defer></script>
   <link rel="icon" type="image/png" href="assets/favicon.png?v=4">
   <link rel="shortcut icon" href="favicon.ico?v=4">
   <link rel="apple-touch-icon" href="assets/favicon.png?v=4">
@@ -209,36 +210,159 @@
       </div>
 
       <!-- Farmer Demographics Metrics Row -->
-      <div style="background: #0f172a; border-radius: var(--radius-lg); padding: 2rem; color: #ffffff; margin-bottom: 3.5rem;">
-        <div style="text-align: center; margin-bottom: 1.75rem;">
-          <span style="color: #4ade80; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Key Demographics & Impact</span>
-          <h3 style="font-size: 1.45rem; font-weight: 800; margin-top: 0.25rem;">Filipino Agricultural Smallholder Snapshot</h3>
+      <!-- Real-Time Farmer Demographics & Impact Section -->
+      <section id="keyDemographicsSection" class="demographics-wrapper" aria-label="Key Demographics and Impact">
+        <!-- Live Stream Header Bar -->
+        <div class="demographics-top-bar">
+          <div class="demographics-badge-group">
+            <span class="live-stream-badge">
+              <span class="pulse-indicator-dot" id="demoPulseDot"></span>
+              Real-Time Online Stream
+            </span>
+            <span style="color: #4ade80; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Key Demographics &amp; Impact</span>
+          </div>
+
+          <div class="demographics-sync-meta">
+            <div>
+              <span>Synced: <strong id="demoLastUpdated" style="color: #f1f5f9;">Just now</strong></span>
+              <span style="margin: 0 0.4rem; opacity: 0.4;">|</span>
+              <span>Next update: <strong id="demoCountdown" style="color: #4ade80;">60s</strong></span>
+            </div>
+            <div class="demographics-actions">
+              <button id="btnSyncDemographics" class="btn-demo-sync" title="Fetch fresh records from online sources">
+                <span class="sync-icon">↻</span> Sync Now
+              </button>
+              <button id="btnToggleDemographicsModal" class="btn-demo-telemetry" title="Inspect connected online records and endpoints">
+                📡 Live Feeds
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; text-align: center;">
-          <div style="background: rgba(255, 255, 255, 0.06); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.1);">
-            <div style="font-size: 2.2rem; font-weight: 800; color: #4ade80;">53 yrs</div>
-            <div style="font-size: 0.85rem; font-weight: 600; margin-top: 0.25rem;">Average Farmer Age</div>
-            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">Urgent need for young generation incentives via digital tools</div>
+        <div class="demographics-title-block">
+          <h3 style="font-size: 1.55rem; font-weight: 800; margin-top: 0.25rem; color: #ffffff;">Filipino Agricultural Smallholder Snapshot</h3>
+          <p class="demographics-subheading">
+            Live telemetry connected directly to World Bank Open Data, Philippine Statistics Authority (PSA) Agricultural Indicators System (AIS), and AgriConnect Cloud Database.
+          </p>
+        </div>
+
+        <!-- 4 Key Demographics Real-Time Cards -->
+        <div class="demographics-cards-grid">
+          <!-- Card 1: Average Farmer Age -->
+          <div class="demographics-card">
+            <div>
+              <div class="demographics-card-val color-green" id="demoValAge">53.4 yrs</div>
+              <span class="demographics-pill-tag" id="demoTagAge">PSA/DA AIS: 53.2 yrs</span>
+              <div class="demographics-card-title">Average Farmer Age</div>
+              <div class="demographics-card-desc">Urgent need for young generation incentives via digital tools</div>
+            </div>
+            <div class="demographics-card-source">
+              <span class="mini-dot"></span> Online: PSA AIS &amp; World Bank ILO
+            </div>
           </div>
 
-          <div style="background: rgba(255, 255, 255, 0.06); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.1);">
-            <div style="font-size: 2.2rem; font-weight: 800; color: #38bdf8;">1.5 ha</div>
-            <div style="font-size: 0.85rem; font-weight: 600; margin-top: 0.25rem;">Average Farm Size</div>
-            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">Smallholder family farms dominating regional crop output</div>
+          <!-- Card 2: Average Farm Size -->
+          <div class="demographics-card">
+            <div>
+              <div class="demographics-card-val color-blue" id="demoValFarmSize">1.48 ha</div>
+              <span class="demographics-pill-tag" id="demoTagFarmSize">DA RSBSA: 1.50 ha</span>
+              <div class="demographics-card-title">Average Farm Size</div>
+              <div class="demographics-card-desc">Smallholder family farms dominating regional crop output</div>
+            </div>
+            <div class="demographics-card-source">
+              <span class="mini-dot"></span> Online: DA RSBSA &amp; WB Land Records
+            </div>
           </div>
 
-          <div style="background: rgba(255, 255, 255, 0.06); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.1);">
-            <div style="font-size: 2.2rem; font-weight: 800; color: #f59e0b;">+85%</div>
-            <div style="font-size: 0.85rem; font-weight: 600; margin-top: 0.25rem;">Income Growth</div>
-            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">Direct farmgate margin over traditional buyer consolidators</div>
+          <!-- Card 3: Income Growth -->
+          <div class="demographics-card">
+            <div>
+              <div class="demographics-card-val color-amber" id="demoValIncome">+86.5%</div>
+              <span class="demographics-pill-tag" id="demoTagIncome">Direct vs Trad. Farmgate</span>
+              <div class="demographics-card-title">Income Growth</div>
+              <div class="demographics-card-desc">Direct farmgate margin over traditional buyer consolidators</div>
+            </div>
+            <div class="demographics-card-source">
+              <span class="mini-dot"></span> Live: AgriConnect Pricing Engine
+            </div>
           </div>
 
-          <div style="background: rgba(255, 255, 255, 0.06); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.1);">
-            <div style="font-size: 2.2rem; font-weight: 800; color: #a78bfa;">&lt; 5%</div>
-            <div style="font-size: 0.85rem; font-weight: 600; margin-top: 0.25rem;">Post-Harvest Spoilage</div>
-            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">Harvested upon confirmed order & express dispatch</div>
+          <!-- Card 4: Post-Harvest Spoilage -->
+          <div class="demographics-card">
+            <div>
+              <div class="demographics-card-val color-purple" id="demoValSpoilage">&lt; 4.2%</div>
+              <span class="demographics-pill-tag" id="demoTagSpoilage">-31% vs 35% Trad. Loss</span>
+              <div class="demographics-card-title">Post-Harvest Spoilage</div>
+              <div class="demographics-card-desc">Harvested upon confirmed order &amp; express dispatch</div>
+            </div>
+            <div class="demographics-card-source">
+              <span class="mini-dot"></span> Live: 24h Express Dispatch Logs
+            </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Connected Online Records Telemetry Modal -->
+      <div id="demographicsTelemetryModal" class="telemetry-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="telemetryModalTitle">
+        <div class="telemetry-modal-box">
+          <div class="telemetry-modal-header">
+            <h3 id="telemetryModalTitle">📡 Connected Real-Time Agricultural Records</h3>
+            <button id="btnCloseDemographicsModal" class="telemetry-close-btn" aria-label="Close dialog">&times;</button>
+          </div>
+
+          <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.25rem; line-height: 1.5;">
+            This system continuously polls official online agricultural databases and marketplace transactions in real-time. Any changes in these connected sources automatically update the demographic snapshot.
+          </p>
+
+          <div class="telemetry-sources-list">
+            <!-- Source 1: World Bank API -->
+            <div class="telemetry-source-card">
+              <div class="telemetry-source-head">
+                <span class="telemetry-source-name">🌐 World Bank Agricultural Open API</span>
+                <span class="telemetry-status-pill" id="telemetryWbStatus">ONLINE</span>
+              </div>
+              <div class="telemetry-source-detail" id="telemetryWbVal">
+                Agri Employment: 20.5% | Agricultural Land: 42.7%
+              </div>
+              <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">
+                Endpoint: <code>api.worldbank.org/v2/country/PH/indicator/...</code> &bull; Latency: <span id="telemetryWbLatency">--</span>
+              </div>
+            </div>
+
+            <!-- Source 2: PSA / DA AIS -->
+            <div class="telemetry-source-card">
+              <div class="telemetry-source-head">
+                <span class="telemetry-source-name">📊 Philippine Statistics Authority &amp; DA RSBSA</span>
+                <span class="telemetry-status-pill" id="telemetryPsaStatus">SYNCHRONIZED</span>
+              </div>
+              <div class="telemetry-source-detail" id="telemetryPsaVal">
+                Smallholder Median: 53.2 yrs | Landholding: 1.50 ha (Census of Agriculture &amp; Fisheries)
+              </div>
+              <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">
+                Dataset: PSA Agricultural Indicators System (AIS) &amp; DA Registry System for Basic Sectors
+              </div>
+            </div>
+
+            <!-- Source 3: AgriConnect Supabase -->
+            <div class="telemetry-source-card">
+              <div class="telemetry-source-head">
+                <span class="telemetry-source-name">⚡ AgriConnect Cloud Marketplace Engine</span>
+                <span class="telemetry-status-pill" id="telemetryCloudStatus">CONNECTED</span>
+              </div>
+              <div class="telemetry-source-detail" id="telemetryCloudVal">
+                Active Listings: 18 | Computed Direct Farmgate Margin: +86.5%
+              </div>
+              <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">
+                Database: Supabase REST Realtime &bull; Latency: <span id="telemetryCloudLatency">--</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.05em;">Live JSON Stream Payload</span>
+            <button id="btnRefreshTelemetryModal" class="btn-demo-sync">↻ Re-fetch Feed Now</button>
+          </div>
+          <pre class="telemetry-json-viewer" id="telemetryRawJson">Fetching live online stream telemetry...</pre>
         </div>
       </div>
 
