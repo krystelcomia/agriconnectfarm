@@ -5918,10 +5918,10 @@ function handleLogin(e) {
     localStorage.setItem('agri_mode', 'admin');
 
     updateAuthUI();
-    showToast('👑 Welcome back, Administrator Krystel Comia! Directing to Executive Access...');
+    showToast('👑 Welcome back, Administrator Krystel Comia!');
 
     const urlParams = new URLSearchParams(window.location.search);
-    const redirectUrl = urlParams.get('redirect') || 'admin.html';
+    const redirectUrl = urlParams.get('redirect') || 'index.html';
 
     setTimeout(() => {
       window.location.href = redirectUrl;
@@ -5962,12 +5962,8 @@ function handleLogin(e) {
   showToast(`Welcome back, ${matchedUser.full_name}!`);
 
   setTimeout(() => {
-    if (matchedUser.role === 'admin') {
-      window.location.href = 'admin.html';
-      return;
-    }
     const params = new URLSearchParams(window.location.search);
-    const redirectUrl = params.get('redirect') || (matchedUser.role === 'farmer' ? 'dashboard.html' : 'marketplace.html');
+    const redirectUrl = params.get('redirect') || 'index.html';
     window.location.href = redirectUrl;
   }, 600);
 }
@@ -6275,7 +6271,7 @@ function handleRegister(e) {
 
   setTimeout(() => {
     const params = new URLSearchParams(window.location.search);
-    const redirectUrl = params.get('redirect') || 'dashboard.html';
+    const redirectUrl = params.get('redirect') || 'index.html';
     window.location.href = redirectUrl;
   }, 700);
 }
