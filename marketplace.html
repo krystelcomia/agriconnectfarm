@@ -123,6 +123,23 @@
           </svg>
         </div>
 
+        <!-- Price Range Slider -->
+        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+            <span>Max Farmgate Price:</span>
+            <strong id="priceRangeDisplay" style="color: var(--primary-deep); font-weight: 700;">₱3,000</strong>
+          </div>
+          <input 
+            type="range" 
+            id="priceRange" 
+            min="20" 
+            max="3000" 
+            step="20" 
+            value="3000"
+            style="width: 100%; accent-color: var(--primary);"
+          >
+        </div>
+
         <!-- Location Dropdown -->
         <div>
           <select 
@@ -140,23 +157,6 @@
             <option value="Cagayan">Cagayan Valley (Spices)</option>
             <option value="Tarlac">Tarlac (Grains & Corn)</option>
           </select>
-        </div>
-
-        <!-- Price Range Slider -->
-        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
-            <span>Max Farmgate Price:</span>
-            <strong id="priceRangeDisplay" style="color: var(--primary-deep); font-weight: 700;">₱3,000</strong>
-          </div>
-          <input 
-            type="range" 
-            id="priceRange" 
-            min="20" 
-            max="3000" 
-            step="20" 
-            value="3000"
-            style="width: 100%; accent-color: var(--primary);"
-          >
         </div>
 
         <!-- Sort Select & Reset Button -->
