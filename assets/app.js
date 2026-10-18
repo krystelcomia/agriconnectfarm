@@ -6534,9 +6534,6 @@ function updateAuthUI() {
             <span style="font-size: 0.68rem; color: ${roleBadgeColor}; font-weight: 800; text-transform: uppercase; white-space: nowrap;">${roleBadgeText}</span>
           </div>
         </a>
-        <a href="${profileLink}" class="btn-secondary" style="font-size: 0.725rem; padding: 0.28rem 0.65rem; border-color: ${isProfilePage || window.location.pathname.includes('admin.html') ? 'var(--primary)' : 'var(--border-subtle)'}; background: ${isProfilePage || window.location.pathname.includes('admin.html') ? 'var(--primary-light)' : '#ffffff'}; color: ${isProfilePage || window.location.pathname.includes('admin.html') ? 'var(--primary-deep)' : 'var(--text-main)'}; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700;" title="${isAdmin ? 'Admin Console' : 'My Profile'}">
-          ${isAdmin ? '<span>👑 Admin</span>' : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span>'}
-        </a>
         <button onclick="handleLogout()" class="btn-secondary" style="font-size: 0.725rem; padding: 0.28rem 0.55rem; border-color: var(--border-subtle); white-space: nowrap;" title="Log out">
           Sign Out
         </button>
