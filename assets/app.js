@@ -3869,6 +3869,23 @@ function initProfilePage() {
     dashBtn.style.display = isFarmer ? 'inline-flex' : 'none';
   }
 
+  // Hero banner Dashboard button (visible for both buyers and farmers)
+  const heroDashBtn = document.getElementById('profileHeroDashboardBtn');
+  if (heroDashBtn) {
+    const isAdmin = Boolean(user && (user.role === 'admin' || user.is_admin));
+    if (isAdmin) {
+      heroDashBtn.href = 'admin.html';
+      heroDashBtn.title = 'Open Admin Executive Console';
+      const span = heroDashBtn.querySelector('span');
+      if (span) span.textContent = 'Admin Console';
+    } else {
+      heroDashBtn.href = 'dashboard.html';
+      heroDashBtn.title = isFarmer ? 'Open Farmer Producer Dashboard' : 'Open Direct Buyer Dashboard';
+      const span = heroDashBtn.querySelector('span');
+      if (span) span.textContent = 'Dashboard';
+    }
+  }
+
   const actionBtn = document.getElementById('profileActionBtn');
   if (actionBtn) {
     if (isFarmer) {
