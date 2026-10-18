@@ -3191,11 +3191,11 @@ function openProductModal(productId) {
             <div style="display: flex; align-items: center; gap: 0.75rem;">
               <div style="display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden; background: #ffffff;">
                 <button type="button" onclick="adjustModalQty(-1)" style="padding: 0.55rem 0.9rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer; font-size: 1rem;">-</button>
-                <input id="modalQtyInput" type="number" value="1" min="1" max="${p.quantity}" style="width: 50px; text-align: center; border: none; font-weight: 700; font-size: 0.95rem;" readonly>
+                <input id="modalQtyInput" type="number" value="1" min="1" max="${p.quantity}" style="width: 56px; padding: 0.55rem 0; margin: 0; text-align: center; border: none; font-weight: 400; font-size: 0.95rem; -moz-appearance: textfield; appearance: textfield; background: transparent;" readonly>
                 <button type="button" onclick="adjustModalQty(1, ${p.quantity})" style="padding: 0.55rem 0.9rem; background: var(--bg-subtle); border: none; font-weight: 700; cursor: pointer; font-size: 1rem;">+</button>
               </div>
 
-              <button type="button" onclick="addToCartFromModal('${p.id}')" class="btn-primary" style="flex: 1; padding: 0.75rem 1.25rem; font-size: 0.9rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;">
+              <button type="button" onclick="addToCartFromModal('${p.id}')" class="btn-primary" style="flex: 1; padding: 0.75rem 1.25rem; font-size: 0.9rem; font-weight: 400; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;">
                 + Add to Basket
               </button>
             </div>
