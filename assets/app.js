@@ -6370,9 +6370,38 @@ function updateAuthUI() {
     existingDashLinks.forEach(link => link.remove());
   }
 
-  // Ensure no Dashboard button is present in the site header
+  // Header Actions: Toggle Dashboard button in the former Sell Harvest position
   const headerDashBtns = document.querySelectorAll('.header-dashboard-btn');
-  headerDashBtns.forEach(btn => btn.remove());
+  const isAdmin = Boolean(user && (user.role === 'admin' || user.is_admin));
+  
+  headerDashBtns.forEach(btn => {
+    if (user) {
+      btn.style.setProperty('display', 'inline-flex', 'important');
+      if (isAdmin) {
+        btn.href = 'admin.html';
+        btn.setAttribute('title', 'Open Admin Executive Console');
+        const span = btn.querySelector('span');
+        if (span) span.textContent = 'Admin Console';
+        if (window.location.pathname.includes('admin.html')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      } else {
+        btn.href = 'dashboard.html';
+        btn.setAttribute('title', 'Open Dashboard');
+        const span = btn.querySelector('span');
+        if (span) span.textContent = 'Dashboard';
+        if (window.location.pathname.includes('dashboard.html')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      }
+    } else {
+      btn.style.setProperty('display', 'none', 'important');
+    }
+  });
 
   // Toggle Header Cart Button vs Farmer Orders Management Button
   const cartBtns = document.querySelectorAll('button[aria-label="View Cart"], button[aria-label="Manage Farmer Orders"], button[onclick*="toggleCart"], button[onclick*="toggleFarmerOrdersDrawer"]');
@@ -6509,11 +6538,11 @@ function updateAuthUI() {
     const isProfilePage = window.location.pathname.includes('profile.html');
     const roleBadgeText = isAdmin ? '👑 Admin' : (user.role === 'farmer' ? 'Farmer' : 'Buyer');
     const roleBadgeColor = isAdmin ? '#dc2626' : 'var(--primary)';
-    const profileLink = 'profile.html';
+    const profileLink = isAdmin ? 'admin.html' : 'profile.html';
 
     container.innerHTML = `
       <div style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; flex-shrink: 0;">
-        <a href="${profileLink}" class="header-profile-link" id="headerProfileLink" title="Go to My Profile">
+        <a href="${profileLink}" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; padding: 0.2rem 0.35rem; border-radius: var(--radius-sm); transition: opacity 0.15s ease;" title="Open Profile/Console">
           <div style="width: 32px; height: 32px; border-radius: 9999px; background: ${isAdmin ? '#dc2626' : 'var(--primary)'}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; box-shadow: var(--shadow-sm); overflow: hidden;">
             ${user.avatar ? `<img src="${user.avatar}" alt="${user.full_name}" style="width: 100%; height: 100%; object-fit: cover;">` : initials}
           </div>

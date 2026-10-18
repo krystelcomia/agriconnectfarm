@@ -810,28 +810,39 @@ body.cart-open {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* Header Dashboard Button: removed from header per user specification */
+/* Header Dashboard Button: positioned where Sell Harvest previously was */
 .header-dashboard-btn {
   display: none !important;
-}
-
-/* Header Profile Link */
-.header-profile-link {
-  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
+  font-size: 0.825rem;
+  font-weight: 700;
+  padding: 0.45rem 0.95rem;
   text-decoration: none;
-  color: inherit;
-  padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  transition: all 0.15s ease;
-  cursor: pointer;
+  background: var(--primary);
+  color: #ffffff !important;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.header-profile-link:hover {
-  background: var(--bg-subtle);
-  border-color: var(--border-subtle);
+.header-dashboard-btn:hover {
+  background: var(--primary-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(21, 128, 61, 0.25);
+  color: #ffffff !important;
+}
+
+.header-dashboard-btn.active {
+  background: var(--primary-deep);
+  box-shadow: 0 0 0 2px #86efac, var(--shadow-sm);
+}
+
+body.is-logged-in .header-dashboard-btn,
+body.is-farmer .header-dashboard-btn,
+body.is-buyer .header-dashboard-btn {
+  display: inline-flex !important;
 }
 
 /* Sell Harvest: Inside Dashboard and Farmer specific controls */
