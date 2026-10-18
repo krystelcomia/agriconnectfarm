@@ -7,6 +7,9 @@
   <meta name="description" content="Access your AgriConnect account to buy fresh direct farmgate product or list your farm harvests with 0% middleman fees. Join verified Filipino growers and conscious consumers.">
   <link rel="stylesheet" href="assets/app.css">
   <script src="assets/app.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer></script>
+  <script src="assets/emailjs-config.js" defer></script>
+  <script src="assets/forgot-password.js" defer></script>
   <link rel="icon" type="image/png" href="assets/favicon.png?v=4">
   <link rel="shortcut icon" href="favicon.ico?v=4">
   <link rel="apple-touch-icon" href="assets/favicon.png?v=4">
@@ -88,7 +91,7 @@
         <form onsubmit="handleLogin(event)" style="display: flex; flex-direction: column; gap: 1rem;">
           <div>
             <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem;">
-              Email Address *
+              Email Address
             </label>
             <input 
               type="email" 
@@ -100,13 +103,10 @@
           </div>
 
           <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <div style="margin-bottom: 0.35rem;">
               <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">
-                Password *
+                Password
               </label>
-              <a href="#" onclick="showToast('Password reset instructions sent to your email.'); return false;" style="font-size: 0.75rem; color: var(--primary); font-weight: 600; text-decoration: none;">
-                Forgot password?
-              </a>
             </div>
             <div style="position: relative;">
               <input 
@@ -125,6 +125,11 @@
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
+            </div>
+            <div style="margin-top: 0.4rem; text-align: right;">
+              <a href="#" id="forgotPasswordLink" onclick="showForgotPassword(); return false;" style="font-size: 0.75rem; color: var(--primary); font-weight: 600; text-decoration: none;">
+                Forgot password?
+              </a>
             </div>
           </div>
 

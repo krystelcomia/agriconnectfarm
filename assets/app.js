@@ -5874,7 +5874,13 @@ function togglePasswordVisibility(inputId, btn) {
   }
 }
 
-function handleLogin(e) {
+async function agriHashPassword(plain) {
+  const data = new TextEncoder().encode(String(plain));
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function handleLogin(e) {
   e.preventDefault();
   const form = e.target;
   const email = (form.email.value || '').trim().toLowerCase();
@@ -5936,6 +5942,15 @@ function handleLogin(e) {
   if (!matchedUser) {
     showToast('No account found with that email. Please create an account first.');
     return;
+  }
+
+  // Accounts whose password was set through "Forgot password" must match the stored hash
+  if (matchedUser.password_hash) {
+    const enteredHash = await agriHashPassword(password);
+    if (enteredHash !== matchedUser.password_hash) {
+      showToast('⚠️ Incorrect password. Use "Forgot password?" to reset it.');
+      return;
+    }
   }
 
   // Persist session
