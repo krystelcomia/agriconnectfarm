@@ -8730,35 +8730,53 @@ function rankSponsoredAds(ads) {
   );
 }
 
-function getActiveSponsoredAds() {
+// The ad placement is exclusive: it only ever contains ONE farmer.
+// A farmer with an active purchased subscription owns the placement until it expires;
+// otherwise the top-ranked house showcase fills it.
+function getActiveCustomSponsorAd() {
   const customAdJson = localStorage.getItem('agri_custom_sponsor_ad');
-  if (customAdJson) {
-    try {
-      const customAd = JSON.parse(customAdJson);
+  if (!customAdJson) return null;
+  try {
+    const customAd = JSON.parse(customAdJson);
 
-      // Check package duration expiration
-      if (customAd.expiresAt && Date.now() > customAd.expiresAt) {
-        console.info('Subscriber ad package has expired after full homepage duration:', customAd.id);
-        localStorage.removeItem('agri_custom_sponsor_ad');
-        localStorage.removeItem('agri_active_subscription');
-        return rankSponsoredAds(DEFAULT_SPONSORED_ADS);
-      }
-
-      // Calculate and format real remaining days
-      if (customAd.expiresAt) {
-        const msLeft = customAd.expiresAt - Date.now();
-        const daysLeft = Math.max(1, Math.ceil(msLeft / (24 * 3600 * 1000)));
-        const totalDays = customAd.durationDays || 7;
-        customAd.durationBadge = `🗓️ ${totalDays}-Day Homepage Feature (${daysLeft}d left)`;
-      }
-
-      return rankSponsoredAds([customAd, ...DEFAULT_SPONSORED_ADS]);
-    } catch (e) {
-      console.warn('Error parsing custom sponsor ad', e);
-      return rankSponsoredAds(DEFAULT_SPONSORED_ADS);
+    // Check package duration expiration
+    if (customAd.expiresAt && Date.now() > customAd.expiresAt) {
+      console.info('Subscriber ad package has expired after full homepage duration:', customAd.id);
+      localStorage.removeItem('agri_custom_sponsor_ad');
+      localStorage.removeItem('agri_active_subscription');
+      return null;
     }
+
+    // Calculate and format real remaining days
+    if (customAd.expiresAt) {
+      const msLeft = customAd.expiresAt - Date.now();
+      const daysLeft = Math.max(1, Math.ceil(msLeft / (24 * 3600 * 1000)));
+      const totalDays = customAd.durationDays || 7;
+      customAd.durationBadge = `🗓️ ${totalDays}-Day Homepage Feature (${daysLeft}d left)`;
+    }
+    return customAd;
+  } catch (e) {
+    console.warn('Error parsing custom sponsor ad', e);
+    return null;
   }
-  return rankSponsoredAds(DEFAULT_SPONSORED_ADS);
+}
+
+function getActiveSponsoredAds() {
+  const customAd = getActiveCustomSponsorAd();
+  if (customAd) return [customAd];
+  return rankSponsoredAds(DEFAULT_SPONSORED_ADS).slice(0, 1);
+}
+
+// Human-readable remaining time of the purchased subscription
+function getAdTimeLeftLabel(ad) {
+  if (!ad || !ad.expiresAt) return 'Featured Placement';
+  const msLeft = Math.max(0, ad.expiresAt - Date.now());
+  const days = Math.floor(msLeft / 86400000);
+  const hours = Math.floor((msLeft % 86400000) / 3600000);
+  const mins = Math.floor((msLeft % 3600000) / 60000);
+  if (days > 0) return `${days}d ${hours}h left`;
+  if (hours > 0) return `${hours}h ${mins}m left`;
+  return `${mins}m left`;
 }
 
 /* ============================================================ */
@@ -9124,6 +9142,8 @@ function finalizeAiVideoGeneration(aiJob) {
 /* ============================================================ */
 /* 15-Second Video Ad Commercial Playback Engine               */
 /* ============================================================ */
+// The ad has no time limit: it stays on display for the whole purchased subscription.
+// The 15s cycle only rotates the caption scenes of the SAME farmer's ad (it never ends or switches farmer).
 function startAdCountdownLoop() {
   if (adTickInterval) clearInterval(adTickInterval);
   if (adProgressInterval) clearInterval(adProgressInterval);
@@ -9134,6 +9154,7 @@ function startAdCountdownLoop() {
   adTickInterval = setInterval(() => {
     if (!isAdPaused) {
       adSecondsRemaining--;
+      if (adSecondsRemaining <= 0) adSecondsRemaining = AD_DURATION_SECONDS;
 
       // Determine which scene (0-5s = Scene 1, 5-10s = Scene 2, 10-15s = Scene 3)
       const elapsed = AD_DURATION_SECONDS - adSecondsRemaining;
@@ -9145,22 +9166,14 @@ function startAdCountdownLoop() {
 
       updateTimerDisplay();
       updateSceneTimelineDots(targetSceneIdx);
-
-      if (adSecondsRemaining <= 0) {
-        nextSponsoredAd(true);
-      }
     }
   }, 1000);
 }
 
 function updateTimerDisplay() {
-  const elapsed = Math.max(0, AD_DURATION_SECONDS - adSecondsRemaining);
-  const elapsedStr = String(elapsed).padStart(2, '0');
-  const totalStr = String(AD_DURATION_SECONDS).padStart(2, '0');
-
   const timerNumbers = document.getElementById('adBottomTimerNumbers');
   if (timerNumbers) {
-    timerNumbers.textContent = `00:${elapsedStr} / 00:${totalStr}`;
+    timerNumbers.textContent = getAdTimeLeftLabel(getActiveSponsoredAds()[0]);
   }
 }
 
@@ -9271,17 +9284,8 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
   const sales = getAdSalesFigures(ad);
   const ratingStats = getAdRatingStats(ad);
 
-  // Ranked playlist: every subscriber has their own separate video; all are listed
-  // together on the homepage, highest-value subscription first
-  const playlistHtml = ads.map((a, i) => `
-    <button type="button" class="ad-playlist-item ${i === currentAdIndex ? 'active' : ''}" id="adPlaylistItem${i}" onclick="jumpToSponsoredAd(${i})" title="${escapeHtml(getAdFarmerName(a))} • ${escapeHtml(a.tierName || '')}">
-      <span class="ad-playlist-rank">#${i + 1}</span>
-      <span class="ad-playlist-name">${escapeHtml(getAdFarmerName(a))}</span>
-      <span class="ad-playlist-tier">₱${getAdSubscriptionValue(a).toLocaleString()}</span>
-    </button>
-  `).join('');
-
-  const elapsedStr = String(elapsed).padStart(2, '0');
+  // Exclusive placement: only the purchasing farmer is shown (no playlist of other farmers)
+  const timeLeftLabel = getAdTimeLeftLabel(ad);
   const videoSourceUrl = ad.videoUrl || scene.videoUrl || 'https://assets.mixkit.co/videos/preview/mixkit-farmer-walking-through-a-crop-field-41147-large.mp4';
 
   // Check if video element already exists and just update scene captions & video time without tear down
@@ -9301,7 +9305,7 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
 
     const timerNumbers = document.getElementById('adBottomTimerNumbers');
     if (timerNumbers) {
-      timerNumbers.textContent = `00:${elapsedStr} / 00:15`;
+      timerNumbers.textContent = timeLeftLabel;
     }
     return;
   }
@@ -9319,7 +9323,7 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
       <!-- AI-Generated Content based on Participating Farmer Information & Sales Data -->
       <div class="ad-minimal-info">
         <div class="ad-top-tag-row">
-          <span class="ad-rank-badge">#${currentAdIndex + 1} of ${ads.length} • ${escapeHtml(ad.tierName || 'Sponsored Farmer')}</span>
+          <span class="ad-rank-badge">Exclusive • ${escapeHtml(ad.tierName || 'Sponsored Farmer')}</span>
           <span class="ad-ai-commercial-badge">✨ AI-Generated Commercial</span>
           <span class="ad-location-badge">🌱 ${escapeHtml(ad.location || 'Philippines')}</span>
         </div>
@@ -9353,16 +9357,12 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
         </div>
       </div>
 
-      <!-- Bottom Bar: Numeric Timer displayed as numbers at bottom & subscriber playlist -->
+      <!-- Bottom Bar: remaining subscription time (ad stays up for the full purchased duration) -->
       <div class="ad-video-bottom-bar">
         <div class="ad-bottom-timer-badge">
           <span class="ad-timer-rec-dot"></span>
-          <span id="adBottomTimerNumbers" class="ad-bottom-timer-numbers">00:${elapsedStr} / 00:15</span>
-          <span class="ad-timer-label">15s Video Ad</span>
-        </div>
-
-        <div class="ad-playlist" role="group" aria-label="Subscriber video ads ranked by subscription value">
-          ${playlistHtml}
+          <span id="adBottomTimerNumbers" class="ad-bottom-timer-numbers">${escapeHtml(timeLeftLabel)}</span>
+          <span class="ad-timer-label">Exclusive Video Ad</span>
         </div>
       </div>
     </div>
@@ -9574,6 +9574,14 @@ function handleSubscribeSubmit(e) {
   }
   if (user.role !== 'farmer' && !user.is_admin) {
     showToast('🌾 Subscriptions are reserved for verified Farmer accounts.', 'warning');
+    return;
+  }
+
+  // The ad space is exclusive: it can't be bought while another farmer's subscription is active
+  const activeAd = getActiveCustomSponsorAd();
+  if (activeAd && getAdFarmerName(activeAd).toLowerCase() !== String(user.full_name || '').toLowerCase()) {
+    closeSubscribeModal();
+    showToast(`🔒 The homepage ad space is currently exclusive to ${getAdFarmerName(activeAd)} (${getAdTimeLeftLabel(activeAd)}). Please try again after their subscription ends.`, 'warning');
     return;
   }
 
