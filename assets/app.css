@@ -2256,6 +2256,56 @@ body.is-farmer #categoryChips {
   background: rgba(255, 255, 255, 0.25);
 }
 
+.ad-farmer-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+  padding: 0.35rem 0.9rem 0.35rem 0.35rem;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 9999px;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 5;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.ad-farmer-profile-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(21, 128, 61, 0.85);
+  border-color: #86efac;
+}
+
+.ad-farmer-profile-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #86efac;
+}
+
+.ad-farmer-profile-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.ad-farmer-profile-name {
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.ad-farmer-profile-cta {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #bbf7d0;
+}
+
 @media (max-width: 480px) {
   .ad-minimal-sales {
     gap: 1rem;

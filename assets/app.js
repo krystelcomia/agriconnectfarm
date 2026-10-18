@@ -8928,6 +8928,7 @@ function generateAiVideoAdData(farmKeyOrUser, customName, customLoc, tier, durat
     expiresAt: expiresAt,
     farmName: preset.farmName,
     farmerName: farmerName,
+    farmerKey: user?.farm_name || user?.full_name || '',
     totalSales: salesSeed.totalSales,
     ordersCompleted: salesSeed.ordersCompleted,
     location: preset.location,
@@ -9221,6 +9222,22 @@ function getAdFarmerName(ad) {
   return String(ad.farmName || 'AgriConnect Farmer').split(' — ')[0].trim();
 }
 
+// Link to the advertising farmer's own marketplace (products filtered to that farmer)
+function getAdFarmerMarketUrl(ad) {
+  let key = ad.farmerKey || '';
+  if (!key) {
+    const name = getAdFarmerName(ad).toLowerCase();
+    try {
+      const match = getStoredFarmers().find(f => f && String(f.full_name || '').toLowerCase() === name);
+      if (match) key = match.farm_name || match.full_name;
+    } catch (e) {
+      console.warn('Could not resolve farmer for ad link:', e);
+    }
+  }
+  if (!key) key = String(ad.farmName || getAdFarmerName(ad)).split(' — ').pop().trim();
+  return `marketplace.html?farmer=${encodeURIComponent(key)}`;
+}
+
 // Returns the farmer's star rating (from the live farmers directory when known;
 // stable name-seeded 4.5-5.0 rating for newly generated subscriber ads)
 function getAdRatingStats(ad) {
@@ -9364,6 +9381,14 @@ function renderCurrentSponsoredAd(forceFullRebuild = false) {
           <span id="adBottomTimerNumbers" class="ad-bottom-timer-numbers">${escapeHtml(timeLeftLabel)}</span>
           <span class="ad-timer-label">Exclusive Video Ad</span>
         </div>
+
+        <a class="ad-farmer-profile-btn" id="adFarmerProfileBtn" href="${escapeHtml(getAdFarmerMarketUrl(ad))}" title="Visit ${escapeHtml(farmerName)}'s marketplace">
+          <img src="${escapeHtml(ad.avatar || 'assets/logo.png')}" alt="${escapeHtml(farmerName)}" class="ad-farmer-profile-avatar">
+          <span class="ad-farmer-profile-text">
+            <span class="ad-farmer-profile-name">${escapeHtml(farmerName)}</span>
+            <span class="ad-farmer-profile-cta">Visit Marketplace &rarr;</span>
+          </span>
+        </a>
       </div>
     </div>
   `;
